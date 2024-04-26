@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaryRelations", "NaryRelations\NaryRelations.csproj", "{874159EB-98FB-47DC-B91F-5C0C491F5518}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaryCollections", "NaryCollections\NaryCollections.csproj", "{874159EB-98FB-47DC-B91F-5C0C491F5518}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaryRelations.Tests", "NaryRelations.Tests\NaryRelations.Tests.csproj", "{8EB6C4FF-268E-47E4-A5C4-13C717CE83F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaryCollections.Tests", "NaryCollections.Tests\NaryCollections.Tests.csproj", "{8EB6C4FF-268E-47E4-A5C4-13C717CE83F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

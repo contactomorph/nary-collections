@@ -18,6 +18,6 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\NaryRelations\NaryRelations.csproj" />
+      <ProjectReference Include="..\NaryCollections\NaryCollections.csproj" />
     </ItemGroup>
 </Project>
