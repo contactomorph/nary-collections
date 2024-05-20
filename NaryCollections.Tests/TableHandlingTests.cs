@@ -83,4 +83,49 @@ public class TableHandlingTests
 
         DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Length);
     }
+
+    [Test]
+    public void CheckItemExistenceForNonUniqueParticipantTest()
+    {
+        DogPlaceColorGeneration.CreateTablesForNonUnique(
+            DogPlaceColorTuples.Data,
+            out var hashTable,
+            out var correspondenceTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog);
+        
+        var projector = new DogProjector();
+
+        foreach (var dog in Dogs.KnownDogs)
+        {
+            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForNonUnique(
+                hashTable,
+                correspondenceTable,
+                dataTable,
+                projector,
+                (uint)dog.GetHashCode(),
+                dog);
+        
+            Assert.IsTrue(exists, dog.ToString());
+        }
+        
+        foreach (var dog in Dogs.UnknownDogs)
+        {
+            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+                hashTable,
+                dataTable,
+                projector,
+                (uint)dog.GetHashCode(),
+                dog);
+        
+            Assert.IsFalse(exists);
+        }
+
+        DogPlaceColorGeneration.CheckTablesConsistencyForNonUnique(
+            hashTable,
+            correspondenceTable,
+            dataTable,
+            Dogs.KnownDogs.Length);
+    }
 }
