@@ -25,7 +25,8 @@ public class TableHandlingTests
             dataWithUniqueDogs,
             out var hashTable,
             out var dataTable,
-            hashTuple => hashTuple.Item1);
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog);
         
         var projector = new DogProjector();
 
@@ -63,7 +64,8 @@ public class TableHandlingTests
             DogPlaceColorTuples.Data,
             out var hashTable,
             out var dataTable,
-            hashTuple => (uint)hashTuple.GetHashCode());
+            hashTuple => (uint)hashTuple.GetHashCode(),
+            dataTuple => dataTuple);
         
         var projector = new DogPlaceColorProjector();
 
