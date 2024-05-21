@@ -1,5 +1,6 @@
 using System.Drawing;
 using NaryCollections.Details;
+using NaryCollections.Tests.Resources.Data;
 using NaryCollections.Tests.Resources.DataGeneration;
 using NaryCollections.Tests.Resources.Types;
 
@@ -18,35 +19,17 @@ public class TableHandlingTests
     [Test]
     public void CheckItemExistenceForUniqueParticipantTest()
     {
-        Dog[] knownDogs =
-        [
-            new("Rex", "Anne Besnard"),
-            new("Fifi", "Louis Durand"),
-            new("Platon", "Jean Dupuis"),
-        ];
-
-        Dog[] unknownDogs =
-        [
-            new("Fifi", "Louis Dupont"),
-            new("Rex", "Jean Dupuis"),
-        ];
-
-        DogPlaceColorTuple[] data =
-        [
-            (knownDogs[0], "Lyon", Color.Beige),
-            (knownDogs[1], "Lyon", Color.CadetBlue),
-            (knownDogs[2], "Paris", Color.Beige),
-        ];
+        DogPlaceColorTuple[] dataWithUniqueDogs = DogPlaceColorTuples.Data.DistinctBy(t => t.Dog).ToArray();
 
         DogPlaceColorGeneration.CreateTablesForUnique(
-            data,
+            dataWithUniqueDogs,
             out var hashTable,
             out var dataTable,
             hashTuple => hashTuple.Item1);
         
         var projector = new DogProjector();
 
-        foreach (var (dog, _, _) in data)
+        foreach (var (dog, _, _) in dataWithUniqueDogs)
         {
             bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
@@ -58,7 +41,7 @@ public class TableHandlingTests
             Assert.IsTrue(exists);
         }
         
-        foreach (var dog in unknownDogs)
+        foreach (var dog in Dogs.UnknownDogs)
         {
             bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
@@ -70,40 +53,21 @@ public class TableHandlingTests
             Assert.IsFalse(exists);
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, data.Length);
+        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, dataWithUniqueDogs.Length);
     }
     
     [Test]
     public void CheckItemExistenceForLineTest()
     {
-        Dog[] knownDogs =
-        [
-            new("Rex", "Anne Besnard"),
-            new("Fifi", "Louis Durand"),
-            new("Platon", "Jean Dupuis"),
-        ];
-
-        DogPlaceColorTuple[] data =
-        [
-            (knownDogs[0], "Lyon", Color.Beige),
-            (knownDogs[1], "Lyon", Color.CadetBlue),
-            (knownDogs[2], "Paris", Color.Beige),
-            (knownDogs[2], "Lyon", Color.CadetBlue),
-            (knownDogs[1], "Lyon", Color.Orange),
-            (knownDogs[1], "Bordeaux", Color.CadetBlue),
-            (knownDogs[0], "Bordeaux", Color.Beige),
-            (knownDogs[0], "Bordeaux", Color.CadetBlue),
-        ];
-
         DogPlaceColorGeneration.CreateTablesForUnique(
-            data,
+            DogPlaceColorTuples.Data,
             out var hashTable,
             out var dataTable,
             hashTuple => (uint)hashTuple.GetHashCode());
         
         var projector = new DogPlaceColorProjector();
 
-        foreach (var tuple in data)
+        foreach (var tuple in DogPlaceColorTuples.Data)
         {
             bool exists = TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ContainsForUnique(
                 hashTable,
@@ -115,6 +79,6 @@ public class TableHandlingTests
             Assert.IsTrue(exists);
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, data.Length);
+        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Length);
     }
 }
