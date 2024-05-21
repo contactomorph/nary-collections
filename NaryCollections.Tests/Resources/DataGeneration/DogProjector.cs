@@ -32,7 +32,7 @@ internal sealed class DogProjector : IDataProjector<DogPlaceColorEntry, Dog>
         throw new NotImplementedException();
     }
 
-    public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index)
+    public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, int backIndex)
     {
         throw new NotImplementedException();
     }

@@ -33,7 +33,7 @@ internal sealed class DogPlaceColorProjector
         throw new NotImplementedException();
     }
 
-    public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index)
+    public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, int backIndex)
     {
         throw new NotImplementedException();
     }
