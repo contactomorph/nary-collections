@@ -6,6 +6,7 @@ using NaryCollections.Tests.Resources.Types;
 namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
 public class TableHandlingTests
 {
@@ -43,12 +44,13 @@ public class TableHandlingTests
             out var dataTable,
             hashTuple => hashTuple.Item1);
         
-        var projector = new DogProjector(dataTable);
+        var projector = new DogProjector();
 
         foreach (var (dog, _, _) in data)
         {
-            bool exists = TableHandling<Dog>.ContainsForUnique(
+            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
+                dataTable,
                 projector,
                 (uint)dog.GetHashCode(),
                 dog);
@@ -58,8 +60,9 @@ public class TableHandlingTests
         
         foreach (var dog in unknownDogs)
         {
-            bool exists = TableHandling<Dog>.ContainsForUnique(
+            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
+                dataTable,
                 projector,
                 (uint)dog.GetHashCode(),
                 dog);
@@ -98,12 +101,13 @@ public class TableHandlingTests
             out var dataTable,
             hashTuple => (uint)hashTuple.GetHashCode());
         
-        var projector = new DogPlaceColorProjector(dataTable);
+        var projector = new DogPlaceColorProjector();
 
         foreach (var tuple in data)
         {
-            bool exists = TableHandling<DogPlaceColorTuple>.ContainsForUnique(
+            bool exists = TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ContainsForUnique(
                 hashTable,
+                dataTable,
                 projector,
                 (uint)DogPlaceColorGeneration.ToHashCodes(tuple).GetHashCode(),
                 tuple);

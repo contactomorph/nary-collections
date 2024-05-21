@@ -17,11 +17,12 @@ internal static class TableHandling
     }
 }
 
-internal static class TableHandling<T>
+internal static class TableHandling<TDataEntry,T>
 {
     public static bool ContainsForUnique(
         HashEntry[] hashTable,
-        IDataProjector<T> projector,
+        TDataEntry[] dataTable,
+        IDataProjector<TDataEntry, T> projector,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -38,7 +39,7 @@ internal static class TableHandling<T>
                 return false;
             // we have a good candidate for data
             int occupiedDataIndex = hashTable[reducedHashCode].ForwardIndex;
-            if (projector.AreDataEqualAt(occupiedDataIndex, candidateItem, candidateHashCode))
+            if (projector.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
                 return true;
                 
             TableHandling.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
@@ -48,8 +49,9 @@ internal static class TableHandling<T>
     
     public static bool ContainsForNonUnique(
         HashEntry[] hashTable,
-        CorrespondenceEntry[] correspondenceEntries,
-        IDataProjector<T> projector,
+        CorrespondenceEntry[] correspondenceTable,
+        TDataEntry[] dataTable,
+        IDataProjector<TDataEntry, T> projector,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -70,11 +72,11 @@ internal static class TableHandling<T>
             do
             {
                 // there are possible multiple lines in the correspondence table
-                int occupiedDataIndex = correspondenceEntries[occupiedCorrespondenceIndex].DataIndex;
-                if (projector.AreDataEqualAt(occupiedDataIndex, candidateItem, candidateHashCode))
+                int occupiedDataIndex = correspondenceTable[occupiedCorrespondenceIndex].DataIndex;
+                if (projector.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
                     return true;
 
-                occupiedCorrespondenceIndex = correspondenceEntries[occupiedCorrespondenceIndex].Next;
+                occupiedCorrespondenceIndex = correspondenceTable[occupiedCorrespondenceIndex].Next;
             }
             while (occupiedCorrespondenceIndex != CorrespondenceEntry.NoNextCorrespondence);
 
