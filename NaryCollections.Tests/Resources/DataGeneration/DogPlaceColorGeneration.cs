@@ -8,6 +8,34 @@ using IndexTuple = ValueTuple<int>;
 
 internal static class DogPlaceColorGeneration
 {
+    public static void CreateDataTableOnly(
+        IReadOnlyCollection<DogPlaceColorTuple> data,
+        out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable)
+    {
+        int size = data.Count * 3 / 2;
+        dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
+        
+        var tupleSet = new HashSet<DogPlaceColorTuple>();
+        
+        int i = 0;
+        foreach (var tuple in data)
+        {
+            var hashTuple = ToHashCodes(tuple);
+            
+            dataTable[i] = new()
+            {
+                DataTuple = tuple,
+                HashTuple = hashTuple,
+                BackIndexesTuple = ValueTuple.Create(-1000),
+            };
+
+            if (!tupleSet.Add(tuple))
+                throw new InvalidDataException("Duplicate line");
+
+            ++i;
+        }
+    }
+
     public static void CreateTablesForUnique(
         IEnumerable<DogPlaceColorTuple> data,
         out HashEntry[] hashTable,

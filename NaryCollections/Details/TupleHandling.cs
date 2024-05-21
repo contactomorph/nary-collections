@@ -12,6 +12,29 @@ public static class TupleHandling
         throw new InvalidProgramException();
     }
     
+    public static Type CreateTupleType(Type[] componentTypes)
+    {
+        switch (componentTypes.Length)
+        {
+            case 0:
+                return typeof(ValueTuple);
+            case 1:
+                return typeof(ValueTuple<>).MakeGenericType(componentTypes);
+            case 2:
+                return typeof(ValueTuple<,>).MakeGenericType(componentTypes);
+            case 3:
+                return typeof(ValueTuple<,,>).MakeGenericType(componentTypes);
+            case 4:
+                return typeof(ValueTuple<,,,>).MakeGenericType(componentTypes);
+            case 5:
+                return typeof(ValueTuple<,,,,>).MakeGenericType(componentTypes);
+            case 6:
+                return typeof(ValueTuple<,,,,,>).MakeGenericType(componentTypes);
+            default:
+                throw new NotSupportedException();
+        }
+    }
+    
     public static Type GetRepeatedTupleType<T>(int length)
     {
         switch (length)
