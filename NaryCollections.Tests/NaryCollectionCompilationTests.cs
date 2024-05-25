@@ -13,7 +13,6 @@ namespace NaryCollections.Tests;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
 using IndexTuple = (int, int, int, int, int);
-using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, int, int, int, int)>;
 
 public class NaryCollectionCompilationTests
@@ -136,5 +135,25 @@ public class NaryCollectionCompilationTests
                 resizeHandler,
                 DogPlaceColorProjector.GetHashTupleComputer());
         }
+        
+        while (referenceSet.Count > 0)
+        {
+            var tuple = referenceSet.First();
+            referenceSet.Remove(tuple);
+            Assert.IsTrue(set.Remove(tuple));
+            
+            resizeHandler = resizeHandlerGetter(collection);
+            
+            var hashTable = hashTableGetter(resizeHandler);
+            var dataTable = dataTableGetter(collection);
+        
+            Consistency.CheckForUnique(
+                hashTable,
+                dataTable,
+                set.Count,
+                resizeHandler,
+                DogPlaceColorProjector.GetHashTupleComputer());
+        }
+        Assert.That(set, Is.Empty);
     }
 }
