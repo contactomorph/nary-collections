@@ -1,47 +1,78 @@
 using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace NaryCollections;
 
 public abstract class Schema
 {
     private protected bool Locked;
+    private protected readonly List<IParticipant> Participants;
+    private protected readonly List<Composite> Composites;
+    private byte _rank;
     
     public abstract Type ArgTupleType { get; }
 
     private protected Schema()
     {
         Locked = false;
+        _rank = 0;
+        Participants = new();
+        Composites = new();
     }
     
     protected Participant<T> AddParticipant<T>()
     {
-        throw new NotImplementedException();
+        if (Locked)
+            throw GenerateLockException();
+        Participant<T> p = new(this);
+        Participants.Add(p);
+        return p;
     }
 
     protected SearchableParticipant<T> AddSearchableParticipant<T>(
         IEqualityComparer<T>? comparer = null,
         bool unique = false)
     {
-        throw new NotImplementedException();
+        if (Locked)
+            throw GenerateLockException();
+        SearchableParticipant<T> p = new(this, _rank++, unique);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        return p;
     }
     
     protected OrderedParticipant<T> AddOrderedParticipant<T>(IComparer<T> comparer, bool unique = false)
     {
-        throw new NotImplementedException();
+        if (Locked)
+            throw GenerateLockException();
+        OrderedParticipant<T> p = new(this, _rank++, unique);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        return p;
     }
     
     protected OrderedParticipant<T> AddOrderedParticipant<T>(bool unique = false) where T : IComparable<T>
     {
-        throw new NotImplementedException();
+        if (Locked)
+            throw GenerateLockException();
+        OrderedParticipant<T> p = new(this, _rank++, unique);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        return p;
     }
 
     protected SearchableComposite<(T1, T2)> AddSearchableComposite<T1, T2>(
         Participant<T1> indexable1,
         Participant<T2> indexable2)
     {
-        throw new NotImplementedException();
+        if (IsInvalid(out var exception, indexable1, indexable2))
+            throw exception;
+        SearchableComposite<(T1, T2)> c =  new(_rank++, [indexable1, indexable2]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
     }
 
     protected SearchableComposite<(T1, T2, T3)> AddSearchableInput<T1, T2, T3>(
@@ -49,14 +80,35 @@ public abstract class Schema
         Participant<T2> indexable2,
         Participant<T3> indexable3)
     {
-        throw new NotImplementedException();
+        if (IsInvalid(out var exception, indexable1, indexable2, indexable3))
+            throw exception;
+        SearchableComposite<(T1, T2, T3)> c = new(_rank++, [indexable1, indexable2, indexable3]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected SearchableComposite<(T1, T2, T3, T4)> AddSearchableInput<T1, T2, T3, T4>(
+        Participant<T1> indexable1,
+        Participant<T2> indexable2,
+        Participant<T3> indexable3,
+        Participant<T4> indexable4)
+    {
+        if (IsInvalid(out var exception, indexable1, indexable2, indexable3, indexable4))
+            throw exception;
+        SearchableComposite<(T1, T2, T3, T4)> c = new(_rank++, [indexable1, indexable2, indexable3, indexable4]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
     }
 
     protected OrderedComposite<(T1, T2)> AddOrderedComposite<T1, T2>(
         Participant<T1> indexable1,
         Participant<T2> indexable2)
     {
-        throw new NotImplementedException();
+        if (IsInvalid(out var exception, indexable1, indexable2))
+            throw exception;
+        OrderedComposite<(T1, T2)> c = new(_rank++, [indexable1, indexable2]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
     }
 
     protected OrderedComposite<(T1, T2, T3)> AddOrderedComposite<T1, T2, T3>(
@@ -64,15 +116,105 @@ public abstract class Schema
         Participant<T2> indexable2,
         Participant<T3> indexable3)
     {
-        throw new NotImplementedException();
+        if (IsInvalid(out var exception, indexable1, indexable2, indexable3))
+            throw exception;
+        OrderedComposite<(T1, T2, T3)> c = new(_rank++, [indexable1, indexable2, indexable3]);
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2, T3, T4)> AddOrderedComposite<T1, T2, T3, T4>(
+        Participant<T1> indexable1,
+        Participant<T2> indexable2,
+        Participant<T3> indexable3,
+        Participant<T4> indexable4)
+    {
+        if (IsInvalid(out var exception, indexable1, indexable2, indexable3, indexable4))
+            throw exception;
+        OrderedComposite<(T1, T2, T3, T4)> c = new(_rank++, [indexable1, indexable2, indexable3, indexable4]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    private bool IsInvalid([MaybeNullWhen(false)] out Exception exception, params IParticipant?[] participants)
+    {
+        if (Locked)
+        {
+            exception = GenerateLockException();
+            return true;
+        }
+
+        foreach (var participant in participants)
+        {
+            if (participant is null)
+            {
+                exception = new ArgumentNullException();
+                return true;
+            }
+
+            if (participant.Schema != this)
+            {
+                exception = GenerateExternalSchemaException();
+                return true;
+            }
+        }
+
+        exception = null;
+        return false;
     }
 
     private protected static Exception GenerateLockException()
     {
-        return new InvalidOperationException("This");
+        return new InvalidOperationException("Once created a schema is locked and cannot be extended");
     }
 
-    internal abstract (Type ItemType, bool Unique)[] GetOrderedParticipants();
+    private protected static Exception GenerateExternalSchemaException()
+    {
+        return new ArgumentException("Attempt to use a participant generated by a distinct schema");
+    }
+
+    internal abstract ImmutableArray<Composite> GetComposites();
+
+    internal sealed class Composite(bool unique, byte rank, ImmutableArray<IParticipant> participants)
+        : IEquatable<Composite>
+    {
+        public ImmutableArray<IParticipant> Participants => participants;
+
+        public byte Rank => rank;
+
+        public bool Unique => unique;
+
+        public override bool Equals(object? obj)
+        {
+            return ReferenceEquals(this, obj) || obj is Composite other && Equals(other);
+        }
+
+        public bool Equals(Composite? other)
+        {
+            if (ReferenceEquals(this, other))
+                return true;
+            if (ReferenceEquals(other, null))
+                return false;
+            return Unique == other.Unique
+                   && Rank == other.Rank
+                   && Participants.Length == other.Participants.Length
+                   && Enumerable.SequenceEqual(Participants, other.Participants);
+        }
+
+        public override int GetHashCode()
+        {
+            var hc = HashCode.Combine(unique, rank, participants.Length);
+            return participants.Aggregate(hc, HashCode.Combine);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new("[");
+            sb.AppendJoin(" ,", Participants.Select(p => p.ItemType.Name));
+            sb.Append("], Rank = ").Append(Rank);
+            if (Unique) sb.Append(", Unique");
+            return sb.ToString();
+        }
+    }
 }
 
 public abstract class Schema<TArgTuple> : Schema
@@ -80,12 +222,7 @@ public abstract class Schema<TArgTuple> : Schema
 {
     protected sealed class Signature
     {
-        public ImmutableArray<IParticipant> Participants { get; }
-        
-        internal Signature(IParticipant[] participants)
-        {
-            Participants = participants.ToImmutableArray();
-        }
+        internal Signature() { }
     }
 
     public sealed override Type ArgTupleType => typeof(TArgTuple);
@@ -99,8 +236,8 @@ public abstract class Schema<TArgTuple> : Schema
         if (typeof(ValueTuple<T>) != typeof(TArgTuple))
             throw new InvalidOperationException();
         Locked = true;
-        var signatureParticipants = CheckSignature(p);
-        return new Schema<ValueTuple<T>>.Signature(signatureParticipants);
+        FreezeSchema(p);
+        return new Schema<ValueTuple<T>>.Signature();
     }
 
     protected Schema<(T1, T2)>.Signature Conclude<T1, T2>(Participant<T1> p1, Participant<T2> p2)
@@ -110,8 +247,8 @@ public abstract class Schema<TArgTuple> : Schema
         if (typeof((T1, T2)) != typeof(TArgTuple))
             throw new InvalidOperationException();
         Locked = true;
-        var signatureParticipants = CheckSignature(p1, p2);
-        return new Schema<(T1, T2)>.Signature(signatureParticipants);
+        FreezeSchema(p1, p2);
+        return new Schema<(T1, T2)>.Signature();
     }
 
     protected Schema<(T1, T2, T3)>.Signature Conclude<T1, T2, T3>(
@@ -124,8 +261,8 @@ public abstract class Schema<TArgTuple> : Schema
         if (typeof((T1, T2, T3)) != typeof(TArgTuple))
             throw new InvalidOperationException();
         Locked = true;
-        var signatureParticipants = CheckSignature(p1, p2, p3);
-        return new Schema<(T1, T2, T3)>.Signature(signatureParticipants);
+        FreezeSchema(p1, p2, p3);
+        return new Schema<(T1, T2, T3)>.Signature();
     }
 
     protected Schema<(T1, T2, T3, T4)>.Signature Conclude<T1, T2, T3, T4>(
@@ -139,8 +276,8 @@ public abstract class Schema<TArgTuple> : Schema
         if (typeof((T1, T2, T3, T4)) != typeof(TArgTuple))
             throw new InvalidOperationException();
         Locked = true;
-        var signatureParticipants = CheckSignature(p1, p2, p3, p4);
-        return new Schema<(T1, T2, T3, T4)>.Signature(signatureParticipants);
+        FreezeSchema(p1, p2, p3, p4);
+        return new Schema<(T1, T2, T3, T4)>.Signature();
     }
 
     protected Schema<(T1, T2, T3, T4, T5)>.Signature Conclude<T1, T2, T3, T4, T5>(
@@ -155,8 +292,8 @@ public abstract class Schema<TArgTuple> : Schema
         if (typeof((T1, T2, T3, T4, T5)) != typeof(TArgTuple))
             throw new InvalidOperationException();
         Locked = true;
-        var signatureParticipants = CheckSignature(p1, p2, p3, p4, p5);
-        return new Schema<(T1, T2, T3, T4, T5)>.Signature(signatureParticipants);
+        FreezeSchema(p1, p2, p3, p4, p5);
+        return new Schema<(T1, T2, T3, T4, T5)>.Signature();
     }
 
     protected Schema<(T1, T2, T3, T4, T5, T6)>.Signature Conclude<T1, T2, T3, T4, T5, T6>(
@@ -171,18 +308,35 @@ public abstract class Schema<TArgTuple> : Schema
             throw GenerateLockException();
         if (typeof((T1, T2, T3, T4, T5, T6)) != typeof(TArgTuple))
             throw new InvalidOperationException();
+        FreezeSchema(p1, p2, p3, p4, p5, p6);
+        return new Schema<(T1, T2, T3, T4, T5, T6)>.Signature();
+    }
+
+    private void FreezeSchema(params IParticipant?[] signatureParticipants)
+    {
+        HashSet<IParticipant> declaredParticipants = [..Participants];
+        foreach (var participant in signatureParticipants)
+        {
+            if (participant is null)
+                throw new ArgumentNullException();
+            if (participant.Schema != this)
+                throw GenerateExternalSchemaException();
+            if (!declaredParticipants.Remove(participant))
+                throw new InvalidOperationException("Participants should not be used multiple times in the signature");
+        }
+        
+        if (0 < declaredParticipants.Count)
+            throw new InvalidOperationException("Some declared participants are not used in the signature");
+
         Locked = true;
-        var signatureParticipants = CheckSignature(p1, p2, p3, p4, p5, p6);
-        return new Schema<(T1, T2, T3, T4, T5, T6)>.Signature(signatureParticipants);
+        Participants.Clear();
+        Participants.AddRange(Participants);
     }
 
-    private IParticipant[] CheckSignature(params IParticipant[] signatureParticipants)
+    internal override ImmutableArray<Composite> GetComposites()
     {
-        throw new NotImplementedException();
-    }
-
-    internal override (Type ItemType, bool Unique)[] GetOrderedParticipants()
-    {
-        return Sign.Participants.Select(p => (p.ItemType, p.Unique)).ToArray();
+        if (!Locked)
+            throw new InvalidOperationException("Schema is not locked yet");
+        return [..Composites];
     }
 }

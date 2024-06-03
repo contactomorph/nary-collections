@@ -3,7 +3,6 @@ namespace NaryCollections;
 public interface IParticipant
 {
     object Schema { get; }
-    byte Index { get; }
     bool Unique { get; }
     Type ItemType { get; }
 }
@@ -11,15 +10,20 @@ public interface IParticipant
 public class Participant<T> : IParticipant
 {
     public object Schema { get; }
-    public byte Index { get; }
 
-    public virtual bool Unique => false;
+    public bool Unique { get; }
     public Type ItemType => typeof(T);
 
-    internal Participant(object schema, byte index)
+    protected Participant(object schema, bool unique)
     {
-        this.Schema = schema;
-        Index = index;
+        Schema = schema;
+        Unique = unique;
+    }
+    
+    internal Participant(object schema)
+    {
+        Schema = schema;
+        Unique = false;
     }
 }
 
@@ -27,18 +31,17 @@ public class Participant<T> : IParticipant
 public class SearchableParticipant<T> : Participant<T>
 #pragma warning restore CS0660, CS0661
 {
-    public override bool Unique { get; }
-
-    internal SearchableParticipant(object schema, byte index, bool unique) : base(schema, index)
+    public byte Rank { get; }
+    
+    internal SearchableParticipant(object schema, byte rank, bool unique) : base(schema, unique)
     {
-        Unique = unique;
+        Rank = rank;
     }
 }
 
 public sealed class OrderedParticipant<T> : SearchableParticipant<T>
 {
-    internal OrderedParticipant(object schema, byte index, bool unique) : base(schema, index, unique)
+    internal OrderedParticipant(object schema, byte rank, bool unique) : base(schema, rank, unique)
     {
-        
     }
 }

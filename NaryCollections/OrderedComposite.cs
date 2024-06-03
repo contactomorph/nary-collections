@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
+
 namespace NaryCollections;
 
-public sealed class OrderedComposite<T> : SearchableComposite<T>
+public sealed class OrderedComposite<TCompositeTuple> : SearchableComposite<TCompositeTuple>
 {
-    internal OrderedComposite() {}
+    internal OrderedComposite(byte rank, ImmutableArray<IParticipant> participants) : base(rank, participants)
+    {}
 }
