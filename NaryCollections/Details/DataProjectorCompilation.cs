@@ -42,6 +42,7 @@ public static class DataProjectorCompilation
         DefineAreDataEqualAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType, comparerFields);
         DefineGetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
         DefineSetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
+        DefineComputeHashCode(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType, comparerFields);
 
         var type = typeBuilder.CreateType();
 
@@ -204,7 +205,7 @@ public static class DataProjectorCompilation
         // item
         il.Emit(OpCodes.Ldarg_3);
         // this._comparer⟨i⟩.Equals(dataTable[index].DataTuple.Item⟨i⟩, item)
-        il.Emit(OpCodes.Callvirt, dataTypeDecomposition.ComparerMethods[comparerFields[0].Index]);
+        il.Emit(OpCodes.Callvirt, dataTypeDecomposition.ComparerEqualsMethods[comparerFields[0].Index]);
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
@@ -292,6 +293,44 @@ public static class DataProjectorCompilation
         il.Emit(OpCodes.Ldarg_3);
         // dataTable[index].BackIndexesTuple.Item⟨p⟩ = backIndex
         il.Emit(OpCodes.Stfld, dataTypeDecomposition.BackIndexProjectionField);
+        
+        il.Emit(OpCodes.Ret);
+
+        typeBuilder.DefineMethodOverride(
+            methodBuilder,
+            projectorInterfaceType.GetMethod(methodName)!);
+    }
+    
+    private static void DefineComputeHashCode(
+        TypeBuilder typeBuilder,
+        Type itemType,
+        DataTypeProjection dataTypeDecomposition,
+        Type projectorInterfaceType,
+        IReadOnlyList<(FieldBuilder Field, int Index)> comparerFields)
+    {
+        const string methodName = nameof(IDataProjector<object, object>.ComputeHashCode);
+        
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                methodName,
+                ProjectorMethodAttributes,
+                typeof(uint),
+                [itemType]);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
+            throw new NotSupportedException();
+        if (comparerFields.Count != 1)
+            throw new NotSupportedException();
+
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // &this._comparer⟨i⟩
+        il.Emit(OpCodes.Ldfld, comparerFields[0].Field);
+        // item
+        il.Emit(OpCodes.Ldarg_1);
+        // this._comparer⟨i⟩.GetHashCode(item)
+        il.Emit(OpCodes.Callvirt, dataTypeDecomposition.ComparerGetHashCodeMethods[comparerFields[0].Index]);
         
         il.Emit(OpCodes.Ret);
 

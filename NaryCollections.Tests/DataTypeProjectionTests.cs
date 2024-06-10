@@ -26,7 +26,7 @@ public class DataTypeProjectionTests
                 typeof(IEqualityComparer<Color>),
             }));
         Assert.That(
-            p1.ComparerMethods,
+            p1.ComparerEqualsMethods,
             Is.EquivalentTo(new[]
             {
                 typeof(IEqualityComparer<Dog>).GetMethod("Equals", [typeof(Dog), typeof(Dog)]),
@@ -34,12 +34,12 @@ public class DataTypeProjectionTests
                 typeof(IEqualityComparer<Color>).GetMethod("Equals", [typeof(Color), typeof(Color)]),
             }));
         Assert.That(
-            p1.ComparerMethods,
+            p1.ComparerGetHashCodeMethods,
             Is.EquivalentTo(new[]
             {
-                typeof(IEqualityComparer<Dog>).GetMethod("Equals", [typeof(Dog), typeof(Dog)]),
-                typeof(IEqualityComparer<string>).GetMethod("Equals", [typeof(string), typeof(string)]),
-                typeof(IEqualityComparer<Color>).GetMethod("Equals", [typeof(Color), typeof(Color)]),
+                typeof(IEqualityComparer<Dog>).GetMethod("GetHashCode", [typeof(Dog)]),
+                typeof(IEqualityComparer<string>).GetMethod("GetHashCode", [typeof(string)]),
+                typeof(IEqualityComparer<Color>).GetMethod("GetHashCode", [typeof(Color)]),
             }));
         Assert.That(p1.HashTupleType, Is.EqualTo(typeof((uint, uint, uint))));
         Assert.That(p1.BackIndexTupleType, Is.EqualTo(typeof((int, int, int, int))));

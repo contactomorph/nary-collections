@@ -20,7 +20,9 @@ public class DataProjectorCompilationTests
     private static readonly IEqualityComparer<string> StringComparer = EqualityComparer<string>.Default;
     private static readonly IEqualityComparer<Color> ColorComparer = EqualityComparer<Color>.Default;
 
-    public static IDataProjector<DogPlaceColorEntry, Dog> Call(ConstructorInfo projectorConstructor)
+    public static IDataProjector<DogPlaceColorEntry, Dog> Call(
+        ConstructorInfo projectorConstructor,
+        IEqualityComparer<Dog>? dogComparer = null)
     {
         var parameters = projectorConstructor
             .GetParameters()
@@ -32,7 +34,7 @@ public class DataProjectorCompilationTests
             .Compile();
         
         return (IDataProjector<DogPlaceColorEntry, Dog>)lambda.DynamicInvoke(
-            DogComparer,
+            dogComparer ?? DogComparer,
             StringComparer,
             ColorComparer)!;
     }
@@ -103,5 +105,35 @@ public class DataProjectorCompilationTests
             projector.SetBackIndex(dataTable, i, newBackIndex);
             Assert.That(dataTable[i].BackIndexesTuple.Item1, Is.EqualTo(newBackIndex));
         }
+    }
+
+    [Test]
+    public void ComputeHashCodeTest()
+    {
+        var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0],
+            0,
+            1);
+        
+        var projector = Call(constructor);
+
+        var dog = new Dog("Portos", "Régis");
+        var hc = projector.ComputeHashCode(dog);
+        
+        Assert.That(hc, Is.EqualTo((uint)dog.GetHashCode()));
+        
+        var projector2 = Call(constructor, new CustomDogEqualityComparer());
+        var hc2 = projector2.ComputeHashCode(dog);
+        
+        Assert.That(hc2, Is.EqualTo((uint)4));
+    }
+
+    private sealed class CustomDogEqualityComparer : IEqualityComparer<Dog>
+    {
+        public bool Equals(Dog? x, Dog? y) => throw new NotImplementedException();
+
+        public int GetHashCode(Dog obj) => 4;
     }
 }

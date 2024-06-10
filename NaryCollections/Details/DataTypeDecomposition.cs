@@ -12,9 +12,12 @@ internal class DataTypeDecomposition
     
     // [typeof(IEqualityComparer<TD1>), …, typeof(IEqualityComparer<TDn>)]
     public Type[] ComparerTypes { get; }
-    
+
     // [typeof(IEqualityComparer<TD1>).GetMethod("Equals"), …, typeof(IEqualityComparer<TDn>).GetMethod("Equals")]
-    public MethodInfo[] ComparerMethods { get; }
+    public MethodInfo[] ComparerEqualsMethods { get; }
+
+    // [typeof(IEqualityComparer<TD1>).GetMethod("GetHashCode"), …, typeof(IEqualityComparer<TDn>).GetMethod("GetHashCode")]
+    public MethodInfo[] ComparerGetHashCodeMethods { get; }
 
     // typeof((uint, …, uint))
     public Type HashTupleType { get; }
@@ -32,20 +35,35 @@ internal class DataTypeDecomposition
     {
         DataTupleType = dataTupleType;
         DataTypes = TupleHandling.GetTupleTypeComposition(dataTupleType);
-        ComparerMethods = DataTypes.Select(GetEqualsMethod).ToArray();
-        ComparerTypes = ComparerMethods.Select(m => m.DeclaringType!).ToArray();
 
         HashTupleType = TupleHandling.GetRepeatedTupleType<uint>(DataTypes.Length);
         BackIndexTupleType = TupleHandling.GetRepeatedTupleType<int>(backIndexCount);
         
         DataEntryType = typeof(DataEntry<,,>).MakeGenericType(dataTupleType, HashTupleType, BackIndexTupleType);
         DataTableType = DataEntryType.MakeArrayType();
+        
+        ComparerTypes = new Type[DataTypes.Length];
+        ComparerEqualsMethods = new MethodInfo[DataTypes.Length];
+        ComparerGetHashCodeMethods = new MethodInfo[DataTypes.Length];
+        CreateComparerRelatedValues();
     }
 
-    private static MethodInfo GetEqualsMethod(Type t)
+    private void CreateComparerRelatedValues()
     {
-        return typeof(IEqualityComparer<>)
-            .MakeGenericType(t)
-            .GetMethod(nameof(IEqualityComparer<object>.Equals), [t, t])!;
+        int i = 0;
+        foreach (var dataType in DataTypes)
+        {
+            var comparerType = typeof(IEqualityComparer<>).MakeGenericType(dataType);
+            ComparerTypes[i] = comparerType;
+        
+            ComparerEqualsMethods[i] =
+                comparerType.GetMethod(nameof(IEqualityComparer<object>.Equals), [dataType, dataType]) ??
+                throw new InvalidProgramException();
+            ComparerGetHashCodeMethods[i] =
+                comparerType.GetMethod(nameof(IEqualityComparer<object>.GetHashCode), [dataType]) ??
+                throw new InvalidProgramException();
+            
+            ++i;
+        }
     }
 }

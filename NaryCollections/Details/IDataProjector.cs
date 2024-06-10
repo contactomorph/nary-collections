@@ -6,4 +6,5 @@ public interface IDataProjector<in TDataEntry, T>
     bool AreDataEqualAt(TDataEntry[] dataTable, int index, T item, uint hashCode);
     int GetBackIndex(TDataEntry[] dataTable, int index);
     void SetBackIndex(TDataEntry[] dataTable, int index, int backIndex);
+    uint ComputeHashCode(T item);
 }

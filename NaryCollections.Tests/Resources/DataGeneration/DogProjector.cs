@@ -27,4 +27,6 @@ internal sealed class DogProjector : IDataProjector<DogPlaceColorEntry, Dog>
     {
         dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
+
+    public uint ComputeHashCode(Dog item) => (uint)_comparer.GetHashCode(item);
 }
