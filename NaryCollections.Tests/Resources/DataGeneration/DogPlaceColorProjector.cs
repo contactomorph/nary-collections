@@ -7,34 +7,29 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal sealed class DogPlaceColorProjector
-    : IDataProjector<DogPlaceColorEntry, (Dog Dog, string Place, Color Color)>
+internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry, DogPlaceColorTuple>
 {
-    private readonly IEqualityComparer<DogPlaceColorTuple> _comparer = EqualityComparer<DogPlaceColorTuple>.Default;
+    private readonly IEqualityComparer<Dog> _dogComparer = EqualityComparer<Dog>.Default;
+    private readonly IEqualityComparer<string> _stringComparer = EqualityComparer<string>.Default;
+    private readonly IEqualityComparer<Color> _colorComparer = EqualityComparer<Color>.Default;
 
     public (DogPlaceColorTuple Item, uint HashCode) GetDataAt(DogPlaceColorEntry[] dataTable, int index)
     {
-        throw new NotImplementedException();
+        return (dataTable[index].DataTuple, (uint)dataTable[index].HashTuple.GetHashCode());
     }
 
     public bool AreDataEqualAt(DogPlaceColorEntry[] dataTable, int index, DogPlaceColorTuple item, uint hashCode)
     {
-        return (uint)dataTable[index].HashTuple.GetHashCode() == hashCode &&
-               _comparer.Equals(dataTable[index].DataTuple, item);
+        return (uint)dataTable[index].HashTuple.GetHashCode() == hashCode
+               && _dogComparer.Equals(dataTable[index].DataTuple.Dog, item.Dog) &&
+               _stringComparer.Equals(dataTable[index].DataTuple.Place, item.Place) &&
+               _colorComparer.Equals(dataTable[index].DataTuple.Color, item.Color);
     }
 
-    public void SetDataAt(DogPlaceColorEntry[] dataTable, int index, DogPlaceColorTuple item, uint hashCode)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index)
-    {
-        throw new NotImplementedException();
-    }
+    public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index) => dataTable[index].BackIndexesTuple.Item1;
 
     public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, int backIndex)
     {
-        throw new NotImplementedException();
+        dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
 }

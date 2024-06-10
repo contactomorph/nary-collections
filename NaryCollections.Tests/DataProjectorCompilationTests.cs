@@ -46,7 +46,7 @@ public class DataProjectorCompilationTests
     }
     
     [Test]
-    public void CheckGetAndEqualAndSetDataAtTest()
+    public void CheckGetAndEqualAtTest()
     {
         DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
         
@@ -74,21 +74,6 @@ public class DataProjectorCompilationTests
 
             Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, dog, hashCode));
         }
-
-        var (previousDog, previousHashCode) = projector.GetDataAt(dataTable, 3);
-        
-        var newDog = new Dog("Bob", "Timmy");
-        var newHashCode = (uint)newDog.GetHashCode();
-        
-        projector.SetDataAt(dataTable, 3, newDog, newHashCode);
-
-        Assert.That(dataTable[3].DataTuple.Item1, Is.EqualTo(newDog));
-        Assert.That(dataTable[3].HashTuple.Item1, Is.EqualTo(newHashCode));
-        
-        Assert.IsFalse(projector.AreDataEqualAt(dataTable, 3, newDog, previousHashCode));
-        Assert.IsFalse(projector.AreDataEqualAt(dataTable, 3, previousDog, newHashCode));
-        Assert.IsFalse(projector.AreDataEqualAt(dataTable, 3, previousDog, previousHashCode));
-        Assert.IsTrue(projector.AreDataEqualAt(dataTable, 3, newDog, newHashCode));
     }
     
     [Test]

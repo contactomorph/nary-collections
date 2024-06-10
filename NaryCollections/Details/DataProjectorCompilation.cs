@@ -39,10 +39,9 @@ public static class DataProjectorCompilation
 
         var comparerFields = DefineConstructor(typeBuilder, dataTypeDecomposition.ComparerTypes, projectionIndexes);
         DefineGetDataAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType);
-        DefineSetDataAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType);
         DefineAreDataEqualAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType, comparerFields);
-        DefineGetBackIndexAt(typeBuilder, backIndexRank, dataTypeDecomposition, projectorInterfaceType);
-        DefineSetBackIndexAt(typeBuilder, backIndexRank, dataTypeDecomposition, projectorInterfaceType);
+        DefineGetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
+        DefineSetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
 
         var type = typeBuilder.CreateType();
 
@@ -145,64 +144,6 @@ public static class DataProjectorCompilation
             projectorInterfaceType.GetMethod(methodName)!);
     }
     
-    private static void DefineSetDataAt(
-        TypeBuilder typeBuilder,
-        Type itemType,
-        DataTypeProjection dataTypeDecomposition,
-        Type projectorInterfaceType)
-    {
-        const string methodName = nameof(IDataProjector<object, object>.SetDataAt);
-        
-        MethodBuilder methodBuilder = typeBuilder
-            .DefineMethod(
-                methodName,
-                ProjectorMethodAttributes,
-                typeof(void),
-                [dataTypeDecomposition.DataTableType, typeof(int), itemType, typeof(uint)]);
-        ILGenerator il = methodBuilder.GetILGenerator();
-        
-        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
-            throw new NotSupportedException();
-        
-        var dataTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
-
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
-        // &dataTable[index].DataTuple
-        il.Emit(OpCodes.Ldflda, dataTupleField);
-        // item
-        il.Emit(OpCodes.Ldarg_3);
-        // dataTable[index].DataTuple.Item⟨i⟩ = item
-        il.Emit(OpCodes.Stfld, dataTypeDecomposition.DataProjectionFields[0]);
-        
-        var hashTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
-        
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
-        // &dataTable[index].HashTuple
-        il.Emit(OpCodes.Ldflda, hashTupleField);
-        // hashcode
-        il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // dataTable[index].HashTuple.Item⟨i⟩ = hashcode
-        il.Emit(OpCodes.Stfld, dataTypeDecomposition.HashProjectionFields[0]);
-
-        il.Emit(OpCodes.Ret);
-        
-        typeBuilder.DefineMethodOverride(
-            methodBuilder,
-            projectorInterfaceType.GetMethod(methodName)!);
-    }
-    
     private static void DefineAreDataEqualAt(TypeBuilder typeBuilder,
         Type itemType,
         DataTypeProjection dataTypeDecomposition,
@@ -281,7 +222,6 @@ public static class DataProjectorCompilation
 
     private static void DefineGetBackIndexAt(
         TypeBuilder typeBuilder,
-        byte backIndexRank,
         DataTypeProjection dataTypeDecomposition,
         Type projectorInterfaceType)
     {
@@ -318,10 +258,9 @@ public static class DataProjectorCompilation
             methodBuilder,
             projectorInterfaceType.GetMethod(methodName)!);
     }
-    
+
     private static void DefineSetBackIndexAt(
         TypeBuilder typeBuilder,
-        byte backIndexRank,
         DataTypeProjection dataTypeDecomposition,
         Type projectorInterfaceType)
     {

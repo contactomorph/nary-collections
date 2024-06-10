@@ -21,19 +21,10 @@ internal sealed class DogProjector : IDataProjector<DogPlaceColorEntry, Dog>
                _comparer.Equals(dataTable[index].DataTuple.Dog, item);
     }
 
-    public void SetDataAt(DogPlaceColorEntry[] dataTable, int index, Dog item, uint hashCode)
-    {
-        dataTable[index].DataTuple.Dog = item;
-        dataTable[index].HashTuple.Item1 = hashCode;
-    }
-
-    public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index)
-    {
-        throw new NotImplementedException();
-    }
+    public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index) => dataTable[index].BackIndexesTuple.Item1;
 
     public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, int backIndex)
     {
-        throw new NotImplementedException();
+        dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
 }
