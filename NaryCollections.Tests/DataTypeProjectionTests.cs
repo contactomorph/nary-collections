@@ -1,6 +1,7 @@
 using System.Drawing;
 using NaryCollections.Details;
 using NaryCollections.Tests.Resources.Types;
+using NaryCollections.Tools;
 
 namespace NaryCollections.Tests;
 
@@ -13,10 +14,7 @@ public class DataTypeProjectionTests
     {
         var p1 = new DataTypeProjection(typeof(DogPlaceColorTuple), 3, 4, [2, 0]);
         
-        Assert.That(p1.DataTupleType, Is.EqualTo(typeof(DogPlaceColorTuple)));
-        Assert.That(
-            p1.DataTypes,
-            Is.EquivalentTo(new[] { typeof(Dog), typeof(string), typeof(Color) }));
+        Assert.That(p1.DataTupleType, Is.EqualTo(ValueTupleType.From(typeof(DogPlaceColorTuple))));
         Assert.That(
             p1.ComparerTypes,
             Is.EquivalentTo(new[]
@@ -25,24 +23,8 @@ public class DataTypeProjectionTests
                 typeof(IEqualityComparer<string>),
                 typeof(IEqualityComparer<Color>),
             }));
-        Assert.That(
-            p1.ComparerEqualsMethods,
-            Is.EquivalentTo(new[]
-            {
-                typeof(IEqualityComparer<Dog>).GetMethod("Equals", [typeof(Dog), typeof(Dog)]),
-                typeof(IEqualityComparer<string>).GetMethod("Equals", [typeof(string), typeof(string)]),
-                typeof(IEqualityComparer<Color>).GetMethod("Equals", [typeof(Color), typeof(Color)]),
-            }));
-        Assert.That(
-            p1.ComparerGetHashCodeMethods,
-            Is.EquivalentTo(new[]
-            {
-                typeof(IEqualityComparer<Dog>).GetMethod("GetHashCode", [typeof(Dog)]),
-                typeof(IEqualityComparer<string>).GetMethod("GetHashCode", [typeof(string)]),
-                typeof(IEqualityComparer<Color>).GetMethod("GetHashCode", [typeof(Color)]),
-            }));
-        Assert.That(p1.HashTupleType, Is.EqualTo(typeof((uint, uint, uint))));
-        Assert.That(p1.BackIndexTupleType, Is.EqualTo(typeof((int, int, int, int))));
+        Assert.That(p1.HashTupleType, Is.EqualTo(ValueTupleType.From(typeof((uint, uint, uint)))));
+        Assert.That(p1.BackIndexTupleType, Is.EqualTo(ValueTupleType.From(typeof((int, int, int, int)))));
         
         Assert.That(
             p1.DataEntryType,
@@ -52,17 +34,14 @@ public class DataTypeProjectionTests
             Is.EqualTo(typeof(DataEntry<DogPlaceColorTuple, (uint, uint, uint), (int, int, int, int)>[])));
         
         Assert.That(
-            p1.DataProjectionFields,
+            p1.DataProjectionMapping.MappingFields,
             Is.EquivalentTo(new[]
             {
                 typeof(DogPlaceColorTuple).GetField("Item3"),
                 typeof(DogPlaceColorTuple).GetField("Item1"),
             }));
         Assert.That(
-            p1.DataProjectionTypes,
-            Is.EquivalentTo(new[] { typeof(Color), typeof(Dog) }));
-        Assert.That(
-            p1.HashProjectionFields,
+            p1.HashProjectionMapping.MappingFields,
             Is.EquivalentTo(new[]
             {
                 typeof((uint, uint, uint)).GetField("Item3"),

@@ -1,42 +1,28 @@
 using System.Reflection;
+using NaryCollections.Tools;
 
 namespace NaryCollections.Details;
 
 internal sealed class DataTypeProjection : DataTypeDecomposition
 {
-    // [typeof((TD1, …, TDn)).GetField($"Item{i1}"), …, typeof((TD1, …, TDn)).GetField($"Item{ik}")]
-    public FieldInfo[] DataProjectionFields { get; }
+    // t: [TD1, …, TD⟨n⟩] => (t.Item⟨i1⟩, …, t.Item⟨ik⟩): [TD⟨i1⟩, …, TD⟨ik⟩]
+    public ValueTupleMapping DataProjectionMapping { get; }
     
-    // [typeof(TP1), …, typeof(TPk)]
-    public Type[] DataProjectionTypes { get; }
+    // t: [uint, …, uint] => (t.Item⟨i1⟩, …, t.Item⟨ik⟩): [uint, …, uint]
+    public ValueTupleMapping HashProjectionMapping { get; }
     
-    // [typeof((uint, …, uint)).GetField($"Item{i1}"), …, typeof((uint, …, uint)).GetField($"Item{ik}")]
-    public FieldInfo[] HashProjectionFields { get; }
-    
-    // typeof((int, …, int)).GetField($"Item{r}")
+    // typeof((int, …, int)).GetField($"Item⟨r⟩")
     public FieldInfo BackIndexProjectionField { get; }
     
-    public DataTypeProjection(Type dataTupleType, byte backIndexRank, byte backIndexCount, int[] projectionIndexes) :
+    public DataTypeProjection(Type dataTupleType, byte backIndexRank, byte backIndexCount, byte[] projectionIndexes) :
         base(dataTupleType, backIndexCount)
     {
         if (projectionIndexes.Length == 0)
             throw new ArgumentException();
         if (backIndexCount <= backIndexRank)
             throw new ArgumentException();
-        DataProjectionFields = new FieldInfo[projectionIndexes.Length];
-        HashProjectionFields = new FieldInfo[projectionIndexes.Length];
-        int i = 0;
-        foreach (byte index in projectionIndexes)
-        {
-            if (DataTypes.Length <= index)
-                throw new ArgumentOutOfRangeException();
-            string fieldName = $"Item{index + 1}";
-            DataProjectionFields[i] = dataTupleType.GetField(fieldName) ?? throw new MissingFieldException();
-            HashProjectionFields[i] = HashTupleType.GetField(fieldName) ?? throw new MissingFieldException();
-            ++i;
-        }
-        DataProjectionTypes = DataProjectionFields.Select(f => f.FieldType).ToArray();
-        BackIndexProjectionField = BackIndexTupleType.GetField($"Item{backIndexRank + 1}")
-                                   ?? throw new MissingFieldException();
+        DataProjectionMapping = ValueTupleMapping.From(DataTupleType, projectionIndexes);
+        HashProjectionMapping = ValueTupleMapping.From(HashTupleType, projectionIndexes);
+        BackIndexProjectionField = BackIndexTupleType[backIndexRank];
     }
 }

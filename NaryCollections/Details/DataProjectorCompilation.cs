@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
+using NaryCollections.Tools;
 
 namespace NaryCollections.Details;
 
@@ -12,47 +12,43 @@ public static class DataProjectorCompilation
     public static ConstructorInfo GenerateProjectorConstructor(
         ModuleBuilder moduleBuilder,
         Type dataTupleType,
-        int[] projectionIndexes,
+        byte[] projectionIndexes,
         byte backIndexRank,
         byte backIndexCount)
     {
-        var dataTypeDecomposition = new DataTypeProjection(
+        var dataTypeProjection = new DataTypeProjection(
             dataTupleType,
             backIndexRank,
             backIndexCount,
             projectionIndexes);
         
-        var itemType = dataTypeDecomposition.DataProjectionFields.Length == 1 ?
-            dataTypeDecomposition.DataProjectionTypes[0] :
-            TupleHandling.CreateTupleType(dataTypeDecomposition.DataProjectionTypes);
+        var itemType = GetItemType(dataTypeProjection);
         
         var projectorInterfaceType = typeof(IDataProjector<,>)
-            .MakeGenericType(dataTypeDecomposition.DataEntryType, itemType);
-
-        var projectorTypeName = NameProjectorType(backIndexRank, dataTypeDecomposition.DataTypes);
+            .MakeGenericType(dataTypeProjection.DataEntryType, itemType);
 
         var typeBuilder = moduleBuilder.DefineType(
-            projectorTypeName,
+            $"DataProjector_{backIndexRank}",
             TypeAttributes.Class | TypeAttributes.Sealed,
             typeof(object),
             [projectorInterfaceType]);
-
-        var comparerFields = DefineConstructor(typeBuilder, dataTypeDecomposition.ComparerTypes, projectionIndexes);
-        DefineGetDataAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType);
-        DefineAreDataEqualAt(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType, comparerFields);
-        DefineGetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
-        DefineSetBackIndexAt(typeBuilder, dataTypeDecomposition, projectorInterfaceType);
-        DefineComputeHashCode(typeBuilder, itemType, dataTypeDecomposition, projectorInterfaceType, comparerFields);
+        
+        var comparerFields = DefineConstructor(typeBuilder, dataTypeProjection.ComparerTypes, projectionIndexes);
+        DefineGetDataAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
+        DefineAreDataEqualAt(typeBuilder, dataTypeProjection, projectorInterfaceType, comparerFields);
+        DefineGetBackIndexAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
+        DefineSetBackIndexAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
+        DefineComputeHashCode(typeBuilder, dataTypeProjection, projectorInterfaceType, comparerFields);
 
         var type = typeBuilder.CreateType();
 
-        return type.GetConstructor(dataTypeDecomposition.ComparerTypes)!;
+        return type.GetConstructor(dataTypeProjection.ComparerTypes)!;
     }
 
     private static List<(FieldBuilder Field, int Index)> DefineConstructor(
         TypeBuilder typeBuilder,
         Type[] comparerTypes,
-        int[] projectionIndexes)
+        byte[] projectionIndexes)
     {
         List<(FieldBuilder Field, int Index)> comparerFields = new();
         
@@ -89,25 +85,25 @@ public static class DataProjectorCompilation
 
     private static void DefineGetDataAt(
         TypeBuilder typeBuilder,
-        Type itemType,
-        DataTypeProjection dataTypeDecomposition,
+        DataTypeProjection dataTypeProjection,
         Type projectorInterfaceType)
     {
         const string methodName = nameof(IDataProjector<object, object>.GetDataAt);
-        var returnType = typeof(ValueTuple<,>).MakeGenericType(itemType, typeof(uint));
         
+        var itemType = GetItemType(dataTypeProjection);
+        var returnType = ValueTupleType.FromComponents(itemType, typeof(uint));
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
                 ProjectorMethodAttributes,
                 returnType,
-                [dataTypeDecomposition.DataTableType, typeof(int)]);
+                [dataTypeProjection.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
+        if (dataTypeProjection.DataProjectionMapping.OutputType.Count != 1)
             throw new NotSupportedException();
         
-        var dataTupleField = dataTypeDecomposition.DataEntryType.GetField(
+        var dataTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
         
         // dataTable
@@ -115,28 +111,28 @@ public static class DataProjectorCompilation
         // index
         il.Emit(OpCodes.Ldarg_2);
         // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
+        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
         // &dataTable[index].DataTuple
         il.Emit(OpCodes.Ldflda, dataTupleField);
         // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeDecomposition.DataProjectionFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping.MappingFields[0]);
         
-        var hashTupleField = dataTypeDecomposition.DataEntryType.GetField(
+        var hashTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
-        
+
         // dataTable
         il.Emit(OpCodes.Ldarg_1);
         // index
         il.Emit(OpCodes.Ldarg_2);
         // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
+        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
         // &dataTable[index].HashTuple
         il.Emit(OpCodes.Ldflda, hashTupleField);
         // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeDecomposition.HashProjectionFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping.MappingFields[0]);
         
-        // new ValueTuple<…, uint>(ataTable[index].DataTuple.Item⟨i⟩, dataTable[index].HashTuple.Item⟨i⟩)
-        il.Emit(OpCodes.Newobj, returnType.GetConstructors().Single());
+        // new ValueTuple<…, uint>(…, …)
+        il.Emit(OpCodes.Newobj, returnType.GetConstructor());
         
         il.Emit(OpCodes.Ret);
 
@@ -145,26 +141,27 @@ public static class DataProjectorCompilation
             projectorInterfaceType.GetMethod(methodName)!);
     }
     
-    private static void DefineAreDataEqualAt(TypeBuilder typeBuilder,
-        Type itemType,
-        DataTypeProjection dataTypeDecomposition,
+    private static void DefineAreDataEqualAt(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeProjection,
         Type projectorInterfaceType,
         IReadOnlyList<(FieldBuilder Field, int Index)> comparerFields)
     {
         const string methodName = nameof(IDataProjector<object, object>.AreDataEqualAt);
         
+        var itemType = GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
                 ProjectorMethodAttributes,
                 typeof(bool),
-                [dataTypeDecomposition.DataTableType, typeof(int), itemType, typeof(uint)]);
+                [dataTypeProjection.DataTableType, typeof(int), itemType, typeof(uint)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
         if (comparerFields.Count != 1)
             throw new NotSupportedException();
         
-        var hashTupleField = dataTypeDecomposition.DataEntryType.GetField(
+        var hashTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
         
         Label hashCodeAreDifferentLabel = il.DefineLabel();
@@ -175,17 +172,17 @@ public static class DataProjectorCompilation
         // index
         il.Emit(OpCodes.Ldarg_2);
         // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
+        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
         // &dataTable[index].HashTuple
         il.Emit(OpCodes.Ldflda, hashTupleField);
         // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeDecomposition.HashProjectionFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping.MappingFields[0]);
         // hashcode
         il.Emit(OpCodes.Ldarg_S, (byte)4);
         // dataTable[index].HashTuple.Item⟨i⟩ != hashcode → hashCodeAreDifferentLabel
         il.Emit(OpCodes.Bne_Un, hashCodeAreDifferentLabel);
         
-        var dataTupleField = dataTypeDecomposition.DataEntryType.GetField(
+        var dataTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
         
         // this
@@ -197,15 +194,15 @@ public static class DataProjectorCompilation
         // index
         il.Emit(OpCodes.Ldarg_2);
         // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
+        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
         // &dataTable[index].DataTuple
         il.Emit(OpCodes.Ldflda, dataTupleField);
         // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeDecomposition.DataProjectionFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping.MappingFields[0]);
         // item
         il.Emit(OpCodes.Ldarg_3);
-        // this._comparer⟨i⟩.Equals(dataTable[index].DataTuple.Item⟨i⟩, item)
-        il.Emit(OpCodes.Callvirt, dataTypeDecomposition.ComparerEqualsMethods[comparerFields[0].Index]);
+        // EqualityComparerHandling.Equals(this._comparer⟨i⟩, dataTable[index].DataTuple.Item⟨i⟩, item)
+        il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(itemType));
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
@@ -236,7 +233,7 @@ public static class DataProjectorCompilation
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
+        if (dataTypeDecomposition.DataProjectionMapping.OutputType.Count != 1)
             throw new NotSupportedException();
 
         var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
@@ -275,7 +272,7 @@ public static class DataProjectorCompilation
                 [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
+        if (dataTypeDecomposition.DataProjectionMapping.OutputType.Count != 1)
             throw new NotSupportedException();
 
         var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
@@ -303,13 +300,13 @@ public static class DataProjectorCompilation
     
     private static void DefineComputeHashCode(
         TypeBuilder typeBuilder,
-        Type itemType,
-        DataTypeProjection dataTypeDecomposition,
+        DataTypeProjection dataTypeProjection,
         Type projectorInterfaceType,
         IReadOnlyList<(FieldBuilder Field, int Index)> comparerFields)
     {
         const string methodName = nameof(IDataProjector<object, object>.ComputeHashCode);
         
+        var itemType = GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
@@ -318,19 +315,17 @@ public static class DataProjectorCompilation
                 [itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeDecomposition.DataProjectionFields.Length != 1)
+        if (dataTypeProjection.DataProjectionMapping.OutputType.Count != 1)
             throw new NotSupportedException();
-        if (comparerFields.Count != 1)
-            throw new NotSupportedException();
-
+        
         // this
         il.Emit(OpCodes.Ldarg_0);
-        // &this._comparer⟨i⟩
+        // this._comparer⟨i⟩
         il.Emit(OpCodes.Ldfld, comparerFields[0].Field);
         // item
         il.Emit(OpCodes.Ldarg_1);
-        // this._comparer⟨i⟩.GetHashCode(item)
-        il.Emit(OpCodes.Callvirt, dataTypeDecomposition.ComparerGetHashCodeMethods[comparerFields[0].Index]);
+        // EqualityComparerHandling.Compute⟨…⟩HashCode(this._comparer⟨i⟩, item)
+        il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(itemType));
         
         il.Emit(OpCodes.Ret);
 
@@ -340,15 +335,10 @@ public static class DataProjectorCompilation
     }
 
     private static string GetComparerFieldName(int i) => $"_comparer{i}";
-    
-    private static string NameProjectorType(byte backIndexRank, Type[] types)
+
+    private static Type GetItemType(DataTypeProjection dataTypeProjection)
     {
-        var projectorTypeName = new StringBuilder("DataProjector_");
-        foreach (var type in types)
-        {
-            projectorTypeName.Append(type.Name.Split('`')[0]);
-        }
-        projectorTypeName.Append('_').Append(backIndexRank);
-        return projectorTypeName.ToString();
+        var dataMappingOutput = dataTypeProjection.DataProjectionMapping.OutputType;
+        return dataMappingOutput.Count == 1 ? dataMappingOutput[0].FieldType : dataMappingOutput;
     }
 }
