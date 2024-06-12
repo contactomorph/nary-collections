@@ -45,12 +45,12 @@ public static class DataProjectorCompilation
         return type.GetConstructor(dataTypeProjection.ComparerTypes)!;
     }
 
-    private static List<(FieldBuilder Field, int Index)> DefineConstructor(
+    private static List<FieldBuilder> DefineConstructor(
         TypeBuilder typeBuilder,
         Type[] comparerTypes,
         byte[] projectionIndexes)
     {
-        List<(FieldBuilder Field, int Index)> comparerFields = new();
+        List<FieldBuilder> comparerFields = new();
         
         foreach (var index in projectionIndexes)
         {
@@ -58,7 +58,7 @@ public static class DataProjectorCompilation
                 GetComparerFieldName(index),
                 comparerTypes[index],
                 FieldAttributes.InitOnly);
-            comparerFields.Add((comparerField, index));
+            comparerFields.Add(comparerField);
         }
 
         var constructorBuilder = typeBuilder.DefineConstructor(
@@ -76,7 +76,7 @@ public static class DataProjectorCompilation
             // comparer⟨b⟩
             il.Emit(OpCodes.Ldarg_S, b);
             // this._comparer⟨b⟩ = comparer⟨b⟩
-            il.Emit(OpCodes.Stfld, comparerField.Field);
+            il.Emit(OpCodes.Stfld, comparerField);
         }
         il.Emit(OpCodes.Ret);
 
@@ -100,38 +100,59 @@ public static class DataProjectorCompilation
                 [dataTypeProjection.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeProjection.DataProjectionMapping.OutputType.Count != 1)
-            throw new NotSupportedException();
-        
         var dataTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
         
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
-        // &dataTable[index].DataTuple
-        il.Emit(OpCodes.Ldflda, dataTupleField);
-        // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].Field);
+        var dataMapping = dataTypeProjection.DataProjectionMapping;
+        
+        foreach (var (_, mappingField) in dataMapping)
+        {
+            // dataTable
+            il.Emit(OpCodes.Ldarg_1);
+            // index
+            il.Emit(OpCodes.Ldarg_2);
+            // &dataTable[index]
+            il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
+            // &dataTable[index].DataTuple
+            il.Emit(OpCodes.Ldflda, dataTupleField);
+            // dataTable[index].DataTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, mappingField);
+        }
+
+        if (1 < dataMapping.Count)
+        {
+            // new ValueTuple<…>(…)
+            il.Emit(OpCodes.Newobj, dataMapping.OutputType.GetConstructor());
+        }
         
         var hashTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
-
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
-        // &dataTable[index].HashTuple
-        il.Emit(OpCodes.Ldflda, hashTupleField);
-        // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping[0].Field);
         
-        // new ValueTuple<…, uint>(…, …)
+        var hashMapping = dataTypeProjection.HashProjectionMapping;
+        
+        foreach (var indexedField in hashMapping)
+        {
+            // dataTable
+            il.Emit(OpCodes.Ldarg_1);
+            // index
+            il.Emit(OpCodes.Ldarg_2);
+            // &dataTable[index]
+            il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
+            // &dataTable[index].HashTuple
+            il.Emit(OpCodes.Ldflda, hashTupleField);
+            // dataTable[index].HashTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, indexedField.Field);
+        }
+
+        if (1 < hashMapping.Count)
+        {
+            // new ValueTuple<…>(…)
+            il.Emit(OpCodes.Newobj, hashMapping.OutputType.GetConstructor());
+            // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashMapping.OutputType));
+        }
+        
+        // new ValueTuple<⟨Item⟩, uint>(⟨item⟩, ⟨itemHash⟩)
         il.Emit(OpCodes.Newobj, returnType.GetConstructor());
         
         il.Emit(OpCodes.Ret);
@@ -145,7 +166,7 @@ public static class DataProjectorCompilation
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
         Type projectorInterfaceType,
-        IReadOnlyList<(FieldBuilder Field, int Index)> comparerFields)
+        IReadOnlyList<FieldBuilder> comparerFields)
     {
         const string methodName = nameof(IDataProjector<object, object>.AreDataEqualAt);
         
@@ -158,55 +179,85 @@ public static class DataProjectorCompilation
                 [dataTypeProjection.DataTableType, typeof(int), itemType, typeof(uint)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (comparerFields.Count != 1)
-            throw new NotSupportedException();
+        Label falseLabel = il.DefineLabel();
+        Label endLabel = il.DefineLabel();
         
         var hashTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
         
-        Label hashCodeAreDifferentLabel = il.DefineLabel();
-        Label endLabel = il.DefineLabel();
+        var hashMapping = dataTypeProjection.HashProjectionMapping;
         
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
-        // &dataTable[index].HashTuple
-        il.Emit(OpCodes.Ldflda, hashTupleField);
-        // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping[0].Field);
+        foreach (var indexedField in hashMapping)
+        {
+            // dataTable
+            il.Emit(OpCodes.Ldarg_1);
+            // index
+            il.Emit(OpCodes.Ldarg_2);
+            // &dataTable[index]
+            il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
+            // &dataTable[index].HashTuple
+            il.Emit(OpCodes.Ldflda, hashTupleField);
+            // dataTable[index].HashTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, indexedField.Field);
+        }
+
+        if (1 < hashMapping.Count)
+        {
+            // new ValueTuple<…>(…)
+            il.Emit(OpCodes.Newobj, hashMapping.OutputType.GetConstructor());
+            // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashMapping.OutputType));
+        }
+        
         // hashcode
         il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // dataTable[index].HashTuple.Item⟨i⟩ != hashcode → hashCodeAreDifferentLabel
-        il.Emit(OpCodes.Bne_Un, hashCodeAreDifferentLabel);
+        // ⟨itemHash⟩ != hashcode → falseLabel
+        il.Emit(OpCodes.Bne_Un, falseLabel);
         
         var dataTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
         
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // &this._comparer⟨i⟩
-        il.Emit(OpCodes.Ldfld, comparerFields[0].Field);
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
-        // &dataTable[index].DataTuple
-        il.Emit(OpCodes.Ldflda, dataTupleField);
-        // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].Field);
-        // item
-        il.Emit(OpCodes.Ldarg_3);
-        // EqualityComparerHandling.Equals(this._comparer⟨i⟩, dataTable[index].DataTuple.Item⟨i⟩, item)
-        il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(itemType));
+        var dataMapping = dataTypeProjection.DataProjectionMapping;
+
+        int j = 0;
+        foreach (var (_, mappingField) in dataMapping)
+        {
+            var itemComponentField = dataMapping.OutputType[j];
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // &this._comparer⟨j⟩
+            il.Emit(OpCodes.Ldfld, comparerFields[j]);
+            // dataTable
+            il.Emit(OpCodes.Ldarg_1);
+            // index
+            il.Emit(OpCodes.Ldarg_2);
+            // &dataTable[index]
+            il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
+            // &dataTable[index].DataTuple
+            il.Emit(OpCodes.Ldflda, dataTupleField);
+            // dataTable[index].DataTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, mappingField);
+            // item
+            il.Emit(OpCodes.Ldarg_3);
+            if (1 < dataMapping.Count)
+            {
+                // item.Item⟨j⟩
+                il.Emit(OpCodes.Ldfld, itemComponentField);
+            }
+            // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, dataTable[index].DataTuple.Item⟨i⟩, ⟨itemComponent⟩)
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(itemComponentField.FieldType));
+            // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, ⟨dataComponent⟩, ⟨itemComponent⟩) → falseLabel
+            il.Emit(OpCodes.Brfalse_S, falseLabel);
+        
+            ++j;
+        }
+        // true
+        il.Emit(OpCodes.Ldc_I4_1);
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
-        il.MarkLabel(hashCodeAreDifferentLabel);
+        il.MarkLabel(falseLabel);
         // false
         il.Emit(OpCodes.Ldc_I4_0);
         
@@ -232,9 +283,6 @@ public static class DataProjectorCompilation
                 typeof(int),
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
-        
-        if (dataTypeDecomposition.DataProjectionMapping.OutputType.Count != 1)
-            throw new NotSupportedException();
 
         var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
@@ -271,9 +319,6 @@ public static class DataProjectorCompilation
                 typeof(void),
                 [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
-        
-        if (dataTypeDecomposition.DataProjectionMapping.OutputType.Count != 1)
-            throw new NotSupportedException();
 
         var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
@@ -302,7 +347,7 @@ public static class DataProjectorCompilation
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
         Type projectorInterfaceType,
-        IReadOnlyList<(FieldBuilder Field, int Index)> comparerFields)
+        IReadOnlyList<FieldBuilder> comparerFields)
     {
         const string methodName = nameof(IDataProjector<object, object>.ComputeHashCode);
         
@@ -315,17 +360,46 @@ public static class DataProjectorCompilation
                 [itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        if (dataTypeProjection.DataProjectionMapping.OutputType.Count != 1)
-            throw new NotSupportedException();
-        
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // this._comparer⟨i⟩
-        il.Emit(OpCodes.Ldfld, comparerFields[0].Field);
-        // item
-        il.Emit(OpCodes.Ldarg_1);
-        // EqualityComparerHandling.Compute⟨…⟩HashCode(this._comparer⟨i⟩, item)
-        il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(itemType));
+        var dataMappingOutput = dataTypeProjection.DataProjectionMapping.OutputType;
+        if (dataMappingOutput.Count == 1)
+        {
+            var getHashCode = EqualityComparerHandling.GetItemHashCodeMethod(itemType);
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._comparer⟨i⟩
+            il.Emit(OpCodes.Ldfld, comparerFields[0]);
+            // item
+            il.Emit(OpCodes.Ldarg_1);
+            // EqualityComparerHandling.Compute⟨Struct|Ref⟩HashCode(this._comparer⟨i⟩, item)
+            il.Emit(OpCodes.Call, getHashCode);
+        }
+        else
+        {
+            int j = 0;
+            foreach (var itemField in dataMappingOutput)
+            {
+                // this
+                il.Emit(OpCodes.Ldarg_0);
+                // this._comparer⟨j⟩
+                il.Emit(OpCodes.Ldfld, comparerFields[j]);
+                // item
+                il.Emit(OpCodes.Ldarg_1);
+                // item.Item⟨i⟩
+                il.Emit(OpCodes.Ldfld, itemField);
+                // EqualityComparerHandling.Compute⟨Struct|Ref⟩HashCode(this._comparer⟨j⟩, item.Item⟨j⟩)
+                il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(itemField.FieldType));
+
+                ++j;
+            }
+            
+            var itemHashTupleType = ValueTupleType.FromRepeatedComponent<uint>(dataMappingOutput.Count);
+            
+            // new ValueTuple<…>(…)
+            il.Emit(OpCodes.Newobj, itemHashTupleType.GetConstructor());
+            // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(itemHashTupleType));
+        }
         
         il.Emit(OpCodes.Ret);
 
