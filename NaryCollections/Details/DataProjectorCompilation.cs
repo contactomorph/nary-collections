@@ -115,7 +115,7 @@ public static class DataProjectorCompilation
         // &dataTable[index].DataTuple
         il.Emit(OpCodes.Ldflda, dataTupleField);
         // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping.MappingFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].Field);
         
         var hashTupleField = dataTypeProjection.DataEntryType.GetField(
             nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
@@ -129,7 +129,7 @@ public static class DataProjectorCompilation
         // &dataTable[index].HashTuple
         il.Emit(OpCodes.Ldflda, hashTupleField);
         // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping.MappingFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping[0].Field);
         
         // new ValueTuple<…, uint>(…, …)
         il.Emit(OpCodes.Newobj, returnType.GetConstructor());
@@ -176,7 +176,7 @@ public static class DataProjectorCompilation
         // &dataTable[index].HashTuple
         il.Emit(OpCodes.Ldflda, hashTupleField);
         // dataTable[index].HashTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping.MappingFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping[0].Field);
         // hashcode
         il.Emit(OpCodes.Ldarg_S, (byte)4);
         // dataTable[index].HashTuple.Item⟨i⟩ != hashcode → hashCodeAreDifferentLabel
@@ -198,7 +198,7 @@ public static class DataProjectorCompilation
         // &dataTable[index].DataTuple
         il.Emit(OpCodes.Ldflda, dataTupleField);
         // dataTable[index].DataTuple.Item⟨i⟩
-        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping.MappingFields[0]);
+        il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].Field);
         // item
         il.Emit(OpCodes.Ldarg_3);
         // EqualityComparerHandling.Equals(this._comparer⟨i⟩, dataTable[index].DataTuple.Item⟨i⟩, item)

@@ -5,10 +5,10 @@ namespace NaryCollections.Details;
 
 internal sealed class DataTypeProjection : DataTypeDecomposition
 {
-    // t: [TD1, …, TD⟨n⟩] => (t.Item⟨i1⟩, …, t.Item⟨ik⟩): [TD⟨i1⟩, …, TD⟨ik⟩]
+    // t: [TD1, …, TD⟨n⟩] => (t⟨i1-1⟩, …, t⟨ik-1⟩): [TD⟨i1⟩, …, TD⟨ik⟩]
     public ValueTupleMapping DataProjectionMapping { get; }
     
-    // t: [uint, …, uint] => (t.Item⟨i1⟩, …, t.Item⟨ik⟩): [uint, …, uint]
+    // t: [uint, …, uint] => (t⟨i1-1⟩, …, t⟨ik-1⟩): [uint, …, uint]
     public ValueTupleMapping HashProjectionMapping { get; }
     
     // typeof((int, …, int)).GetField($"Item⟨r⟩")

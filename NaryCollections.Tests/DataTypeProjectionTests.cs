@@ -34,18 +34,18 @@ public class DataTypeProjectionTests
             Is.EqualTo(typeof(DataEntry<DogPlaceColorTuple, (uint, uint, uint), (int, int, int, int)>[])));
         
         Assert.That(
-            p1.DataProjectionMapping.MappingFields,
+            p1.DataProjectionMapping,
             Is.EquivalentTo(new[]
             {
-                typeof(DogPlaceColorTuple).GetField("Item3"),
-                typeof(DogPlaceColorTuple).GetField("Item1"),
+                (2, typeof(DogPlaceColorTuple).GetField("Item3")),
+                (0, typeof(DogPlaceColorTuple).GetField("Item1")),
             }));
         Assert.That(
-            p1.HashProjectionMapping.MappingFields,
+            p1.HashProjectionMapping,
             Is.EquivalentTo(new[]
             {
-                typeof((uint, uint, uint)).GetField("Item3"),
-                typeof((uint, uint, uint)).GetField("Item1"),
+                (2, typeof((uint, uint, uint)).GetField("Item3")),
+                (0, typeof((uint, uint, uint)).GetField("Item1")),
             }));
         Assert.That(p1.BackIndexProjectionField, Is.EqualTo(typeof((int, int, int, int)).GetField("Item4")));
     }

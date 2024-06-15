@@ -8,7 +8,7 @@ public class ValueTupleMappingTest
     [Test]
     public void EmptyToEmptyTest()
     {
-        Assert.That(ValueTupleMapping.EmptyTupleToEmptyTuple.MappingFields, Is.Empty);
+        Assert.That(ValueTupleMapping.EmptyTupleToEmptyTuple, Is.Empty);
         Assert.That(ValueTupleMapping.EmptyTupleToEmptyTuple.InputType, Is.EqualTo(ValueTupleType.Empty));
         Assert.That(ValueTupleMapping.EmptyTupleToEmptyTuple.OutputType, Is.EqualTo(ValueTupleType.Empty));
         
@@ -26,7 +26,7 @@ public class ValueTupleMappingTest
         var inputType = ValueTupleType.FromComponents(typeof(uint), typeof(Guid), typeof(Uri));
         var mapping = ValueTupleMapping.From(inputType);
         
-        Assert.That(mapping.MappingFields, Is.Empty);
+        Assert.That(mapping, Is.Empty);
         Assert.That(mapping.InputType, Is.EqualTo(inputType));
         Assert.That(mapping.OutputType, Is.EqualTo(ValueTupleType.Empty));
         
@@ -46,7 +46,7 @@ public class ValueTupleMappingTest
 
         var expectedValueType = ValueTupleType.FromComponents(typeof(Uri), typeof(Uri), typeof(Guid), typeof(uint));
         Assert.That(
-            mapping.MappingFields.Select(f => f.ToString()),
+            mapping.Select(f => f.Field.ToString()),
             Is.EqualTo(new [] { "System.Uri Item3", "System.Uri Item3", "System.Guid Item2", "UInt32 Item1" }));
         Assert.That(mapping.InputType, Is.EqualTo(inputType));
         Assert.That(mapping.OutputType, Is.EqualTo(expectedValueType));

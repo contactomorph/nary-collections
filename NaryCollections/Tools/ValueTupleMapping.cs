@@ -1,10 +1,11 @@
+using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
 namespace NaryCollections.Tools;
 
-public readonly struct ValueTupleMapping : IEquatable<ValueTupleMapping>
+public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo Field)>, IEquatable<ValueTupleMapping>
 {
     private static readonly LambdaExpression EmptyLambdaExpression;
 
@@ -18,23 +19,22 @@ public readonly struct ValueTupleMapping : IEquatable<ValueTupleMapping>
     public static readonly ValueTupleMapping EmptyTupleToEmptyTuple = default;
 
     private readonly LambdaExpression? _expression;
-    private readonly FieldInfo[]? _mappingFields;
+    private readonly (byte Index, FieldInfo Field)[]? _indexedFields;
     
     public ValueTupleType InputType { get; }
     public ValueTupleType OutputType { get; }
-
-    public IReadOnlyList<FieldInfo> MappingFields => _mappingFields ?? [];
+    public int Count => _indexedFields?.Length ?? 0;
 
     private ValueTupleMapping(
         ValueTupleType inputType,
         ValueTupleType outputType,
         LambdaExpression expression,
-        FieldInfo[]? mappingFields)
+        (byte, FieldInfo)[]? indexedFields)
     {
         InputType = inputType;
         OutputType = outputType;
         _expression = expression;
-        _mappingFields = mappingFields;
+        _indexedFields = indexedFields;
     }
 
     public static ValueTupleMapping From(ValueTupleType inputType, params byte[] outputPositions)
@@ -51,22 +51,23 @@ public readonly struct ValueTupleMapping : IEquatable<ValueTupleMapping>
         }
         else
         {
-            List<FieldInfo> mappingFields = new();
+            List<(byte Index, FieldInfo Field)> indexedFields = new();
             foreach (var position in outputPositions)
             {
                 if (inputType.Count <= position)
                     throw new ArgumentOutOfRangeException(nameof(outputPositions));
-                mappingFields.Add(inputType[position]);
+                indexedFields.Add((position, inputType[position]));
             }
 
-            var outputType = ValueTupleType.FromComponents(mappingFields.Select(f => f.FieldType).ToArray());
+            var outputTypes = indexedFields.Select(f => f.Field.FieldType).ToArray();
+            var outputType = ValueTupleType.FromComponents(outputTypes);
 
             var parameter = Expression.Parameter(inputType, "tuple");
-            var fieldAccesses = mappingFields.Select(f => Expression.MakeMemberAccess(parameter, f)).ToArray();
+            var fieldAccesses = indexedFields.Select(f => Expression.MakeMemberAccess(parameter, f.Field)).ToArray();
             var ctorCall = Expression.New(outputType.GetConstructor(), fieldAccesses);
             var expression = Expression.Lambda(ctorCall, parameter);
             
-            return new(inputType, outputType, expression, mappingFields.ToArray());   
+            return new(inputType, outputType, expression, indexedFields.ToArray());   
         }
     }
 
@@ -83,11 +84,28 @@ public readonly struct ValueTupleMapping : IEquatable<ValueTupleMapping>
 
     public bool Equals(ValueTupleMapping other)
     {
-        if (_mappingFields is null) return other._mappingFields is null;
-        if (other._mappingFields is null) return false;
-        return _mappingFields.Length == other._mappingFields.Length
+        if (_indexedFields is null) return other._indexedFields is null;
+        if (other._indexedFields is null) return false;
+        return _indexedFields.Length == other._indexedFields.Length
                && InputType == other.InputType
-               && _mappingFields.SequenceEqual(other._mappingFields);
+               && _indexedFields.SequenceEqual(other._indexedFields);
+    }
+
+    public IEnumerator<(byte Index, FieldInfo Field)> GetEnumerator()
+    {
+        return ((IEnumerable<(byte, FieldInfo)>?)_indexedFields ?? []).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    
+    public (byte Index, FieldInfo Field) this[int index]
+    {
+        get
+        {
+            if (_indexedFields is null || _indexedFields.Length <= index)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return _indexedFields[index];
+        }
     }
 
     public override bool Equals(object? obj) => obj is ValueTupleMapping other && Equals(other);
@@ -95,13 +113,13 @@ public readonly struct ValueTupleMapping : IEquatable<ValueTupleMapping>
     public override int GetHashCode()
     {
         int hc = InputType.GetHashCode();
-        return _mappingFields is null ? hc : _mappingFields.Aggregate(hc, HashCode.Combine);
+        return _indexedFields is null ? hc : _indexedFields.Aggregate(hc, HashCode.Combine);
     }
 
     public override string ToString()
     {
         if (InputType == ValueTupleType.Empty) return "(): [] ==> (): []";
-        var body = _mappingFields?.Select(f => $"t.{f.Name}") ?? [];
+        var body = _indexedFields?.Select(f => $"t{f.Index}") ?? [];
         return new StringBuilder("t: ")
             .Append(InputType)
             .Append(" => (")
