@@ -92,7 +92,12 @@ public class DataProjectorCompilationTests
             Assert.That(dog, Is.EqualTo(expectedDog));
             Assert.That(hashCode, Is.EqualTo(expectedDogHashCode));
 
-            //Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, dog, hashCode));
+            Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, dog, hashCode));
+            
+            if (0 < i && dog != dataTable[i - 1].DataTuple.Dog)
+            {
+                Assert.IsFalse(projector.AreDataEqualAt(dataTable, i - 1, dog, hashCode));
+            }
         }
     }
     
