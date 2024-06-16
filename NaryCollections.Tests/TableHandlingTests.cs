@@ -21,30 +21,30 @@ public class TableHandlingTests
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
-        var projector = new DogProjector();
+        var projector = DogProjector.Instance;
 
         foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
-            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.IsTrue(exists);
+            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
         }
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.IsFalse(exists);
+            Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
         DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
@@ -67,14 +67,14 @@ public class TableHandlingTests
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
-            bool exists = TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ContainsForUnique(
+            var result = TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
                 (uint)DogPlaceColorProjector.Instance.ComputeHashTuple(tuple).GetHashCode(),
                 tuple);
         
-            Assert.IsTrue(exists);
+            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
         DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Count);
@@ -91,11 +91,11 @@ public class TableHandlingTests
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
-        var projector = new DogProjector();
+        var projector = DogProjector.Instance;
 
         foreach (var dog in Dogs.KnownDogs)
         {
-            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForNonUnique(
+            var result = TableHandling<DogPlaceColorEntry, Dog>.ContainsForNonUnique(
                 hashTable,
                 correspondenceTable,
                 dataTable,
@@ -103,19 +103,19 @@ public class TableHandlingTests
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.IsTrue(exists, dog.ToString());
+            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
         }
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.IsFalse(exists);
+            Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
         DogPlaceColorGeneration.CheckTablesConsistencyForNonUnique(
