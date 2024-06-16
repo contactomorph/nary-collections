@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Runtime.CompilerServices;
+
 namespace NaryCollections.Details;
 
 internal static class TableHandling
@@ -37,7 +40,29 @@ internal static class TableHandling
     }
 }
 
-internal static class TableHandling<TDataEntry, T>
+public static class TableHandling<TDataTuple, THashTuple, TIndexTuple>
+    where TDataTuple: struct, ITuple, IStructuralEquatable
+    where THashTuple: struct, ITuple, IStructuralEquatable
+    where TIndexTuple: struct, ITuple, IStructuralEquatable
+{
+    public static int AddOnlyData(
+        DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
+        TDataTuple dataTuple,
+        THashTuple hashTuple,
+        ref int dataCount)
+    {
+        int dataIndex = dataCount;
+        dataTable[dataIndex] = new DataEntry<TDataTuple, THashTuple, TIndexTuple>
+        {
+            DataTuple = dataTuple,
+            HashTuple = hashTuple,
+        };
+        ++dataCount;
+        return dataIndex;
+    }
+}
+
+internal static class TableHandling<TDataEntry,T>
 {
     public static TableHandling.SearchResult ContainsForUnique(
         HashEntry[] hashTable,
@@ -102,6 +127,59 @@ internal static class TableHandling<TDataEntry, T>
 
             TableHandling.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
             driftPlusOne++;
+        }
+    }
+
+    public static void AddForUnique(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        IDataProjector<TDataEntry, T> projector,
+        TableHandling.SearchResult lastSearchResult,
+        int candidateDataIndex)
+    {
+        uint candidateReducedHashCode = (uint)lastSearchResult.HashIndex;
+        uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
+
+        if (lastSearchResult.Case == TableHandling.SearchCase.EmptyEntryFound)
+        {
+            hashTable[candidateReducedHashCode] = new HashEntry
+            {
+                DriftPlusOne = candidateDriftPlusOne,
+                ForwardIndex = candidateDataIndex,
+            };
+            projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+            return;
+        }
+        
+        while (true)
+        {
+            var occupiedDriftPlusOne = hashTable[candidateReducedHashCode].DriftPlusOne;
+            // we have reached an empty place: the item can be set here
+            if (occupiedDriftPlusOne == HashEntry.DriftForUnused)
+            {
+                hashTable[candidateReducedHashCode] = new HashEntry
+                {
+                    DriftPlusOne = candidateDriftPlusOne,
+                    ForwardIndex = candidateDataIndex,
+                };
+                projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+                return;
+            }
+            
+            // we have drifted too long: we must swap the current data with the candidate data
+            if (occupiedDriftPlusOne < candidateDriftPlusOne)
+            {
+                int forwardIndex = hashTable[candidateReducedHashCode].ForwardIndex;
+                hashTable[candidateReducedHashCode].ForwardIndex = candidateDataIndex;
+                hashTable[candidateReducedHashCode].DriftPlusOne = candidateDriftPlusOne;
+                projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+
+                candidateDataIndex = forwardIndex;
+                candidateDriftPlusOne = occupiedDriftPlusOne;
+            }
+            
+            TableHandling.MoveReducedHashCode(ref candidateReducedHashCode, hashTable.Length);
+            candidateDriftPlusOne++;
         }
     }
 }
