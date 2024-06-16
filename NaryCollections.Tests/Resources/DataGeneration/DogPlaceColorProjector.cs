@@ -7,7 +7,8 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry, DogPlaceColorTuple>
+internal sealed class DogPlaceColorProjector
+    : ICompleteDataProjector<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>
 {
     private readonly IEqualityComparer<Dog> _dogComparer = EqualityComparer<Dog>.Default;
     private readonly IEqualityComparer<string> _stringComparer = EqualityComparer<string>.Default;
@@ -35,7 +36,16 @@ internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry
 
     public uint ComputeHashCode(DogPlaceColorTuple item) => (uint)ComputeHashTuple(item).GetHashCode();
 
-    private (uint, uint, uint) ComputeHashTuple(DogPlaceColorTuple dataTuple)
+    public void SetDataAt(
+        DogPlaceColorEntry[] dataTable,
+        int index, DogPlaceColorTuple dataTuple,
+        (uint, uint, uint) hashTuple)
+    {
+        dataTable[index].DataTuple = dataTuple;
+        dataTable[index].HashTuple = hashTuple;
+    }
+
+    public (uint, uint, uint) ComputeHashTuple(DogPlaceColorTuple dataTuple)
     {
         return (
             (uint)_dogComparer.GetHashCode(dataTuple.Dog),

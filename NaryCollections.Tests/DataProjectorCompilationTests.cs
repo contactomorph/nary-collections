@@ -20,7 +20,7 @@ public class DataProjectorCompilationTests
     private static readonly IEqualityComparer<string> StringComparer = EqualityComparer<string>.Default;
     private static readonly IEqualityComparer<Color> ColorComparer = EqualityComparer<Color>.Default;
 
-    public static IDataProjector<DogPlaceColorEntry, Dog> CallDogCtor(
+    private static IDataProjector<DogPlaceColorEntry, Dog> CallDogCtor(
         ConstructorInfo projectorConstructor,
         IEqualityComparer<Dog>? dogComparer = null)
     {
@@ -39,7 +39,7 @@ public class DataProjectorCompilationTests
             ColorComparer)!;
     }
     
-    public static IDataProjector<DogPlaceColorEntry, ColorPlaceTuple> CallColorPlaceCtor(
+    private static IDataProjector<DogPlaceColorEntry, ColorPlaceTuple> CallColorPlaceCtor(
         ConstructorInfo projectorConstructor)
     {
         var parameters = projectorConstructor
@@ -56,6 +56,24 @@ public class DataProjectorCompilationTests
             StringComparer,
             ColorComparer)!;
     }
+    
+    private static ICompleteDataProjector<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>> CallDogPlaceColorCtor(
+        ConstructorInfo projectorConstructor)
+    {
+        var parameters = projectorConstructor
+            .GetParameters()
+            .Select((p, i) => Expression.Parameter(p.ParameterType, $"comparer{i}"))
+            .ToArray();
+
+        var lambda = Expression
+            .Lambda(Expression.New(projectorConstructor, parameters), parameters)
+            .Compile();
+        
+        return (ICompleteDataProjector<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>)lambda.DynamicInvoke(
+            DogComparer,
+            StringComparer,
+            ColorComparer)!;
+    }
 
     [SetUp]
     public void Setup()
@@ -66,7 +84,7 @@ public class DataProjectorCompilationTests
     }
     
     [Test]
-    public void CheckGetAndEqualAtTest()
+    public void ScalarGetAndEqualAtTest()
     {
         DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
         
@@ -102,7 +120,7 @@ public class DataProjectorCompilationTests
     }
     
     [Test]
-    public void ComplexCheckGetAndEqualAtTest()
+    public void CompositeGetAndEqualAtTest()
     {
         DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
         
@@ -135,7 +153,43 @@ public class DataProjectorCompilationTests
     }
     
     [Test]
-    public void CheckGetAndSetBackIndexTest()
+    public void CompleteGetAndEqualAtTest()
+    {
+        DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
+        
+        var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0, 1, 2],
+            0,
+            1);
+        
+        var projector = CallDogPlaceColorCtor(constructor);
+    
+        for (int i = 0; i < dataTable.Length; ++i)
+        {
+            var dataTuple = dataTable[i].DataTuple;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (dataTuple.Dog is null)
+                continue;
+            var expectedTuple = (dataTuple.Dog, dataTuple.Place, dataTuple.Color);
+            var expectedTupleHashCode = (uint)(
+                        (uint)dataTuple.Dog.GetHashCode(),
+                        (uint)dataTuple.Place.GetHashCode(),
+                        (uint)dataTuple.Color.GetHashCode()
+                    ).GetHashCode();
+            
+            var (tuple, hashCode) = projector.GetDataAt(dataTable, i);
+            
+            Assert.That(tuple, Is.EqualTo(expectedTuple));
+            Assert.That(hashCode, Is.EqualTo(expectedTupleHashCode));
+    
+            Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, tuple, hashCode));
+        }
+    }
+    
+    [Test]
+    public void GetAndSetBackIndexTest()
     {
         DogPlaceColorEntry[] dataTable = new DogPlaceColorEntry[12];
         for (int i = 0; i < dataTable.Length; ++i) dataTable[i].BackIndexesTuple.Item1 = (i + 5) % dataTable.Length;
@@ -164,7 +218,7 @@ public class DataProjectorCompilationTests
     }
 
     [Test]
-    public void ComputeHashCodeTest()
+    public void ScalarComputeHashCodeTest()
     {
         var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
             _moduleBuilder,
@@ -187,7 +241,7 @@ public class DataProjectorCompilationTests
     }
 
     [Test]
-    public void ComplexComputeHashCodeTest()
+    public void CompositeComputeHashCodeTest()
     {
         var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
             _moduleBuilder,
@@ -205,6 +259,80 @@ public class DataProjectorCompilationTests
             EqualityComparerHandling.ComputeRefHashCode(StringComparer, "Tokyo"));
         
         Assert.That(hc, Is.EqualTo(EqualityComparerHandling.ComputeTupleHashCode(hashTuple)));
+    }
+
+    [Test]
+    public void CompleteComputeHashCodeTest()
+    {
+        var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0, 1, 2],
+            0,
+            1);
+        
+        var projector = CallDogPlaceColorCtor(constructor);
+
+        var dog = new Dog("Aramis", "Louis");
+        var hc = projector.ComputeHashCode((dog, "Rio de Janeiro", Color.LawnGreen));
+
+        var hashTuple = (
+            EqualityComparerHandling.ComputeRefHashCode(DogComparer, dog),
+            EqualityComparerHandling.ComputeRefHashCode(StringComparer, "Rio de Janeiro"),
+            EqualityComparerHandling.ComputeStructHashCode(ColorComparer, Color.LawnGreen));
+        
+        Assert.That(hc, Is.EqualTo(EqualityComparerHandling.ComputeTupleHashCode(hashTuple)));
+    }
+    
+    [Test]
+    public void SetDataAtTest()
+    {
+        DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
+
+        var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0, 1, 2],
+            0,
+            1);
+        
+        var projector = CallDogPlaceColorCtor(constructor);
+
+        var previousDataTuple = dataTable[3].DataTuple;
+        var previousHashTuple = dataTable[3].HashTuple;
+
+        var newDataTuple = dataTable[7].DataTuple;
+        var newHashTuple = dataTable[7].HashTuple;
+        
+        projector.SetDataAt(dataTable, 3, newDataTuple, newHashTuple);
+        
+        Assert.That(dataTable[3].DataTuple, Is.Not.EqualTo(previousDataTuple).And.EqualTo(newDataTuple));
+        Assert.That(dataTable[3].HashTuple, Is.Not.EqualTo(previousHashTuple).And.EqualTo(newHashTuple));
+    }
+    
+    [Test]
+    public void ComputeTupleHashTest()
+    {
+        var constructor = DataProjectorCompilation.GenerateProjectorConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0, 1, 2],
+            0,
+            1);
+        
+        var projector = CallDogPlaceColorCtor(constructor);
+
+        foreach (var dataTuple in DogPlaceColorTuples.Data)
+        {
+            var hashTuple = projector.ComputeHashTuple(dataTuple);
+            
+            var expectedHashTuple = (
+                EqualityComparerHandling.ComputeRefHashCode(DogComparer, dataTuple.Dog),
+                EqualityComparerHandling.ComputeRefHashCode(StringComparer, dataTuple.Place),
+                EqualityComparerHandling.ComputeStructHashCode(ColorComparer, dataTuple.Color));
+            
+            Assert.That(hashTuple, Is.EqualTo(expectedHashTuple));
+        }
     }
 
     private sealed class CustomDogEqualityComparer : IEqualityComparer<Dog>
