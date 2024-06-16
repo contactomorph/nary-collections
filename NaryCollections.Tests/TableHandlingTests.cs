@@ -23,7 +23,7 @@ public class TableHandlingTests
             DogPlaceColorTuples.DataWithUniqueDogs,
             out var hashTable,
             out var dataTable,
-            hashTuple => hashTuple.Item1,
+            (hashTuple, size) => TableHandling.ComputeReducedHashCode(hashTuple.Item1, size),
             dataTuple => dataTuple.Dog);
         
         var projector = new DogProjector();
@@ -65,10 +65,10 @@ public class TableHandlingTests
             DogPlaceColorTuples.Data,
             out var hashTable,
             out var dataTable,
-            hashTuple => (uint)hashTuple.GetHashCode(),
+            (hashTuple, size) => TableHandling.ComputeReducedHashCode((uint)hashTuple.GetHashCode(), size),
             dataTuple => dataTuple);
         
-        var projector = new DogPlaceColorProjector();
+        var projector = DogPlaceColorProjector.Instance;
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
@@ -76,7 +76,7 @@ public class TableHandlingTests
                 hashTable,
                 dataTable,
                 projector,
-                (uint)DogPlaceColorGeneration.ToHashCodes(tuple).GetHashCode(),
+                (uint)DogPlaceColorProjector.Instance.ComputeHashTuple(tuple).GetHashCode(),
                 tuple);
         
             Assert.IsTrue(exists);
@@ -93,7 +93,7 @@ public class TableHandlingTests
             out var hashTable,
             out var correspondenceTable,
             out var dataTable,
-            hashTuple => hashTuple.Item1,
+            (hashTuple, size) => TableHandling.ComputeReducedHashCode(hashTuple.Item1, size),
             dataTuple => dataTuple.Dog);
         
         var projector = new DogProjector();

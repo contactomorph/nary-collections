@@ -8,7 +8,12 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 
 internal sealed class DogProjector : IDataProjector<DogPlaceColorEntry, Dog>
 {
-    private readonly IEqualityComparer<Dog> _comparer = EqualityComparer<Dog>.Default;
+    private readonly IEqualityComparer<Dog> _comparer;
+
+    public DogProjector(IEqualityComparer<Dog>? comparer = null)
+    {
+        _comparer = comparer ?? EqualityComparer<Dog>.Default;
+    }
 
     public (Dog Item, uint HashCode) GetDataAt(DogPlaceColorEntry[] dataTable, int index)
     {

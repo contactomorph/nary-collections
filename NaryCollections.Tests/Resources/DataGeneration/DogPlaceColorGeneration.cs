@@ -10,8 +10,10 @@ internal static class DogPlaceColorGeneration
 {
     public static void CreateDataTableOnly(
         IReadOnlyCollection<DogPlaceColorTuple> data,
-        out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable)
+        out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
+        DogPlaceColorProjector? projector = null)
     {
+        projector ??= DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
         
@@ -20,7 +22,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = ToHashCodes(tuple);
+            var hashTuple = projector.ComputeHashTuple(tuple);;
             
             dataTable[i] = new()
             {
@@ -40,9 +42,11 @@ internal static class DogPlaceColorGeneration
         IReadOnlyCollection<DogPlaceColorTuple> data,
         out HashEntry[] hashTable,
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        Func<HashTuple, uint> hashProj,
-        Func<DogPlaceColorTuple, object> dataProj)
+        Func<HashTuple, int, uint> reducedHashProj,
+        Func<DogPlaceColorTuple, object> dataProj,
+        DogPlaceColorProjector? projector = null)
     {
+        projector ??= DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         
         hashTable = new HashEntry[size];
@@ -54,7 +58,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = ToHashCodes(tuple);
+            var hashTuple = projector.ComputeHashTuple(tuple);
             
             dataTable[i] = new()
             {
@@ -71,7 +75,7 @@ internal static class DogPlaceColorGeneration
             UpdateHashTable(
                 hashTable,
                 dataTable, 
-                hashProj(hashTuple),
+                reducedHashProj(hashTuple, hashTable.Length),
                 i);
 
             ++i;
@@ -81,44 +85,43 @@ internal static class DogPlaceColorGeneration
     private static void UpdateHashTable(
         HashEntry[] hashTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        uint newItemProjectedHashCode,
+        uint newItemReducedHashTuple,
         int newItemDataIndex)
     {
-        uint reducedHashTuple = TableHandling.ComputeReducedHashCode(newItemProjectedHashCode, hashTable.Length);
         uint driftPlusOne = 1;
             
         while (true)
         {
-            uint currentDriftPlusOne = hashTable[reducedHashTuple].DriftPlusOne;
+            uint currentDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
                 
             if (currentDriftPlusOne == HashEntry.DriftForUnused)
             {
-                hashTable[reducedHashTuple] = new()
+                hashTable[newItemReducedHashTuple] = new()
                 {
                     DriftPlusOne = driftPlusOne,
                     ForwardIndex = newItemDataIndex,
                 };
-                dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)reducedHashTuple;
+                dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)newItemReducedHashTuple;
                 break;
             }
 
             if (driftPlusOne < currentDriftPlusOne)
             {
-                TableHandling.MoveReducedHashCode(ref reducedHashTuple, hashTable.Length);
+                TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne++;
             }
             else
             {
-                int replacementDataIndex = hashTable[reducedHashTuple].ForwardIndex;
+                int replacementDataIndex = hashTable[newItemReducedHashTuple].ForwardIndex;
 
-                hashTable[reducedHashTuple] = new()
+                hashTable[newItemReducedHashTuple] = new()
                 {
                     DriftPlusOne = driftPlusOne,
                     ForwardIndex = newItemDataIndex,
                 };
-                dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)reducedHashTuple;
+                dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)newItemReducedHashTuple;
                 
-                TableHandling.MoveReducedHashCode(ref reducedHashTuple, hashTable.Length);
+                TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne = currentDriftPlusOne + 1;
                 newItemDataIndex = replacementDataIndex;
             }
@@ -130,9 +133,11 @@ internal static class DogPlaceColorGeneration
         out HashEntry[] hashTable,
         out CorrespondenceEntry[] correspondenceTable,
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        Func<HashTuple, uint> hashProj,
-        Func<DogPlaceColorTuple, object> dataProj)
+        Func<HashTuple, int, uint> reducedHashProj,
+        Func<DogPlaceColorTuple, object> dataProj,
+        DogPlaceColorProjector? projector = null)
     {
+        projector ??= DogPlaceColorProjector.Instance;
         int size = data.Count  * 2 / 2;
         
         hashTable = new HashEntry[size];
@@ -144,7 +149,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = ToHashCodes(tuple);
+            var hashTuple = projector.ComputeHashTuple(tuple);
             
             correspondenceTable[i] = new()
             {
@@ -163,19 +168,22 @@ internal static class DogPlaceColorGeneration
             if (!tupleSet.Add(tuple))
                 throw new InvalidDataException("Duplicate line");
 
-            uint newItemProjectedHashCode = hashProj(hashTuple);
+            uint newItemReducedHashTuple = reducedHashProj(hashTuple, size);
             object newItemProjectedValue = dataProj(tuple);
 
             bool IsProjectionCorresponding(HashTuple ht, DogPlaceColorTuple dt)
             {
-                return hashProj(ht) == newItemProjectedHashCode && dataProj(dt).Equals(newItemProjectedValue);
+                uint existingItemReducedHashTuple = reducedHashProj(ht, size);
+                object existingItemProjectedValue = dataProj(dt);
+                return existingItemReducedHashTuple == newItemReducedHashTuple
+                       && existingItemProjectedValue.Equals(newItemProjectedValue);
             }
 
             UpdateHashTable(
                 hashTable,
                 correspondenceTable,
                 dataTable,
-                newItemProjectedHashCode,
+                newItemReducedHashTuple,
                 newItemCorrespondenceIndex: i,
                 IsProjectionCorresponding);
             
@@ -187,59 +195,58 @@ internal static class DogPlaceColorGeneration
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        uint newItemProjectedHashCode,
+        uint newItemReducedHashTuple,
         int newItemCorrespondenceIndex,
         Func<HashTuple, DogPlaceColorTuple, bool> isProjectionCorresponding)
     {
-        uint reducedHashTuple = TableHandling.ComputeReducedHashCode(newItemProjectedHashCode, hashTable.Length);
         uint driftPlusOne = 1;
             
         while (true)
         {
-            uint currentDriftPlusOne = hashTable[reducedHashTuple].DriftPlusOne;
+            uint currentDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
                 
             if (currentDriftPlusOne == HashEntry.DriftForUnused)
             {
-                hashTable[reducedHashTuple] = new()
+                hashTable[newItemReducedHashTuple] = new()
                 {
                     DriftPlusOne = driftPlusOne,
                     ForwardIndex = newItemCorrespondenceIndex,
                 };
-                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)reducedHashTuple;
+                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)newItemReducedHashTuple;
                 
                 break;
             }
 
-            int forwardIndex = hashTable[reducedHashTuple].ForwardIndex;
+            int forwardIndex = hashTable[newItemReducedHashTuple].ForwardIndex;
             int dataIndex = correspondenceTable[forwardIndex].DataIndex;
 
             if (isProjectionCorresponding(dataTable[dataIndex].HashTuple, dataTable[dataIndex].DataTuple))
             {
-                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)reducedHashTuple;
+                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)newItemReducedHashTuple;
                 correspondenceTable[newItemCorrespondenceIndex].Next = forwardIndex;
                 correspondenceTable[forwardIndex].Status = EntryStatus.Subsequent;
                 correspondenceTable[forwardIndex].Previous = newItemCorrespondenceIndex;
-                hashTable[reducedHashTuple].ForwardIndex = newItemCorrespondenceIndex;
+                hashTable[newItemReducedHashTuple].ForwardIndex = newItemCorrespondenceIndex;
                 break;
             }
 
             if (driftPlusOne <= currentDriftPlusOne)
             {
-                TableHandling.MoveReducedHashCode(ref reducedHashTuple, hashTable.Length);
+                TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne++;
             }
             else
             {
-                int replacementCorrespondenceIndex = hashTable[reducedHashTuple].ForwardIndex;
+                int replacementCorrespondenceIndex = hashTable[newItemReducedHashTuple].ForwardIndex;
                 
-                hashTable[reducedHashTuple] = new()
+                hashTable[newItemReducedHashTuple] = new()
                 {
                     DriftPlusOne = driftPlusOne,
                     ForwardIndex = newItemCorrespondenceIndex,
                 };
-                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)reducedHashTuple;
+                correspondenceTable[newItemCorrespondenceIndex].Previous = (int)newItemReducedHashTuple;
                 
-                TableHandling.MoveReducedHashCode(ref reducedHashTuple, hashTable.Length);
+                TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne = currentDriftPlusOne + 1;
                 newItemCorrespondenceIndex = replacementCorrespondenceIndex;
             }
@@ -249,11 +256,14 @@ internal static class DogPlaceColorGeneration
     public static void CheckTablesConsistencyForUnique(
         HashEntry[] hashTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        int dataLength)
+        int dataLength,
+        DogPlaceColorProjector? projector = null)
     {
+        projector ??= DogPlaceColorProjector.Instance;
+        
         for (int i = 0; i < dataLength; i++)
         {
-            var hashTuple = ToHashCodes(dataTable[i].DataTuple);
+            var hashTuple = projector.ComputeHashTuple(dataTable[i].DataTuple);
             if (hashTuple != dataTable[i].HashTuple)
                 throw new InvalidDataException("Hash tuple is incorrect");
             int backIndex = dataTable[i].BackIndexesTuple.Item1;
@@ -276,11 +286,14 @@ internal static class DogPlaceColorGeneration
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        int dataLength)
+        int dataLength,
+        DogPlaceColorProjector? projector = null)
     {
+        projector ??= DogPlaceColorProjector.Instance;
+        
         for (int i = 0; i < dataLength; i++)
         {
-            var hashTuple = ToHashCodes(dataTable[i].DataTuple);
+            var hashTuple = projector.ComputeHashTuple(dataTable[i].DataTuple);
             if (hashTuple != dataTable[i].HashTuple)
                 throw new InvalidDataException("Hash tuple is incorrect");
             int correspondenceIndex = dataTable[i].BackIndexesTuple.Item1;
@@ -347,14 +360,6 @@ internal static class DogPlaceColorGeneration
                     throw CreateConsistencyError("hashTable[].ForwardIndex", "correspondenceEntries[].Previous");
             }
         }
-    }
-
-    public static (uint, uint, uint) ToHashCodes(DogPlaceColorTuple tuple)
-    {
-        var a = (uint)tuple.Dog.GetHashCode();
-        var b = (uint)tuple.Place.GetHashCode();
-        var c = (uint)tuple.Color.GetHashCode();
-        return (a, b, c);
     }
 
     private static Exception CreateConsistencyError(string firstPlace, string secondPlace)

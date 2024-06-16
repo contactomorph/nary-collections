@@ -10,9 +10,21 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 internal sealed class DogPlaceColorProjector
     : ICompleteDataProjector<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>
 {
-    private readonly IEqualityComparer<Dog> _dogComparer = EqualityComparer<Dog>.Default;
-    private readonly IEqualityComparer<string> _stringComparer = EqualityComparer<string>.Default;
-    private readonly IEqualityComparer<Color> _colorComparer = EqualityComparer<Color>.Default;
+    public static readonly DogPlaceColorProjector Instance = new();
+    
+    private readonly IEqualityComparer<Dog> _dogComparer;
+    private readonly IEqualityComparer<string> _stringComparer;
+    private readonly IEqualityComparer<Color> _colorComparer;
+    
+    public DogPlaceColorProjector(
+        IEqualityComparer<Dog>? dogComparer = null,
+        IEqualityComparer<string>? stringComparer = null,
+        IEqualityComparer<Color>? colorComparer = null)
+    {
+        _dogComparer = dogComparer ?? EqualityComparer<Dog>.Default;
+        _stringComparer = stringComparer ?? EqualityComparer<string>.Default;
+        _colorComparer = colorComparer ?? EqualityComparer<Color>.Default;
+    }
 
     public (DogPlaceColorTuple Item, uint HashCode) GetDataAt(DogPlaceColorEntry[] dataTable, int index)
     {
@@ -22,9 +34,9 @@ internal sealed class DogPlaceColorProjector
     public bool AreDataEqualAt(DogPlaceColorEntry[] dataTable, int index, DogPlaceColorTuple item, uint hashCode)
     {
         return (uint)dataTable[index].HashTuple.GetHashCode() == hashCode
-               && _dogComparer.Equals(dataTable[index].DataTuple.Dog, item.Dog) &&
-               _stringComparer.Equals(dataTable[index].DataTuple.Place, item.Place) &&
-               _colorComparer.Equals(dataTable[index].DataTuple.Color, item.Color);
+               && _dogComparer.Equals(dataTable[index].DataTuple.Dog, item.Dog)
+               && _stringComparer.Equals(dataTable[index].DataTuple.Place, item.Place)
+               && _colorComparer.Equals(dataTable[index].DataTuple.Color, item.Color);
     }
 
     public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index) => dataTable[index].BackIndexesTuple.Item1;
@@ -38,7 +50,8 @@ internal sealed class DogPlaceColorProjector
 
     public void SetDataAt(
         DogPlaceColorEntry[] dataTable,
-        int index, DogPlaceColorTuple dataTuple,
+        int index,
+        DogPlaceColorTuple dataTuple,
         (uint, uint, uint) hashTuple)
     {
         dataTable[index].DataTuple = dataTuple;
