@@ -1,14 +1,10 @@
 namespace NaryCollections.Details;
 
-
 internal static class TableHandling
 {
-    public static readonly uint Mask = 0x55555555;
-    public static readonly uint Prime = 0x86493763;
-
     public static uint ComputeReducedHashCode(uint candidateHashCode, int hashTableLength)
     {
-        return (candidateHashCode ^ Mask) * Prime % (uint)hashTableLength;
+        return candidateHashCode % (uint)hashTableLength;
     }
 
     public static void MoveReducedHashCode(ref uint reducedHashCode, int hashTableLength)
@@ -17,7 +13,7 @@ internal static class TableHandling
     }
 }
 
-internal static class TableHandling<TDataEntry,T>
+internal static class TableHandling<TDataEntry, T>
 {
     public static bool ContainsForUnique(
         HashEntry[] hashTable,
@@ -41,12 +37,12 @@ internal static class TableHandling<TDataEntry,T>
             int occupiedDataIndex = hashTable[reducedHashCode].ForwardIndex;
             if (projector.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
                 return true;
-                
+
             TableHandling.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
             driftPlusOne++;
         }
     }
-    
+
     public static bool ContainsForNonUnique(
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
@@ -77,8 +73,7 @@ internal static class TableHandling<TDataEntry,T>
                     return true;
 
                 occupiedCorrespondenceIndex = correspondenceTable[occupiedCorrespondenceIndex].Next;
-            }
-            while (occupiedCorrespondenceIndex != CorrespondenceEntry.NoNextCorrespondence);
+            } while (occupiedCorrespondenceIndex != CorrespondenceEntry.NoNextCorrespondence);
 
             TableHandling.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
             driftPlusOne++;

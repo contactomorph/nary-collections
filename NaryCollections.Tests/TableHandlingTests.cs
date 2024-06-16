@@ -11,11 +11,6 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 
 public class TableHandlingTests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-    
     [Test]
     public void CheckItemExistenceForUniqueParticipantTest()
     {
@@ -23,7 +18,7 @@ public class TableHandlingTests
             DogPlaceColorTuples.DataWithUniqueDogs,
             out var hashTable,
             out var dataTable,
-            (hashTuple, size) => TableHandling.ComputeReducedHashCode(hashTuple.Item1, size),
+            hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
         var projector = new DogProjector();
@@ -59,13 +54,13 @@ public class TableHandlingTests
     }
     
     [Test]
-    public void CheckItemExistenceForLineTest()
+    public void CheckItemExistenceForCompleteDataTupleTest()
     {
         DogPlaceColorGeneration.CreateTablesForUnique(
             DogPlaceColorTuples.Data,
             out var hashTable,
             out var dataTable,
-            (hashTuple, size) => TableHandling.ComputeReducedHashCode((uint)hashTuple.GetHashCode(), size),
+            hashTuple => (uint)hashTuple.GetHashCode(),
             dataTuple => dataTuple);
         
         var projector = DogPlaceColorProjector.Instance;
@@ -93,7 +88,7 @@ public class TableHandlingTests
             out var hashTable,
             out var correspondenceTable,
             out var dataTable,
-            (hashTuple, size) => TableHandling.ComputeReducedHashCode(hashTuple.Item1, size),
+            hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
         var projector = new DogProjector();
