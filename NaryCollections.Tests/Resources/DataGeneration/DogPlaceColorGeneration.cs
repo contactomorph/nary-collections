@@ -92,9 +92,9 @@ internal static class DogPlaceColorGeneration
             
         while (true)
         {
-            uint currentDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
+            uint candidateDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
                 
-            if (currentDriftPlusOne == HashEntry.DriftForUnused)
+            if (candidateDriftPlusOne == HashEntry.DriftForUnused)
             {
                 hashTable[newItemReducedHashTuple] = new()
                 {
@@ -105,7 +105,7 @@ internal static class DogPlaceColorGeneration
                 break;
             }
 
-            if (driftPlusOne < currentDriftPlusOne)
+            if (driftPlusOne <= candidateDriftPlusOne)
             {
                 TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne++;
@@ -122,7 +122,7 @@ internal static class DogPlaceColorGeneration
                 dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)newItemReducedHashTuple;
                 
                 TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
-                driftPlusOne = currentDriftPlusOne + 1;
+                driftPlusOne = candidateDriftPlusOne + 1;
                 newItemDataIndex = replacementDataIndex;
             }
         }
@@ -203,9 +203,9 @@ internal static class DogPlaceColorGeneration
             
         while (true)
         {
-            uint currentDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
+            uint candidateDriftPlusOne = hashTable[newItemReducedHashTuple].DriftPlusOne;
                 
-            if (currentDriftPlusOne == HashEntry.DriftForUnused)
+            if (candidateDriftPlusOne == HashEntry.DriftForUnused)
             {
                 hashTable[newItemReducedHashTuple] = new()
                 {
@@ -230,7 +230,7 @@ internal static class DogPlaceColorGeneration
                 break;
             }
 
-            if (driftPlusOne <= currentDriftPlusOne)
+            if (driftPlusOne <= candidateDriftPlusOne)
             {
                 TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
                 driftPlusOne++;
@@ -247,7 +247,7 @@ internal static class DogPlaceColorGeneration
                 correspondenceTable[newItemCorrespondenceIndex].Previous = (int)newItemReducedHashTuple;
                 
                 TableHandling.MoveReducedHashCode(ref newItemReducedHashTuple, hashTable.Length);
-                driftPlusOne = currentDriftPlusOne + 1;
+                driftPlusOne = candidateDriftPlusOne + 1;
                 newItemCorrespondenceIndex = replacementCorrespondenceIndex;
             }
         }
