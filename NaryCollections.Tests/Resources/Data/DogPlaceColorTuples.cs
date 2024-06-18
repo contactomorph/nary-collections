@@ -1,11 +1,12 @@
 using System.Drawing;
+using NaryCollections.Details;
 using NaryCollections.Tests.Resources.Types;
 
 namespace NaryCollections.Tests.Resources.Data;
 
 public static class DogPlaceColorTuples
 {
-    public static readonly (Dog Dog, string Place, Color Color)[] Data =
+    public static readonly IReadOnlyList<(Dog Dog, string Place, Color Color)> Data =
     [
         (Dogs.KnownDogs[0], "Lyon", Color.Beige),
         (Dogs.KnownDogs[1], "Lyon", Color.CadetBlue),
@@ -15,5 +16,12 @@ public static class DogPlaceColorTuples
         (Dogs.KnownDogs[1], "Bordeaux", Color.CadetBlue),
         (Dogs.KnownDogs[0], "Bordeaux", Color.Beige),
         (Dogs.KnownDogs[0], "Bordeaux", Color.CadetBlue),
+    ];
+    
+    public static readonly IReadOnlyList<(Dog Dog, string Place, Color Color)> DataWithUniqueDogs =
+    [
+        (Dogs.KnownDogs[0], "Lyon", Color.Beige),
+        (Dogs.KnownDogs[1], "Lyon", Color.CadetBlue),
+        (Dogs.KnownDogs[2], "Paris", Color.Beige),
     ];
 }

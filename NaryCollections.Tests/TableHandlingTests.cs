@@ -19,10 +19,8 @@ public class TableHandlingTests
     [Test]
     public void CheckItemExistenceForUniqueParticipantTest()
     {
-        DogPlaceColorTuple[] dataWithUniqueDogs = DogPlaceColorTuples.Data.DistinctBy(t => t.Dog).ToArray();
-
         DogPlaceColorGeneration.CreateTablesForUnique(
-            dataWithUniqueDogs,
+            DogPlaceColorTuples.DataWithUniqueDogs,
             out var hashTable,
             out var dataTable,
             hashTuple => hashTuple.Item1,
@@ -30,7 +28,7 @@ public class TableHandlingTests
         
         var projector = new DogProjector();
 
-        foreach (var (dog, _, _) in dataWithUniqueDogs)
+        foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
             bool exists = TableHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
                 hashTable,
@@ -54,7 +52,10 @@ public class TableHandlingTests
             Assert.IsFalse(exists);
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, dataWithUniqueDogs.Length);
+        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            hashTable,
+            dataTable,
+            DogPlaceColorTuples.DataWithUniqueDogs.Count);
     }
     
     [Test]
@@ -81,7 +82,7 @@ public class TableHandlingTests
             Assert.IsTrue(exists);
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Length);
+        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Count);
     }
 
     [Test]
@@ -126,6 +127,6 @@ public class TableHandlingTests
             hashTable,
             correspondenceTable,
             dataTable,
-            Dogs.KnownDogs.Length);
+            Dogs.KnownDogs.Count);
     }
 }
