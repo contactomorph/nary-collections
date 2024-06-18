@@ -234,7 +234,7 @@ public class DataProjectorCompilationTests
         
         Assert.That(hc, Is.EqualTo((uint)dog.GetHashCode()));
         
-        var projector2 = CallDogCtor(constructor, new CustomDogEqualityComparer());
+        var projector2 = CallDogCtor(constructor, new CustomDogEqualityComparer((dog, 4)));
         var hc2 = projector2.ComputeHashCode(dog);
         
         Assert.That(hc2, Is.EqualTo((uint)4));
@@ -333,12 +333,5 @@ public class DataProjectorCompilationTests
             
             Assert.That(hashTuple, Is.EqualTo(expectedHashTuple));
         }
-    }
-
-    private sealed class CustomDogEqualityComparer : IEqualityComparer<Dog>
-    {
-        public bool Equals(Dog? x, Dog? y) => throw new NotImplementedException();
-
-        public int GetHashCode(Dog obj) => 4;
     }
 }
