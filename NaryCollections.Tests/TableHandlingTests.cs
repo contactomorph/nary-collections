@@ -155,7 +155,7 @@ public class TableHandlingTests
             Assert.That(dogHc, Is.EqualTo(4));
             
             var candidateDataIndex = TableHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
-                dataTableCopy,
+                ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
@@ -195,7 +195,7 @@ public class TableHandlingTests
             Assert.That(dogHc, Is.EqualTo(3));
             
             var candidateDataIndex = TableHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
-                dataTableCopy,
+                ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
@@ -235,7 +235,7 @@ public class TableHandlingTests
             Assert.That(dogHc, Is.EqualTo(1));
         
             var candidateDataIndex = TableHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
-                dataTableCopy,
+                ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
@@ -271,7 +271,7 @@ public class TableHandlingTests
             Assert.That(dogHc, Is.EqualTo(5));
         
             var candidateDataIndex = TableHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
-                dataTableCopy,
+                ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);

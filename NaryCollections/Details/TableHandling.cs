@@ -46,18 +46,21 @@ public static class TableHandling<TDataTuple, THashTuple, TIndexTuple>
     where TIndexTuple: struct, ITuple, IStructuralEquatable
 {
     public static int AddOnlyData(
-        DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
+        ref DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         TDataTuple dataTuple,
         THashTuple hashTuple,
         ref int dataCount)
     {
+        if (dataCount == dataTable.Length)
+            Array.Resize(ref dataTable, dataTable.Length << 1);
         int dataIndex = dataCount;
+        ++dataCount;
+        
         dataTable[dataIndex] = new DataEntry<TDataTuple, THashTuple, TIndexTuple>
         {
             DataTuple = dataTuple,
             HashTuple = hashTuple,
         };
-        ++dataCount;
         return dataIndex;
     }
 }
