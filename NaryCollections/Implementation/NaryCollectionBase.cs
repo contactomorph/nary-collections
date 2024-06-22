@@ -186,9 +186,38 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         _count = 0;
     }
 
-    public bool Remove(TArgTuple item)
+    public bool Remove(TArgTuple dataTuple)
     {
-        throw new NotImplementedException();
+        THashTuple hashTuple = _completeProjector.ComputeHashTuple(dataTuple);
+        
+        var hc = (uint)hashTuple.GetHashCode();
+        var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
+            _mainHashTable,
+            _dataTable,
+            _completeProjector,
+            hc,
+            dataTuple);
+        
+        if (result.Case != TableHandling.SearchCase.ItemFound)
+            return false;
+
+        ++_version;
+
+        int dataIndex = _mainHashTable[result.HashIndex].ForwardIndex;
+        
+        TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveForUnique(
+            _mainHashTable,
+            _dataTable,
+            _completeProjector,
+            dataIndex,
+            _count);
+        
+        TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveOnlyData(
+            ref _dataTable, 
+            dataIndex,
+            ref _count);
+
+        return true;
     }
 
     #endregion

@@ -61,5 +61,14 @@ public class NaryCollectionCompilationTests
         }
 
         Assert.That(ModifyInLoop, Throws.Exception);
+        Assert.That(set.Count, Is.EqualTo(5));
+
+        Assert.That(set.Remove(DogPlaceColorTuples.Data[5]), Is.False);
+        Assert.That(set.Count, Is.EqualTo(5));
+        
+        Assert.That(set.Contains(DogPlaceColorTuples.Data[3]), Is.True);
+        Assert.That(set.Remove(DogPlaceColorTuples.Data[3]), Is.True);
+        Assert.That(set.Contains(DogPlaceColorTuples.Data[3]), Is.False);
+        Assert.That(set.Count, Is.EqualTo(4));
     }
 }
