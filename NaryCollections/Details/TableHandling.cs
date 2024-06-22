@@ -75,7 +75,7 @@ internal static class TableHandling<TDataEntry,T>
         T candidateItem)
     {
         uint reducedHashCode = TableHandling.ComputeReducedHashCode(candidateHashCode, hashTable.Length);
-        uint driftPlusOne = 1;
+        uint driftPlusOne = HashEntry.Optimal;
         while (true)
         {
             var occupiedDriftPlusOne = hashTable[reducedHashCode].DriftPlusOne;
@@ -104,7 +104,7 @@ internal static class TableHandling<TDataEntry,T>
         T candidateItem)
     {
         uint reducedHashCode = TableHandling.ComputeReducedHashCode(candidateHashCode, hashTable.Length);
-        uint driftPlusOne = 1;
+        uint driftPlusOne = HashEntry.Optimal;
         while (true)
         {
             var occupiedDriftPlusOne = hashTable[reducedHashCode].DriftPlusOne;

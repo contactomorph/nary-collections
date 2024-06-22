@@ -29,16 +29,16 @@ public static class DogPlaceColorTuples
     public static readonly IReadOnlyList<HashEntry> ExpectedHashTableSource = 
     [
         /*  0 */ default,
-        /*  1 */ new HashEntry { DriftPlusOne = 1, ForwardIndex = 0 }, // ok
+        /*  1 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 0 }, // ok
         /*  2 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 1 }, // should be in 1
         /*  3 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 2 }, // should be in 2
         /*  4 */ default,
-        /*  5 */ new HashEntry { DriftPlusOne = 1, ForwardIndex = 3 }, // ok
+        /*  5 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 3 }, // ok
         /*  6 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 4 }, // should be in 5
         /*  7 */ new HashEntry { DriftPlusOne = 3, ForwardIndex = 5 }, // should be in 5
         /*  8 */ new HashEntry { DriftPlusOne = 3, ForwardIndex = 6 }, // should be in 6
         /*  9 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 7 }, // should be in 8
-        /* 10 */ new HashEntry { DriftPlusOne = 1, ForwardIndex = 8 }, // ok
+        /* 10 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 8 }, // ok
         /* 11 */ default,
         /* 12 */ default,
     ];

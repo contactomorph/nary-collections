@@ -88,7 +88,7 @@ internal static class DogPlaceColorGeneration
         uint newItemHashCode,
         int newItemDataIndex)
     {
-        uint driftPlusOne = 1;
+        uint driftPlusOne = HashEntry.Optimal;
         uint newItemReducedHashCode = TableHandling.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
         
         while (true)
@@ -200,7 +200,7 @@ internal static class DogPlaceColorGeneration
         int newItemCorrespondenceIndex,
         Func<HashTuple, DogPlaceColorTuple, bool> isProjectionCorresponding)
     {
-        uint driftPlusOne = 1;
+        uint driftPlusOne = HashEntry.Optimal;
         uint newItemReducedHashCode = TableHandling.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
             
         while (true)
