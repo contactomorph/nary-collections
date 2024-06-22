@@ -65,7 +65,7 @@ public static class TableHandling<TDataTuple, THashTuple, TIndexTuple>
     }
 }
 
-internal static class TableHandling<TDataEntry,T>
+internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
 {
     public static TableHandling.SearchResult ContainsForUnique(
         HashEntry[] hashTable,
@@ -183,6 +183,63 @@ internal static class TableHandling<TDataEntry,T>
             
             TableHandling.MoveReducedHashCode(ref candidateReducedHashCode, hashTable.Length);
             candidateDriftPlusOne++;
+        }
+    }
+    
+    public static void RemoveOnlyData(
+        ref TDataEntry[] dataTable,
+        int dataIndex,
+        ref int dataCount)
+    {
+        --dataCount;
+        if (dataIndex == dataCount)
+        {
+            dataTable[dataIndex] = default;
+        }
+        else
+        {
+            dataTable[dataIndex] = dataTable[dataCount];
+            dataTable[dataCount] = default;
+        }
+
+        if (dataCount < dataTable.Length >> 2 && DataEntry.TableMinimalLength < dataTable.Length)
+            Array.Resize(ref dataTable, Math.Max(dataTable.Length >> 1, DataEntry.TableMinimalLength));
+    }
+    
+    public static void RemoveForUnique(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        IDataProjector<TDataEntry, T> projector,
+        int dataIndex,
+        int dataCount)
+    {
+        uint reducedHashCode = (uint)projector.GetBackIndex(dataTable, dataIndex);
+        uint nextReducedHashCode = reducedHashCode;
+        TableHandling.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
+
+        while (true)
+        {
+            if (hashTable[nextReducedHashCode].DriftPlusOne <= HashEntry.Optimal)
+            {
+                hashTable[reducedHashCode] = default;
+                break;
+            }
+
+            hashTable[reducedHashCode] = hashTable[nextReducedHashCode];
+            hashTable[reducedHashCode].DriftPlusOne--;
+
+            int forwardIndex = hashTable[reducedHashCode].ForwardIndex;
+            projector.SetBackIndex(dataTable, forwardIndex, (int)reducedHashCode);
+
+            reducedHashCode = nextReducedHashCode;
+            TableHandling.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
+        }
+        
+        int lastDataIndex = dataCount - 1;
+        if (dataIndex < lastDataIndex)
+        {
+            var backIndex = projector.GetBackIndex(dataTable, lastDataIndex);
+            hashTable[backIndex].ForwardIndex = dataIndex;
         }
     }
 }
