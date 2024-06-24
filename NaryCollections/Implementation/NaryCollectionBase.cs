@@ -2,6 +2,7 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryCollections.Components;
 using NaryCollections.Primitives;
+using NotImplementedException = System.NotImplementedException;
 
 namespace NaryCollections.Implementation;
 
@@ -81,16 +82,6 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     
     #region Implements IReadOnlySet<TDataTuple>
 
-    public void ExceptWith(IEnumerable<TDataTuple> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void IntersectWith(IEnumerable<TDataTuple> other)
-    {
-        throw new NotImplementedException();
-    }
-
     public bool IsProperSubsetOf(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
@@ -108,7 +99,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
 
     public bool IsSupersetOf(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        foreach (var dataTuple in other)
+            if (!Contains(dataTuple))
+                return false;
+        return true;
     }
 
     public bool Overlaps(IEnumerable<TDataTuple> other)
@@ -126,18 +121,13 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         throw new NotImplementedException();
     }
 
-    public void UnionWith(IEnumerable<TDataTuple> other)
-    {
-        throw new NotImplementedException();
-    }
-
     public bool Contains(TDataTuple dataTuple)
     {
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         var hc = (uint)hashTuple.GetHashCode();
         
-        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        var result = handlerReference.Find(_dataTable, _comparerTuple, hc, dataTuple);
 
         return result.Case == SearchCase.ItemFound;
     }
@@ -150,6 +140,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     {
         if (array is null) throw new ArgumentNullException(nameof(array));
         if (arrayIndex < 0) throw new IndexOutOfRangeException();
+        if (array.Length - arrayIndex < _count) throw new ArgumentException(nameof(arrayIndex));
         int i = arrayIndex;
         foreach (var tuple in this)
         {
@@ -164,8 +155,8 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         var hc = (uint)hashTuple.GetHashCode();
         
-        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        var result = handlerReference.Find(_dataTable, _comparerTuple, hc, dataTuple);
         
         if (result.Case == SearchCase.ItemFound)
             return false;
@@ -182,7 +173,6 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             hashTuple,
             ref _count);
 
-        ref TCompositeHandler handlerReference = ref _compositeHandler;
         handlerReference.Add(_dataTable, result, candidateDataIndex, newDataCount: _count);
         AddToOtherComposites(otherResults, candidateDataIndex, newDataCount: _count);
         
@@ -206,8 +196,8 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         var hc = (uint)hashTuple.GetHashCode();
         
-        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        var result = handlerReference.Find(_dataTable, _comparerTuple, hc, dataTuple);
         
         if (result.Case != SearchCase.ItemFound)
             return false;
@@ -221,11 +211,29 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             result.ForwardIndex,
             ref _count);
         
-        ref TCompositeHandler handlerReference = ref _compositeHandler;
         handlerReference.Remove(_dataTable, result, newDataCount: _count);
         RemoveFromOtherComposites(otherResults, newDataCount: _count);
         
         return true;
+    }
+    
+    public void ExceptWith(IEnumerable<TDataTuple> other)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void IntersectWith(IEnumerable<TDataTuple> other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        foreach (var tuple in other)
+            Remove(tuple);
+    }
+
+    public void UnionWith(IEnumerable<TDataTuple> other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        foreach (var tuple in other)
+            Add(tuple);
     }
 
     #endregion
