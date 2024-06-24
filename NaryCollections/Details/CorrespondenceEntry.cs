@@ -1,8 +1,5 @@
-using System.Diagnostics;
-
 namespace NaryCollections.Details;
 
-[DebuggerDisplay("{this.Debug()}")]
 public struct CorrespondenceEntry
 {
     public static readonly int NoNextCorrespondence = -1;
@@ -12,7 +9,7 @@ public struct CorrespondenceEntry
     public int DataIndex; // Index in the data table
     public int Next; // Index of next entry in the correspondence table, -1 if this is last
 
-    public string Debug()
+    public override string ToString()
     {
         return Status switch
         {

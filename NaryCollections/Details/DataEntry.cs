@@ -11,4 +11,9 @@ public struct DataEntry<TArgTuple, THashTuple, TIndexTuple>
     public TArgTuple DataTuple;
     public THashTuple HashTuple;
     public TIndexTuple BackIndexesTuple;
+
+    public override string ToString()
+    {
+        return $"{DataTuple}, {HashTuple}, {BackIndexesTuple}";
+    }
 }
