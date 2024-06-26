@@ -2,6 +2,8 @@ namespace NaryCollections.Details;
 
 public struct HashEntry
 {
+    public const int TableMinimalLength = 7;
+    
     public static readonly uint DriftForUnused = 0;
     public static readonly uint Optimal = 1;
     
@@ -18,4 +20,18 @@ public struct HashEntry
         if (driftPlusOne == Optimal) return "\u2713";
         return new string('\u25bc', (int)driftPlusOne - 1);
     }
+
+    public static bool IsFullEnough(int capacity, int count)
+    {
+        return capacity * 0.75 < count;
+    }
+
+    public static bool IsSparseEnough(int capacity, int count)
+    {
+        return TableMinimalLength < capacity && count < capacity * 0.15;
+    }
+    
+    public static int IncreaseCapacity(int capacity) => capacity * 2 + 1;
+    
+    public static int DecreaseCapacity(int capacity) => capacity / 2;
 }

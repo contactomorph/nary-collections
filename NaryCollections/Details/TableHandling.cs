@@ -242,4 +242,24 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
             hashTable[backIndex].ForwardIndex = dataIndex;
         }
     }
+
+    public static void ChangeCapacityForUnique(
+        ref HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        IDataProjector<TDataEntry, T> projector,
+        int newHashTableCapacity,
+        int count)
+    {
+        hashTable = new HashEntry[newHashTableCapacity];
+        
+        for (int i = 0; i < count; i++)
+        {
+            var (_, hashCode) = projector.GetDataAt(dataTable, i);
+            var reducedHashCode = TableHandling.ComputeReducedHashCode(hashCode, newHashTableCapacity);
+            var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
+                TableHandling.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
+                TableHandling.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
+            AddForUnique(hashTable, dataTable, projector, searchResult, i);
+        }
+    }
 }

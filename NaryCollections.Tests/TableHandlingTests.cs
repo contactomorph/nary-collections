@@ -459,6 +459,52 @@ public class TableHandlingTests
         }
     }
 
+    [Test]
+    public void CapacityChangeForUniqueTest()
+    {
+        var dogPlaceColorProjector = new DogPlaceColorProjector();
+
+        DogPlaceColorGeneration.CreateTablesForUnique(
+            DogPlaceColorTuples.Data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => (uint)hashTuple.GetHashCode(),
+            dataTuple => dataTuple,
+            dogPlaceColorProjector);
+
+        for (int i = 0; i < 5; ++i)
+        {
+            TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ChangeCapacityForUnique(
+                ref hashTable,
+                dataTable,
+                dogPlaceColorProjector,
+                HashEntry.IncreaseCapacity(hashTable.Length),
+                DogPlaceColorTuples.Data.Count);
+        
+            Consistency.CheckForUnique(
+                hashTable,
+                dataTable,
+                DogPlaceColorTuples.Data.Count,
+                dogPlaceColorProjector);
+        }
+
+        for (int i = 0; i < 5; ++i)
+        {
+            TableHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ChangeCapacityForUnique(
+                ref hashTable,
+                dataTable,
+                dogPlaceColorProjector,
+                HashEntry.DecreaseCapacity(hashTable.Length),
+                DogPlaceColorTuples.Data.Count);
+        
+            Consistency.CheckForUnique(
+                hashTable,
+                dataTable,
+                DogPlaceColorTuples.Data.Count,
+                dogPlaceColorProjector);
+        }
+    }
+
     private void EqualsAt(
         int index,
         IReadOnlyList<HashEntry> hashTableCopy,
