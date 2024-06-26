@@ -37,4 +37,10 @@ public static class Dogs
         (new ("Minou", "Gaspard Mounier"), 1),
         (new ("Philibert", "Gaspard Mounier"), 5),
     ];
+
+
+    public static readonly IReadOnlyList<Dog> AllDogs = KnownDogsWithHashCode
+        .Concat(NewDogsWithHashCode)
+        .Select(p => p.Dog)
+        .ToArray();
 }

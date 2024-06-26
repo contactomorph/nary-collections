@@ -1,10 +1,19 @@
+using System.Drawing;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using NaryCollections.Details;
 using NaryCollections.Implementation;
 using NaryCollections.Tests.Resources.Data;
+using NaryCollections.Tests.Resources.DataGeneration;
+using NaryCollections.Tests.Resources.Tools;
 using NaryCollections.Tests.Resources.Types;
 
 namespace NaryCollections.Tests;
+
+using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
+using HashTuple = (uint, uint, uint);
+using IndexTuple = (int, int, int, int, int);
 
 public class NaryCollectionCompilationTests
 {
@@ -70,5 +79,64 @@ public class NaryCollectionCompilationTests
         Assert.That(set.Remove(DogPlaceColorTuples.Data[3]), Is.True);
         Assert.That(set.Contains(DogPlaceColorTuples.Data[3]), Is.False);
         Assert.That(set.Count, Is.EqualTo(4));
+    }
+
+
+    [Test]
+    public void FillDogPlaceColorTupleCollectionRandomlyTest()
+    {
+        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+
+        var collection = factory();
+        
+        var privateFields = collection
+            .GetType()
+            .BaseType!
+            .GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+
+        var projector = CreateGetter<ICompleteDataProjector<DogPlaceColorTuple, HashTuple, IndexTuple>>(privateFields, "_completeProjector")(collection);
+        
+        var hashTableGetter = CreateGetter<HashEntry[]>(privateFields, "_mainHashTable");
+        var dataTableGetter = CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(privateFields, "_dataTable");
+
+        var set = collection.AsSet();
+        var referenceSet = new HashSet<DogPlaceColorTuple>();
+        var random = new Random(4223023);
+        var someColors = Enum.GetValues<KnownColor>().Take(10).Select(Color.FromKnownColor).ToArray();
+        
+        for(int i = 0; i < 10000; ++i)
+        {
+            if (referenceSet.Count < random.Next(100))
+            {
+                Dog dog = Dogs.AllDogs[random.Next(Dogs.AllDogs.Count)];
+                Color color = someColors[random.Next(someColors.Length)];
+                DogPlaceColorTuple tuple = (dog, "France", color);
+                referenceSet.Add(tuple);
+                set.Add(tuple);
+            }
+            else
+            {
+                var tuple = referenceSet.Skip(random.Next(referenceSet.Count)).First();
+                referenceSet.Remove(tuple);
+                set.Remove(tuple);
+            }
+            
+            var hashTable = hashTableGetter(collection);
+            var dataTable = dataTableGetter(collection);
+        
+            Consistency.CheckForUnique(
+                hashTable,
+                dataTable,
+                set.Count,
+                projector);
+        }
+    }
+
+    private static Func<INaryCollection<DogPlaceColor>, T> CreateGetter<T>(FieldInfo[] fields, string name)
+    {
+        var field = fields.Single(f => f.Name == name);
+        var instance = Expression.Parameter(typeof(INaryCollection<DogPlaceColor>), "instance");
+        var body = Expression.Field(Expression.Convert(instance, field.DeclaringType!), field);
+        return Expression.Lambda<Func<INaryCollection<DogPlaceColor>, T>>(body, instance).Compile();
     }
 }

@@ -32,7 +32,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         Schema = schema;
         _completeProjector = completeProjector;
         _dataTable = new DataEntry<TArgTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
-        _mainHashTable = new HashEntry[DataEntry.TableMinimalLength];
+        _mainHashTable = new HashEntry[HashEntry.TableMinimalLength];
         _count = 0;
         _version = 0;
     }
@@ -166,12 +166,24 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
             hashTuple,
             ref _count);
 
-        TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.AddForUnique(
-            _mainHashTable,
-            _dataTable,
-            _completeProjector,
-            result,
-            candidateDataIndex);
+        if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
+        {
+            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ChangeCapacityForUnique(
+                ref _mainHashTable,
+                _dataTable,
+                _completeProjector,
+                newHashTableCapacity: HashEntry.IncreaseCapacity(_mainHashTable.Length),
+                _count);
+        }
+        else
+        {
+            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.AddForUnique(
+                _mainHashTable,
+                _dataTable,
+                _completeProjector,
+                result,
+                candidateDataIndex);
+        }
         
         return true;
     }
@@ -211,12 +223,24 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
             _completeProjector,
             dataIndex,
             _count);
-        
-        TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveOnlyData(
-            ref _dataTable, 
-            dataIndex,
-            ref _count);
 
+        if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
+        {
+            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ChangeCapacityForUnique(
+                ref _mainHashTable,
+                _dataTable,
+                _completeProjector,
+                newHashTableCapacity: HashEntry.DecreaseCapacity(_mainHashTable.Length),
+                _count);
+        }
+        else
+        {
+            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveOnlyData(
+                ref _dataTable, 
+                dataIndex,
+                ref _count);
+        }
+        
         return true;
     }
 
