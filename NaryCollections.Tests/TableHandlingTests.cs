@@ -2,6 +2,7 @@ using System.Drawing;
 using NaryCollections.Details;
 using NaryCollections.Tests.Resources.Data;
 using NaryCollections.Tests.Resources.DataGeneration;
+using NaryCollections.Tests.Resources.Tools;
 using NaryCollections.Tests.Resources.Types;
 
 namespace NaryCollections.Tests;
@@ -47,10 +48,11 @@ public class TableHandlingTests
             Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+        Consistency.CheckForUnique(
             hashTable,
             dataTable,
-            DogPlaceColorTuples.DataWithUniqueDogs.Count);
+            DogPlaceColorTuples.DataWithUniqueDogs.Count,
+            DogPlaceColorProjector.Instance);
     }
     
     [Test]
@@ -77,7 +79,11 @@ public class TableHandlingTests
             Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForUnique(hashTable, dataTable, DogPlaceColorTuples.Data.Count);
+        Consistency.CheckForUnique(
+            hashTable,
+            dataTable,
+            DogPlaceColorTuples.Data.Count,
+            DogPlaceColorProjector.Instance);
     }
 
     [Test]
@@ -118,11 +124,12 @@ public class TableHandlingTests
             Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
         }
 
-        DogPlaceColorGeneration.CheckTablesConsistencyForNonUnique(
+        Consistency.CheckForNonUnique(
             hashTable,
             correspondenceTable,
             dataTable,
-            Dogs.KnownDogs.Count);
+            Dogs.KnownDogs.Count,
+            DogPlaceColorProjector.Instance);
     }
 
     [Test]
@@ -179,7 +186,7 @@ public class TableHandlingTests
             EqualsAt(4, hashTableCopy, (1, candidateDataIndex));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 4);
 
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -218,7 +225,7 @@ public class TableHandlingTests
             EqualsAt(4, hashTableCopy, (2, candidateDataIndex));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 4);
 
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -258,7 +265,7 @@ public class TableHandlingTests
             EqualsAt(4, hashTableCopy, (3, 2));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 3, 4);
 
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -300,7 +307,7 @@ public class TableHandlingTests
             EqualsAt(11, hashTableCopy, (2, 8));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 8, 9, 10, 11);
             
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -352,7 +359,7 @@ public class TableHandlingTests
             EqualsAt(10, hashTableCopy, (HashEntry.Optimal, 2));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 3, 10);
             
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -380,7 +387,7 @@ public class TableHandlingTests
             EqualsAt(10, hashTableCopy, (HashEntry.DriftForUnused, 0));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 10);
             
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -413,7 +420,7 @@ public class TableHandlingTests
             EqualsAt(10, hashTableCopy, (HashEntry.Optimal, 3));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 5, 6, 7, 8, 9, 10);
             
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
@@ -444,7 +451,7 @@ public class TableHandlingTests
             EqualsAt(10, hashTableCopy, (HashEntry.Optimal, 5));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 7, 8, 9, 10);
             
-            DogPlaceColorGeneration.CheckTablesConsistencyForUnique(
+            Consistency.CheckForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
