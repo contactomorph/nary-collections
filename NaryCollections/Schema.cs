@@ -13,7 +13,7 @@ public abstract class Schema
     private protected readonly List<Composite> Composites;
     private byte _rank;
     
-    public abstract Type ArgTupleType { get; }
+    public abstract Type DataTupleType { get; }
 
     private protected Schema()
     {
@@ -217,15 +217,15 @@ public abstract class Schema
     }
 }
 
-public abstract class Schema<TArgTuple> : Schema
-    where TArgTuple : struct, ITuple, IStructuralEquatable
+public abstract class Schema<TDataTuple> : Schema
+    where TDataTuple : struct, ITuple, IStructuralEquatable
 {
     protected sealed class Signature
     {
         internal Signature() { }
     }
 
-    public sealed override Type ArgTupleType => typeof(TArgTuple);
+    public sealed override Type DataTupleType => typeof(TDataTuple);
 
     protected abstract Signature Sign { get; }
 
@@ -233,7 +233,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof(ValueTuple<T>) != typeof(TArgTuple))
+        if (typeof(ValueTuple<T>) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
         FreezeSchema(p);
@@ -244,7 +244,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof((T1, T2)) != typeof(TArgTuple))
+        if (typeof((T1, T2)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
         FreezeSchema(p1, p2);
@@ -258,7 +258,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof((T1, T2, T3)) != typeof(TArgTuple))
+        if (typeof((T1, T2, T3)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
         FreezeSchema(p1, p2, p3);
@@ -273,7 +273,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof((T1, T2, T3, T4)) != typeof(TArgTuple))
+        if (typeof((T1, T2, T3, T4)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
         FreezeSchema(p1, p2, p3, p4);
@@ -289,7 +289,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof((T1, T2, T3, T4, T5)) != typeof(TArgTuple))
+        if (typeof((T1, T2, T3, T4, T5)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
         FreezeSchema(p1, p2, p3, p4, p5);
@@ -306,7 +306,7 @@ public abstract class Schema<TArgTuple> : Schema
     {
         if (Locked)
             throw GenerateLockException();
-        if (typeof((T1, T2, T3, T4, T5, T6)) != typeof(TArgTuple))
+        if (typeof((T1, T2, T3, T4, T5, T6)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         FreezeSchema(p1, p2, p3, p4, p5, p6);
         return new Schema<(T1, T2, T3, T4, T5, T6)>.Signature();

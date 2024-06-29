@@ -5,8 +5,8 @@ namespace NaryCollections;
 
 public interface IRelationSlicing<out TSchema>
 {
-    IEnumerable<TArgTuple> Get<TArgTuple>(Func<TSchema, Schema<TArgTuple>> selector)
-        where TArgTuple : struct, ITuple, IStructuralEquatable;
+    IEnumerable<TDataTuple> Get<TDataTuple>(Func<TSchema, Schema<TDataTuple>> selector)
+        where TDataTuple : struct, ITuple, IStructuralEquatable;
 
     IEnumerable<T> Get<T>(Func<TSchema, Participant<T>> selector);
 

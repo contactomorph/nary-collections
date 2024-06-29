@@ -4,15 +4,15 @@ using NaryCollections.Details;
 
 namespace NaryCollections.Implementation;
 
-public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSchema>
-    : INaryCollection<TSchema>, ISet<TArgTuple>, IReadOnlySet<TArgTuple>
-    where TArgTuple : struct, ITuple, IStructuralEquatable
+public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TSchema>
+    : INaryCollection<TSchema>, ISet<TDataTuple>, IReadOnlySet<TDataTuple>
+    where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
-    where TSchema : Schema<TArgTuple>, new()
+    where TSchema : Schema<TDataTuple>, new()
 {
-    private readonly IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>,  TArgTuple> _completeProjector;
-    private DataEntry<TArgTuple, THashTuple, TIndexTuple>[] _dataTable;
+    private readonly IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>,  TDataTuple> _completeProjector;
+    private DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
     private HashEntry[] _mainHashTable;
     private int _count;
     private uint _version;
@@ -27,19 +27,19 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NaryCollectionBase(
         TSchema schema,
-        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>,  TArgTuple> completeProjector)
+        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>,  TDataTuple> completeProjector)
     {
         Schema = schema;
         _completeProjector = completeProjector;
-        _dataTable = new DataEntry<TArgTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
+        _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
         _mainHashTable = new HashEntry[HashEntry.TableMinimalLength];
         _count = 0;
         _version = 0;
     }
 
-    #region Implements IEnumerable<TArgTuple>
+    #region Implements IEnumerable<TDataTuple>
     
-    public IEnumerator<TArgTuple> GetEnumerator()
+    public IEnumerator<TDataTuple> GetEnumerator()
     {
         int i = 0;
         uint originalVersion = _version;
@@ -60,64 +60,64 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
     #endregion
     
-    #region Implements IReadOnlySet<TArgTuple>
+    #region Implements IReadOnlySet<TDataTuple>
 
-    public void ExceptWith(IEnumerable<TArgTuple> other)
+    public void ExceptWith(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public void IntersectWith(IEnumerable<TArgTuple> other)
+    public void IntersectWith(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool IsProperSubsetOf(IEnumerable<TArgTuple> other)
+    public bool IsProperSubsetOf(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool IsProperSupersetOf(IEnumerable<TArgTuple> other)
+    public bool IsProperSupersetOf(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool IsSubsetOf(IEnumerable<TArgTuple> other)
+    public bool IsSubsetOf(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool IsSupersetOf(IEnumerable<TArgTuple> other)
+    public bool IsSupersetOf(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool Overlaps(IEnumerable<TArgTuple> other)
+    public bool Overlaps(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool SetEquals(IEnumerable<TArgTuple> other)
+    public bool SetEquals(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public void SymmetricExceptWith(IEnumerable<TArgTuple> other)
+    public void SymmetricExceptWith(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public void UnionWith(IEnumerable<TArgTuple> other)
+    public void UnionWith(IEnumerable<TDataTuple> other)
     {
         throw new NotImplementedException();
     }
 
-    public bool Contains(TArgTuple dataTuple)
+    public bool Contains(TDataTuple dataTuple)
     {
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
+        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -129,9 +129,9 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
     #endregion
     
-    #region Implements ISet<TArgTuple>
+    #region Implements ISet<TDataTuple>
 
-    public void CopyTo(TArgTuple[] array, int arrayIndex)
+    public void CopyTo(TDataTuple[] array, int arrayIndex)
     {
         if (array is null) throw new ArgumentNullException(nameof(array));
         if (arrayIndex < 0) throw new IndexOutOfRangeException();
@@ -143,12 +143,12 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         }
     }
     
-    public bool Add(TArgTuple dataTuple)
+    public bool Add(TDataTuple dataTuple)
     {
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
+        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -160,7 +160,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
         ++_version;
         
-        int candidateDataIndex = TableHandling<TArgTuple, THashTuple, TIndexTuple>.AddOnlyData(
+        int candidateDataIndex = TableHandling<TDataTuple, THashTuple, TIndexTuple>.AddOnlyData(
             ref _dataTable,
             dataTuple,
             hashTuple,
@@ -168,7 +168,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
         if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
         {
-            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ChangeCapacityForUnique(
+            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -177,7 +177,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         }
         else
         {
-            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.AddForUnique(
+            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.AddForUnique(
                 _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -188,22 +188,22 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         return true;
     }
     
-    void ICollection<TArgTuple>.Add(TArgTuple dataTuple) => Add(dataTuple);
+    void ICollection<TDataTuple>.Add(TDataTuple dataTuple) => Add(dataTuple);
 
     public void Clear()
     {
         ++_version;
-        _dataTable = new DataEntry<TArgTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
+        _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
         _mainHashTable = new HashEntry[DataEntry.TableMinimalLength];
         _count = 0;
     }
 
-    public bool Remove(TArgTuple dataTuple)
+    public bool Remove(TDataTuple dataTuple)
     {
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
+        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -217,7 +217,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
         int dataIndex = _mainHashTable[result.HashIndex].ForwardIndex;
         
-        TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveForUnique(
+        TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.RemoveForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -226,7 +226,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
         if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
         {
-            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ChangeCapacityForUnique(
+            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -235,7 +235,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
         }
         else
         {
-            TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.RemoveOnlyData(
+            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.RemoveOnlyData(
                 ref _dataTable, 
                 dataIndex,
                 ref _count);
@@ -270,5 +270,5 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     
     #endregion
 
-    protected abstract THashTuple ComputeHashTuple(TArgTuple dataTuple);
+    protected abstract THashTuple ComputeHashTuple(TDataTuple dataTuple);
 }

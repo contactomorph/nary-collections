@@ -10,7 +10,7 @@ public class SchemaTests
     {
         var schema = new DogPlaceColor();
         
-        Assert.That(schema.ArgTupleType, Is.EqualTo(typeof((Dog, string, Color))));
+        Assert.That(schema.DataTupleType, Is.EqualTo(typeof((Dog, string, Color))));
 
         var composites = schema.GetComposites();
         

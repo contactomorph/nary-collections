@@ -23,16 +23,16 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         var schema = new TSchema();
 
-        var argTupleType = ValueTupleType.From(schema.ArgTupleType) ?? throw new InvalidProgramException();
+        var dataTupleType = ValueTupleType.From(schema.DataTupleType) ?? throw new InvalidProgramException();
         var composites = schema.GetComposites();
-        var allIndexes = GetArrayOfAllIndexes(argTupleType.Count);
-        var dataTypeDecomposition = new DataTypeProjection(argTupleType, 0, (byte)composites.Length, allIndexes);
+        var allIndexes = GetArrayOfAllIndexes(dataTupleType.Count);
+        var dataTypeDecomposition = new DataTypeProjection(dataTupleType, 0, (byte)composites.Length, allIndexes);
         var hashTupleType = dataTypeDecomposition.HashTupleType;
         var backIndexTupleType = dataTypeDecomposition.BackIndexTupleType;
         
         var completeProjectorCtor = DataProjectorCompilation.GenerateProjectorConstructor(
             moduleBuilder,
-            argTupleType,
+            dataTupleType,
             allIndexes, 
             0, 
             (byte)composites.Length);
@@ -42,7 +42,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             .ToArray<Expression>();
         
         var baseCollectionType = typeof(NaryCollectionBase<,,,>)
-            .MakeGenericType([argTupleType, hashTupleType, backIndexTupleType, schemaType]);
+            .MakeGenericType([dataTupleType, hashTupleType, backIndexTupleType, schemaType]);
         
         var typeBuilder = moduleBuilder.DefineType(
             "NaryCollection",

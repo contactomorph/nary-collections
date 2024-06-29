@@ -6,13 +6,13 @@ namespace NaryCollections.Tests.Resources.Tools;
 
 public static class Consistency
 {
-    public static void CheckForUnique<TArgTuple, THashTuple, TIndexTuple>(
+    public static void CheckForUnique<TDataTuple, THashTuple, TIndexTuple>(
         HashEntry[] hashTable,
-        DataEntry<TArgTuple, THashTuple, TIndexTuple>[] dataTable,
+        DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple> projector,
-        Func<TArgTuple, THashTuple> hashTupleComputation)
-        where TArgTuple: struct, ITuple, IStructuralEquatable
+        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple> projector,
+        Func<TDataTuple, THashTuple> hashTupleComputation)
+        where TDataTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
         where TIndexTuple: struct, ITuple, IStructuralEquatable
     {
@@ -37,14 +37,14 @@ public static class Consistency
         }
     }
     
-    public static void CheckForNonUnique<TArgTuple, THashTuple, TIndexTuple>(
+    public static void CheckForNonUnique<TDataTuple, THashTuple, TIndexTuple>(
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
-        DataEntry<TArgTuple, THashTuple, TIndexTuple>[] dataTable,
+        DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple> projector,
-        Func<TArgTuple, THashTuple> hashTupleComputation)
-        where TArgTuple: struct, ITuple, IStructuralEquatable
+        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple> projector,
+        Func<TDataTuple, THashTuple> hashTupleComputation)
+        where TDataTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
         where TIndexTuple: struct, ITuple, IStructuralEquatable
     {
