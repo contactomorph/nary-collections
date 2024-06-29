@@ -4,14 +4,15 @@ using NaryCollections.Details;
 
 namespace NaryCollections.Implementation;
 
-public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TSchema>
+public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TProjector, TSchema>
     : INaryCollection<TSchema>, ISet<TDataTuple>, IReadOnlySet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
+    where TProjector : struct, IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>
     where TSchema : Schema<TDataTuple>, new()
 {
-    private readonly IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>,  TDataTuple> _completeProjector;
+    private readonly TProjector _completeProjector;
     private DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
     private HashEntry[] _mainHashTable;
     private int _count;
@@ -27,7 +28,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TS
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NaryCollectionBase(
         TSchema schema,
-        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>,  TDataTuple> completeProjector)
+        TProjector completeProjector)
     {
         Schema = schema;
         _completeProjector = completeProjector;

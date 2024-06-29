@@ -30,7 +30,7 @@ public static class DataProjectorCompilation
         var typeBuilder = moduleBuilder.DefineType(
             $"DataProjector_{backIndexRank}",
             TypeAttributes.Class | TypeAttributes.Sealed,
-            typeof(object),
+            typeof(ValueType),
             [projectorInterfaceType]);
         
         var comparerFields = DefineConstructor(typeBuilder, dataTypeProjection.ComparerTypes, projectionIndexes);

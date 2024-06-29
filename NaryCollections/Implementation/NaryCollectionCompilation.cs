@@ -36,13 +36,14 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             allIndexes, 
             0, 
             (byte)composites.Length);
+        var completeProjectorType = completeProjectorCtor.DeclaringType!;
         
         var comparers = GetEqualityComparers(dataTypeDecomposition.DataTupleType)
             .Select(Expression.Constant)
             .ToArray<Expression>();
         
-        var baseCollectionType = typeof(NaryCollectionBase<,,,>)
-            .MakeGenericType([dataTupleType, hashTupleType, backIndexTupleType, schemaType]);
+        var baseCollectionType = typeof(NaryCollectionBase<,,,,>)
+            .MakeGenericType([dataTupleType, hashTupleType, backIndexTupleType, completeProjectorType, schemaType]);
         
         var typeBuilder = moduleBuilder.DefineType(
             "NaryCollection",
@@ -52,7 +53,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         var comparerFields = DefineConstructor(
             typeBuilder,
             schemaType,
-            completeProjectorCtor.DeclaringType!,
+            completeProjectorType,
             dataTypeDecomposition.ComparerTypes);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType, comparerFields);
 
@@ -121,9 +122,13 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             ++j;
         }
         
+        // this
         il.Emit(OpCodes.Ldarg_0);
+        // schema
         il.Emit(OpCodes.Ldarg_1);
+        // completeProjector
         il.Emit(OpCodes.Ldarg_2);
+        // base(schema, completeProjector)
         il.Emit(OpCodes.Call, baseCtor);
 
         for (byte b = 0; b < comparerFields.Count; ++b)

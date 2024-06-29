@@ -144,7 +144,8 @@ public class NaryCollectionCompilationTests
     {
         var field = fields.Single(f => f.Name == name);
         var instance = Expression.Parameter(typeof(INaryCollection<DogPlaceColor>), "instance");
-        var body = Expression.Field(Expression.Convert(instance, field.DeclaringType!), field);
+        var downcastInstance = Expression.Convert(instance, field.DeclaringType!);
+        var body = Expression.Convert(Expression.Field(downcastInstance, field), typeof(T));
         return Expression.Lambda<Func<INaryCollection<DogPlaceColor>, T>>(body, instance).Compile();
     }
 }
