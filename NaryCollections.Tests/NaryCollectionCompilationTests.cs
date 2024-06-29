@@ -128,7 +128,8 @@ public class NaryCollectionCompilationTests
                 hashTable,
                 dataTable,
                 set.Count,
-                projector);
+                projector,
+                projector.ComputeHashTuple);
         }
     }
 

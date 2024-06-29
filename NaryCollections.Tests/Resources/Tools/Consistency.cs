@@ -10,14 +10,15 @@ public static class Consistency
         HashEntry[] hashTable,
         DataEntry<TArgTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        ICompleteDataProjector<TArgTuple, THashTuple, TIndexTuple> projector)
+        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple> projector,
+        Func<TArgTuple, THashTuple> hashTupleComputation)
         where TArgTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
         where TIndexTuple: struct, ITuple, IStructuralEquatable
     {
         for (int i = 0; i < dataLength; i++)
         {
-            var hashTuple = projector.ComputeHashTuple(dataTable[i].DataTuple);
+            var hashTuple = hashTupleComputation(dataTable[i].DataTuple);
             if (!hashTuple.Equals(dataTable[i].HashTuple))
                 throw new InvalidDataException("Hash tuple is incorrect");
             int backIndex = projector.GetBackIndex(dataTable, i);
@@ -41,14 +42,15 @@ public static class Consistency
         CorrespondenceEntry[] correspondenceTable,
         DataEntry<TArgTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        ICompleteDataProjector<TArgTuple, THashTuple, TIndexTuple> projector)
+        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple> projector,
+        Func<TArgTuple, THashTuple> hashTupleComputation)
         where TArgTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
         where TIndexTuple: struct, ITuple, IStructuralEquatable
     {
         for (int i = 0; i < dataLength; i++)
         {
-            var hashTuple = projector.ComputeHashTuple(dataTable[i].DataTuple);
+            var hashTuple = hashTupleComputation(dataTable[i].DataTuple);
             if (!hashTuple.Equals(dataTable[i].HashTuple))
                 throw new InvalidDataException("Hash tuple is incorrect");
             int correspondenceIndex = projector.GetBackIndex(dataTable, i);

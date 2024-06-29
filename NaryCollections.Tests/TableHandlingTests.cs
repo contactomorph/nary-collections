@@ -52,7 +52,8 @@ public class TableHandlingTests
             hashTable,
             dataTable,
             DogPlaceColorTuples.DataWithUniqueDogs.Count,
-            DogPlaceColorProjector.Instance);
+            DogPlaceColorProjector.Instance,
+            DogPlaceColorProjector.Instance.ComputeHashTuple);
     }
     
     [Test]
@@ -83,7 +84,8 @@ public class TableHandlingTests
             hashTable,
             dataTable,
             DogPlaceColorTuples.Data.Count,
-            DogPlaceColorProjector.Instance);
+            DogPlaceColorProjector.Instance,
+            DogPlaceColorProjector.Instance.ComputeHashTuple);
     }
 
     [Test]
@@ -129,7 +131,8 @@ public class TableHandlingTests
             correspondenceTable,
             dataTable,
             Dogs.KnownDogs.Count,
-            DogPlaceColorProjector.Instance);
+            DogPlaceColorProjector.Instance,
+            DogPlaceColorProjector.Instance.ComputeHashTuple);
     }
 
     [Test]
@@ -190,7 +193,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -229,7 +233,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -269,7 +274,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -311,7 +317,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
     }
     
@@ -363,7 +370,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -391,7 +399,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -424,7 +433,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
         {
             int dataCount = data.Count;
@@ -455,7 +465,8 @@ public class TableHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
     }
 
@@ -485,7 +496,8 @@ public class TableHandlingTests
                 hashTable,
                 dataTable,
                 DogPlaceColorTuples.Data.Count,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
 
         for (int i = 0; i < 5; ++i)
@@ -501,7 +513,8 @@ public class TableHandlingTests
                 hashTable,
                 dataTable,
                 DogPlaceColorTuples.Data.Count,
-                dogPlaceColorProjector);
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
         }
     }
 
