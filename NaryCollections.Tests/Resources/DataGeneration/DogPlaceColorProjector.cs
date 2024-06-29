@@ -7,8 +7,7 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal sealed class DogPlaceColorProjector
-    : ICompleteDataProjector<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>
+internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry, DogPlaceColorTuple>
 {
     public static readonly DogPlaceColorProjector Instance = new();
     
@@ -47,16 +46,6 @@ internal sealed class DogPlaceColorProjector
     }
 
     public uint ComputeHashCode(DogPlaceColorTuple item) => (uint)ComputeHashTuple(item).GetHashCode();
-
-    public void SetDataAt(
-        DogPlaceColorEntry[] dataTable,
-        int index,
-        DogPlaceColorTuple dataTuple,
-        (uint, uint, uint) hashTuple)
-    {
-        dataTable[index].DataTuple = dataTuple;
-        dataTable[index].HashTuple = hashTuple;
-    }
 
     public (uint, uint, uint) ComputeHashTuple(DogPlaceColorTuple dataTuple)
     {

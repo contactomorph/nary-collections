@@ -11,7 +11,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     where TIndexTuple: struct, ITuple, IStructuralEquatable
     where TSchema : Schema<TArgTuple>, new()
 {
-    private readonly ICompleteDataProjector<TArgTuple, THashTuple, TIndexTuple> _completeProjector;
+    private readonly IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>,  TArgTuple> _completeProjector;
     private DataEntry<TArgTuple, THashTuple, TIndexTuple>[] _dataTable;
     private HashEntry[] _mainHashTable;
     private int _count;
@@ -27,7 +27,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NaryCollectionBase(
         TSchema schema,
-        ICompleteDataProjector<TArgTuple, THashTuple, TIndexTuple> completeProjector)
+        IDataProjector<DataEntry<TArgTuple, THashTuple, TIndexTuple>,  TArgTuple> completeProjector)
     {
         Schema = schema;
         _completeProjector = completeProjector;
@@ -114,7 +114,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
     public bool Contains(TArgTuple dataTuple)
     {
-        THashTuple hashTuple = _completeProjector.ComputeHashTuple(dataTuple);
+        THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
         var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
@@ -145,7 +145,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     
     public bool Add(TArgTuple dataTuple)
     {
-        THashTuple hashTuple = _completeProjector.ComputeHashTuple(dataTuple);
+        THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
         var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
@@ -200,7 +200,7 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
 
     public bool Remove(TArgTuple dataTuple)
     {
-        THashTuple hashTuple = _completeProjector.ComputeHashTuple(dataTuple);
+        THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
         var result = TableHandling<DataEntry<TArgTuple, THashTuple, TIndexTuple>, TArgTuple>.ContainsForUnique(
@@ -269,4 +269,6 @@ public abstract class NaryCollectionBase<TArgTuple, THashTuple, TIndexTuple, TSc
     }
     
     #endregion
+
+    protected abstract THashTuple ComputeHashTuple(TArgTuple dataTuple);
 }

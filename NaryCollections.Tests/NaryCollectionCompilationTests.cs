@@ -94,10 +94,17 @@ public class NaryCollectionCompilationTests
             .BaseType!
             .GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
 
-        var projector = CreateGetter<ICompleteDataProjector<DogPlaceColorTuple, HashTuple, IndexTuple>>(privateFields, "_completeProjector")(collection);
+        var projector = CreateGetter<IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple>>(
+            privateFields, 
+            "_completeProjector"
+            )(collection);
         
-        var hashTableGetter = CreateGetter<HashEntry[]>(privateFields, "_mainHashTable");
-        var dataTableGetter = CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(privateFields, "_dataTable");
+        var hashTableGetter = CreateGetter<HashEntry[]>(
+            privateFields,
+            "_mainHashTable");
+        var dataTableGetter = CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(
+            privateFields,
+            "_dataTable");
 
         var set = collection.AsSet();
         var referenceSet = new HashSet<DogPlaceColorTuple>();
@@ -129,7 +136,7 @@ public class NaryCollectionCompilationTests
                 dataTable,
                 set.Count,
                 projector,
-                projector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance.ComputeHashTuple);
         }
     }
 
