@@ -181,7 +181,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            TableUpdate<DogPlaceColorEntry>.AddForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -221,7 +221,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            TableUpdate<DogPlaceColorEntry>.AddForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -261,7 +261,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            TableUpdate<DogPlaceColorEntry>.AddForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -302,7 +302,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            TableUpdate<DogPlaceColorEntry>.AddForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -352,7 +352,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 2;
             
-            TableUpdate<DogPlaceColorEntry>.RemoveForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -382,7 +382,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 8;
             
-            TableUpdate<DogPlaceColorEntry>.RemoveForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -411,7 +411,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 3;
             
-            TableUpdate<DogPlaceColorEntry>.RemoveForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -445,7 +445,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 5;
             
-            TableUpdate<DogPlaceColorEntry>.RemoveForUnique(
+            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -475,7 +475,7 @@ public class TableUpdateTests
     [Test]
     public void CapacityChangeForUniqueTest()
     {
-        var dogPlaceColorProjector = new DogPlaceColorProjector();
+        var dogPlaceColorProjector = DogPlaceColorProjector.Instance;
 
         DogPlaceColorGeneration.CreateTablesForUnique(
             DogPlaceColorTuples.Data,
@@ -487,7 +487,7 @@ public class TableUpdateTests
 
         for (int i = 0; i < 5; ++i)
         {
-            TableUpdate<DogPlaceColorEntry>.ChangeCapacityForUnique(
+            TableUpdate<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 ref hashTable,
                 dataTable,
                 dogPlaceColorProjector,
@@ -504,7 +504,7 @@ public class TableUpdateTests
 
         for (int i = 0; i < 5; ++i)
         {
-            TableUpdate<DogPlaceColorEntry>.ChangeCapacityForUnique(
+            TableUpdate<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 ref hashTable,
                 dataTable,
                 dogPlaceColorProjector,

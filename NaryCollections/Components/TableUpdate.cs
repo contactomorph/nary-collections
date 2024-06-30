@@ -2,12 +2,14 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
-internal static class TableUpdate<TDataEntry> where TDataEntry : struct
+internal static class TableUpdate<TDataEntry, TResizeHandler>
+    where TDataEntry : struct
+    where TResizeHandler : struct, IResizeHandler<TDataEntry>
 {
     public static void AddForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IResizeHandler<TDataEntry> projector,
+        TResizeHandler handler,
         SearchResult lastSearchResult,
         int candidateDataIndex)
     {
@@ -21,7 +23,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
                 DriftPlusOne = candidateDriftPlusOne,
                 ForwardIndex = candidateDataIndex,
             };
-            projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+            handler.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
             return;
         }
         
@@ -36,7 +38,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
                     DriftPlusOne = candidateDriftPlusOne,
                     ForwardIndex = candidateDataIndex,
                 };
-                projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+                handler.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
                 return;
             }
             
@@ -46,7 +48,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
                 int forwardIndex = hashTable[candidateReducedHashCode].ForwardIndex;
                 hashTable[candidateReducedHashCode].ForwardIndex = candidateDataIndex;
                 hashTable[candidateReducedHashCode].DriftPlusOne = candidateDriftPlusOne;
-                projector.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
+                handler.SetBackIndex(dataTable, candidateDataIndex, (int)candidateReducedHashCode);
 
                 candidateDataIndex = forwardIndex;
                 candidateDriftPlusOne = occupiedDriftPlusOne;
@@ -60,11 +62,11 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
     public static void RemoveForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IResizeHandler<TDataEntry> projector,
+        TResizeHandler handler,
         int dataIndex,
         int dataCount)
     {
-        uint reducedHashCode = (uint)projector.GetBackIndex(dataTable, dataIndex);
+        uint reducedHashCode = (uint)handler.GetBackIndex(dataTable, dataIndex);
         uint nextReducedHashCode = reducedHashCode;
         HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
 
@@ -80,7 +82,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
             hashTable[reducedHashCode].DriftPlusOne--;
 
             int forwardIndex = hashTable[reducedHashCode].ForwardIndex;
-            projector.SetBackIndex(dataTable, forwardIndex, (int)reducedHashCode);
+            handler.SetBackIndex(dataTable, forwardIndex, (int)reducedHashCode);
 
             reducedHashCode = nextReducedHashCode;
             HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
@@ -89,7 +91,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
         int lastDataIndex = dataCount - 1;
         if (dataIndex < lastDataIndex)
         {
-            var backIndex = projector.GetBackIndex(dataTable, lastDataIndex);
+            var backIndex = handler.GetBackIndex(dataTable, lastDataIndex);
             hashTable[backIndex].ForwardIndex = dataIndex;
         }
     }
@@ -97,7 +99,7 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
     public static void ChangeCapacityForUnique(
         ref HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IResizeHandler<TDataEntry> projector,
+        TResizeHandler handler,
         int newHashTableCapacity,
         int count)
     {
@@ -105,12 +107,12 @@ internal static class TableUpdate<TDataEntry> where TDataEntry : struct
         
         for (int i = 0; i < count; i++)
         {
-            var hashCode = projector.GetHashCodeAt(dataTable, i);
+            var hashCode = handler.GetHashCodeAt(dataTable, i);
             var reducedHashCode = HashCodeReduction.ComputeReducedHashCode(hashCode, newHashTableCapacity);
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            AddForUnique(hashTable, dataTable, projector, searchResult, i);
+            AddForUnique(hashTable, dataTable, handler, searchResult, i);
         }
     }
 }

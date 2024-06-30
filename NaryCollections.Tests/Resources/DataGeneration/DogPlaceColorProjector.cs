@@ -7,9 +7,12 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry, DogPlaceColorTuple>
+internal readonly struct DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry, DogPlaceColorTuple>
 {
-    public static readonly DogPlaceColorProjector Instance = new();
+    public static readonly DogPlaceColorProjector Instance = new(
+        EqualityComparer<Dog>.Default,
+        EqualityComparer<string>.Default,
+        EqualityComparer<Color>.Default);
     
     private readonly IEqualityComparer<Dog> _dogComparer;
     private readonly IEqualityComparer<string> _stringComparer;

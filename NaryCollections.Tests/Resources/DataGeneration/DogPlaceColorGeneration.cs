@@ -12,9 +12,9 @@ internal static class DogPlaceColorGeneration
     public static void CreateDataTableOnly(
         IReadOnlyCollection<DogPlaceColorTuple> data,
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        DogPlaceColorProjector? projector = null)
+        DogPlaceColorProjector? maybeProjector = null)
     {
-        projector ??= DogPlaceColorProjector.Instance;
+        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
         
@@ -45,9 +45,9 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
-        DogPlaceColorProjector? projector = null)
+        DogPlaceColorProjector? maybeProjector = null)
     {
-        projector ??= DogPlaceColorProjector.Instance;
+        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         
         hashTable = new HashEntry[size];
@@ -137,9 +137,9 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
-        DogPlaceColorProjector? projector = null)
+        DogPlaceColorProjector? maybeProjector = null)
     {
-        projector ??= DogPlaceColorProjector.Instance;
+        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
         int size = data.Count  * 2 / 2;
         
         hashTable = new HashEntry[size];
