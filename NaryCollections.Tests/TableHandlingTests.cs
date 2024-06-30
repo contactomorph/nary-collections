@@ -12,7 +12,7 @@ using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashColorTuple = (uint, uint, uint);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-public class TableUpdateTests
+public class UpdateHandlingTests
 {
     [Test]
     public void CheckItemExistenceForUniqueParticipantTest()
@@ -181,7 +181,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -221,7 +221,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -261,7 +261,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -302,7 +302,7 @@ public class TableUpdateTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            TableUpdate<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -352,7 +352,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 2;
             
-            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -382,7 +382,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 8;
             
-            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -411,7 +411,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 3;
             
-            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -445,7 +445,7 @@ public class TableUpdateTests
 
             int dataIndexToRemove = 5;
             
-            TableUpdate<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -487,7 +487,7 @@ public class TableUpdateTests
 
         for (int i = 0; i < 5; ++i)
         {
-            TableUpdate<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 ref hashTable,
                 dataTable,
                 dogPlaceColorProjector,
@@ -504,7 +504,7 @@ public class TableUpdateTests
 
         for (int i = 0; i < 5; ++i)
         {
-            TableUpdate<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
+            UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 ref hashTable,
                 dataTable,
                 dogPlaceColorProjector,

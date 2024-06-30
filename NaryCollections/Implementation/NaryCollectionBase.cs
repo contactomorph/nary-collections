@@ -170,7 +170,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
         {
-            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
+            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -179,7 +179,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         }
         else
         {
-            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.AddForUnique(
+            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.AddForUnique(
                 _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -219,7 +219,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         int dataIndex = _mainHashTable[result.HashIndex].ForwardIndex;
         
-        TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.RemoveForUnique(
+        UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.RemoveForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -228,7 +228,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
         {
-            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
+            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,
