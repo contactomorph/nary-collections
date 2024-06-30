@@ -34,7 +34,7 @@ public class TableHandlingTests
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
+            Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
         }
         
         foreach (var dog in Dogs.UnknownDogs)
@@ -46,7 +46,7 @@ public class TableHandlingTests
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
+            Assert.That(result.Case, Is.Not.EqualTo(SearchCase.ItemFound));
         }
 
         Consistency.CheckForUnique(
@@ -78,7 +78,7 @@ public class TableHandlingTests
                 (uint)DogPlaceColorProjector.Instance.ComputeHashTuple(tuple).GetHashCode(),
                 tuple);
         
-            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
+            Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
         }
 
         Consistency.CheckForUnique(
@@ -112,7 +112,7 @@ public class TableHandlingTests
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.That(result.Case, Is.EqualTo(TableHandling.SearchCase.ItemFound));
+            Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
         }
         
         foreach (var dog in Dogs.UnknownDogs)
@@ -124,7 +124,7 @@ public class TableHandlingTests
                 (uint)dog.GetHashCode(),
                 dog);
         
-            Assert.That(result.Case, Is.Not.EqualTo(TableHandling.SearchCase.ItemFound));
+            Assert.That(result.Case, Is.Not.EqualTo(SearchCase.ItemFound));
         }
 
         Consistency.CheckForNonUnique(
@@ -178,7 +178,7 @@ public class TableHandlingTests
                 dogHc,
                 dog);
             
-            Assert.That(result, Is.EqualTo(TableHandling.CreateForEmptyEntry(dogHc, 1)));
+            Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
             TableHandling<DogPlaceColorEntry, Dog>.AddForUnique(
                 hashTableCopy,
@@ -218,7 +218,7 @@ public class TableHandlingTests
                 dogHc,
                 dog);
             
-            Assert.That(result, Is.EqualTo(TableHandling.CreateForEmptyEntry(dogHc + 1, 2)));
+            Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
             TableHandling<DogPlaceColorEntry, Dog>.AddForUnique(
                 hashTableCopy,
@@ -258,7 +258,7 @@ public class TableHandlingTests
                 dogHc,
                 dog);
             
-            Assert.That(result, Is.EqualTo(TableHandling.CreateWhenSearchStopped(dogHc + 2, 3)));
+            Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
             TableHandling<DogPlaceColorEntry, Dog>.AddForUnique(
                 hashTableCopy,
@@ -299,7 +299,7 @@ public class TableHandlingTests
                 dogHc,
                 dog);
             
-            Assert.That(result, Is.EqualTo(TableHandling.CreateWhenSearchStopped(dogHc + 3, 4)));
+            Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
             TableHandling<DogPlaceColorEntry, Dog>.AddForUnique(
                 hashTableCopy,

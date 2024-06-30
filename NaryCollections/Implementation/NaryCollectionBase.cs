@@ -126,7 +126,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
             hc,
             dataTuple);
 
-        return result.Case == TableHandling.SearchCase.ItemFound;
+        return result.Case == SearchCase.ItemFound;
     }
 
     #endregion
@@ -157,7 +157,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
             hc,
             dataTuple);
         
-        if (result.Case == TableHandling.SearchCase.ItemFound)
+        if (result.Case == SearchCase.ItemFound)
             return false;
 
         ++_version;
@@ -212,7 +212,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
             hc,
             dataTuple);
         
-        if (result.Case != TableHandling.SearchCase.ItemFound)
+        if (result.Case != SearchCase.ItemFound)
             return false;
 
         ++_version;
