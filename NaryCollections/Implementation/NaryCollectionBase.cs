@@ -119,7 +119,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -150,7 +150,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -170,7 +170,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
         {
-            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ChangeCapacityForUnique(
+            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -179,7 +179,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         }
         else
         {
-            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.AddForUnique(
+            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>>.AddForUnique(
                 _mainHashTable,
                 _dataTable,
                 _completeProjector,
@@ -205,7 +205,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -219,7 +219,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         int dataIndex = _mainHashTable[result.HashIndex].ForwardIndex;
         
-        TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.RemoveForUnique(
+        TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>>.RemoveForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -228,7 +228,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
         {
-            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ChangeCapacityForUnique(
+            TableUpdate<DataEntry<TDataTuple, THashTuple, TIndexTuple>>.ChangeCapacityForUnique(
                 ref _mainHashTable,
                 _dataTable,
                 _completeProjector,

@@ -90,7 +90,7 @@ internal static class DogPlaceColorGeneration
         int newItemDataIndex)
     {
         uint driftPlusOne = HashEntry.Optimal;
-        uint newItemReducedHashCode = TableHandling.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
+        uint newItemReducedHashCode = HashCodeReduction.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
         
         while (true)
         {
@@ -109,7 +109,7 @@ internal static class DogPlaceColorGeneration
 
             if (driftPlusOne <= candidateDriftPlusOne)
             {
-                TableHandling.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
+                HashCodeReduction.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
                 driftPlusOne++;
             }
             else
@@ -123,7 +123,7 @@ internal static class DogPlaceColorGeneration
                 };
                 dataTable[newItemDataIndex].BackIndexesTuple.Item1 = (int)newItemReducedHashCode;
                 
-                TableHandling.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
+                HashCodeReduction.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
                 driftPlusOne = candidateDriftPlusOne + 1;
                 newItemDataIndex = replacementDataIndex;
             }
@@ -202,7 +202,7 @@ internal static class DogPlaceColorGeneration
         Func<HashTuple, DogPlaceColorTuple, bool> isProjectionCorresponding)
     {
         uint driftPlusOne = HashEntry.Optimal;
-        uint newItemReducedHashCode = TableHandling.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
+        uint newItemReducedHashCode = HashCodeReduction.ComputeReducedHashCode(newItemHashCode, hashTable.Length);
             
         while (true)
         {
@@ -235,7 +235,7 @@ internal static class DogPlaceColorGeneration
 
             if (driftPlusOne <= candidateDriftPlusOne)
             {
-                TableHandling.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
+                HashCodeReduction.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
                 driftPlusOne++;
             }
             else
@@ -249,7 +249,7 @@ internal static class DogPlaceColorGeneration
                 };
                 correspondenceTable[newItemCorrespondenceIndex].Previous = (int)newItemReducedHashCode;
                 
-                TableHandling.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
+                HashCodeReduction.MoveReducedHashCode(ref newItemReducedHashCode, hashTable.Length);
                 driftPlusOne = candidateDriftPlusOne + 1;
                 newItemCorrespondenceIndex = replacementCorrespondenceIndex;
             }
