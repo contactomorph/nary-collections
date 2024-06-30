@@ -12,9 +12,9 @@ internal sealed class DogProjector(IEqualityComparer<Dog>? comparer = null) : ID
     
     private readonly IEqualityComparer<Dog> _comparer = comparer ?? EqualityComparer<Dog>.Default;
 
-    public (Dog Item, uint HashCode) GetDataAt(DogPlaceColorEntry[] dataTable, int index)
+    public uint GetHashCodeAt(DogPlaceColorEntry[] dataTable, int index)
     {
-        return (dataTable[index].DataTuple.Dog, dataTable[index].HashTuple.Item1);
+        return dataTable[index].HashTuple.Item1;
     }
 
     public bool AreDataEqualAt(DogPlaceColorEntry[] dataTable, int index, Dog item, uint hashCode)

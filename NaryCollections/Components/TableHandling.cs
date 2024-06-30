@@ -20,7 +20,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
     public static SearchResult ContainsForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IDataProjector<TDataEntry, T> projector,
+        IDataEquator<TDataEntry, T> projector,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -49,7 +49,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
         TDataEntry[] dataTable,
-        IDataProjector<TDataEntry, T> projector,
+        IDataEquator<TDataEntry, T> projector,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -86,7 +86,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
     public static void AddForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IDataProjector<TDataEntry, T> projector,
+        IResizeHandler<TDataEntry> projector,
         SearchResult lastSearchResult,
         int candidateDataIndex)
     {
@@ -139,7 +139,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
     public static void RemoveForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IDataProjector<TDataEntry, T> projector,
+        IResizeHandler<TDataEntry> projector,
         int dataIndex,
         int dataCount)
     {
@@ -176,7 +176,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
     public static void ChangeCapacityForUnique(
         ref HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IDataProjector<TDataEntry, T> projector,
+        IResizeHandler<TDataEntry> projector,
         int newHashTableCapacity,
         int count)
     {
@@ -184,7 +184,7 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
         
         for (int i = 0; i < count; i++)
         {
-            var (_, hashCode) = projector.GetDataAt(dataTable, i);
+            var hashCode = projector.GetHashCodeAt(dataTable, i);
             var reducedHashCode = TableHandling.ComputeReducedHashCode(hashCode, newHashTableCapacity);
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :

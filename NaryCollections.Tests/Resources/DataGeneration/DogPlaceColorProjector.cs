@@ -25,9 +25,9 @@ internal sealed class DogPlaceColorProjector : IDataProjector<DogPlaceColorEntry
         _colorComparer = colorComparer ?? EqualityComparer<Color>.Default;
     }
 
-    public (DogPlaceColorTuple Item, uint HashCode) GetDataAt(DogPlaceColorEntry[] dataTable, int index)
+    public uint GetHashCodeAt(DogPlaceColorEntry[] dataTable, int index)
     {
-        return (dataTable[index].DataTuple, (uint)dataTable[index].HashTuple.GetHashCode());
+        return (uint)dataTable[index].HashTuple.GetHashCode();
     }
 
     public bool AreDataEqualAt(DogPlaceColorEntry[] dataTable, int index, DogPlaceColorTuple item, uint hashCode)

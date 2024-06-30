@@ -106,11 +106,10 @@ public class DataProjectorCompilationTests
                 continue;
             var expectedDogHashCode = (uint)expectedDog.GetHashCode();
             
-            var (dog, hashCode) = projector.GetDataAt(dataTable, i);
-            
-            Assert.That(dog, Is.EqualTo(expectedDog));
+            var hashCode = projector.GetHashCodeAt(dataTable, i);
             Assert.That(hashCode, Is.EqualTo(expectedDogHashCode));
 
+            var dog = dataTable[i].DataTuple.Dog;
             Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, dog, hashCode));
             
             if (0 < i && dog != dataTable[i - 1].DataTuple.Dog)
@@ -140,15 +139,14 @@ public class DataProjectorCompilationTests
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (dataTuple.Dog is null)
                 continue;
-            var expectedTuple = (dataTuple.Color, dataTuple.Place);
             var expectedTupleHashCode = (uint)
                 ((uint)dataTuple.Color.GetHashCode(), (uint)dataTuple.Place.GetHashCode()).GetHashCode();
             
-            var (tuple, hashCode) = projector.GetDataAt(dataTable, i);
+            var hashCode = projector.GetHashCodeAt(dataTable, i);
             
-            Assert.That(tuple, Is.EqualTo(expectedTuple));
             Assert.That(hashCode, Is.EqualTo(expectedTupleHashCode));
     
+            var tuple = (dataTuple.Color, dataTuple.Place);
             Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, tuple, hashCode));
         }
     }
@@ -173,18 +171,17 @@ public class DataProjectorCompilationTests
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (dataTuple.Dog is null)
                 continue;
-            var expectedTuple = (dataTuple.Dog, dataTuple.Place, dataTuple.Color);
             var expectedTupleHashCode = (uint)(
                         (uint)dataTuple.Dog.GetHashCode(),
                         (uint)dataTuple.Place.GetHashCode(),
                         (uint)dataTuple.Color.GetHashCode()
                     ).GetHashCode();
             
-            var (tuple, hashCode) = projector.GetDataAt(dataTable, i);
+            var hashCode = projector.GetHashCodeAt(dataTable, i);
             
-            Assert.That(tuple, Is.EqualTo(expectedTuple));
             Assert.That(hashCode, Is.EqualTo(expectedTupleHashCode));
     
+            var tuple = (dataTuple.Dog, dataTuple.Place, dataTuple.Color);
             Assert.IsTrue(projector.AreDataEqualAt(dataTable, i, tuple, hashCode));
         }
     }
