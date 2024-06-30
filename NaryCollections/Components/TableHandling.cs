@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Runtime.CompilerServices;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
@@ -14,31 +12,6 @@ internal static class TableHandling
     public static void MoveReducedHashCode(ref uint reducedHashCode, int hashTableLength)
     {
         reducedHashCode = (reducedHashCode + 1) % (uint)hashTableLength;
-    }
-}
-
-public static class TableHandling<TDataTuple, THashTuple, TIndexTuple>
-    where TDataTuple: struct, ITuple, IStructuralEquatable
-    where THashTuple: struct, ITuple, IStructuralEquatable
-    where TIndexTuple: struct, ITuple, IStructuralEquatable
-{
-    public static int AddOnlyData(
-        ref DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
-        TDataTuple dataTuple,
-        THashTuple hashTuple,
-        ref int dataCount)
-    {
-        if (dataCount == dataTable.Length)
-            Array.Resize(ref dataTable, dataTable.Length << 1);
-        int dataIndex = dataCount;
-        ++dataCount;
-        
-        dataTable[dataIndex] = new DataEntry<TDataTuple, THashTuple, TIndexTuple>
-        {
-            DataTuple = dataTuple,
-            HashTuple = hashTuple,
-        };
-        return dataIndex;
     }
 }
 
@@ -161,26 +134,6 @@ internal static class TableHandling<TDataEntry, T> where TDataEntry : struct
             TableHandling.MoveReducedHashCode(ref candidateReducedHashCode, hashTable.Length);
             candidateDriftPlusOne++;
         }
-    }
-    
-    public static void RemoveOnlyData(
-        ref TDataEntry[] dataTable,
-        int dataIndex,
-        ref int dataCount)
-    {
-        --dataCount;
-        if (dataIndex == dataCount)
-        {
-            dataTable[dataIndex] = default;
-        }
-        else
-        {
-            dataTable[dataIndex] = dataTable[dataCount];
-            dataTable[dataCount] = default;
-        }
-
-        if (dataCount < dataTable.Length >> 2 && DataEntry.TableMinimalLength < dataTable.Length)
-            Array.Resize(ref dataTable, Math.Max(dataTable.Length >> 1, DataEntry.TableMinimalLength));
     }
     
     public static void RemoveForUnique(

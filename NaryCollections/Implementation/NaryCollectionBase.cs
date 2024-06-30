@@ -162,7 +162,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         ++_version;
         
-        int candidateDataIndex = TableHandling<TDataTuple, THashTuple, TIndexTuple>.AddOnlyData(
+        int candidateDataIndex = DataHandling<TDataTuple, THashTuple, TIndexTuple>.AddOnlyData(
             ref _dataTable,
             dataTuple,
             hashTuple,
@@ -237,7 +237,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         }
         else
         {
-            TableHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.RemoveOnlyData(
+            DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
                 ref _dataTable, 
                 dataIndex,
                 ref _count);
