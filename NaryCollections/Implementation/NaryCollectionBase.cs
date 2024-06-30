@@ -119,7 +119,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -150,7 +150,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
@@ -205,7 +205,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,

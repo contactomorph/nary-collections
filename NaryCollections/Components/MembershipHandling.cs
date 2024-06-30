@@ -2,12 +2,14 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
-internal static class MembershipHandling<TDataEntry, T> where TDataEntry : struct
+internal static class MembershipHandling<TDataEntry, T, TEquator>
+    where TDataEntry : struct
+    where TEquator : struct, IDataEquator<TDataEntry, T>
 {
     public static SearchResult ContainsForUnique(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
-        IDataEquator<TDataEntry, T> projector,
+        TEquator equator,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -24,7 +26,7 @@ internal static class MembershipHandling<TDataEntry, T> where TDataEntry : struc
                 return SearchResult.CreateWhenSearchStopped(reducedHashCode, driftPlusOne);
             // we have a good candidate for data
             int occupiedDataIndex = hashTable[reducedHashCode].ForwardIndex;
-            if (projector.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
+            if (equator.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
                 return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne);
 
             HashCodeReduction.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
@@ -36,7 +38,7 @@ internal static class MembershipHandling<TDataEntry, T> where TDataEntry : struc
         HashEntry[] hashTable,
         CorrespondenceEntry[] correspondenceTable,
         TDataEntry[] dataTable,
-        IDataEquator<TDataEntry, T> projector,
+        TEquator equator,
         uint candidateHashCode,
         T candidateItem)
     {
@@ -58,7 +60,7 @@ internal static class MembershipHandling<TDataEntry, T> where TDataEntry : struc
             {
                 // there are possible multiple lines in the correspondence table
                 int occupiedDataIndex = correspondenceTable[occupiedCorrespondenceIndex].DataIndex;
-                if (projector.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
+                if (equator.AreDataEqualAt(dataTable, occupiedDataIndex, candidateItem, candidateHashCode))
                     return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne);
 
                 occupiedCorrespondenceIndex = correspondenceTable[occupiedCorrespondenceIndex].Next;

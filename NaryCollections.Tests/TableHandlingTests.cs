@@ -28,7 +28,7 @@ public class UpdateHandlingTests
 
         foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
@@ -40,7 +40,7 @@ public class UpdateHandlingTests
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
@@ -72,7 +72,7 @@ public class UpdateHandlingTests
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, DogPlaceColorTuple>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, DogPlaceColorTuple, DogPlaceColorProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
@@ -105,7 +105,7 @@ public class UpdateHandlingTests
 
         foreach (var dog in Dogs.KnownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForNonUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForNonUnique(
                 hashTable,
                 correspondenceTable,
                 dataTable,
@@ -118,7 +118,7 @@ public class UpdateHandlingTests
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
@@ -172,7 +172,7 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
 
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -212,7 +212,7 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
             
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -252,7 +252,7 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
@@ -293,7 +293,7 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, Dog>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
