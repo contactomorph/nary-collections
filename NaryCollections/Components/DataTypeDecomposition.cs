@@ -1,7 +1,7 @@
-using System.Reflection;
+using NaryCollections.Primitives;
 using NaryCollections.Tools;
 
-namespace NaryCollections.Details;
+namespace NaryCollections.Components;
 
 internal class DataTypeDecomposition
 {

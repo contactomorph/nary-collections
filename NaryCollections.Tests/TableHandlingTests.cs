@@ -1,5 +1,6 @@
 using System.Drawing;
-using NaryCollections.Details;
+using NaryCollections.Components;
+using NaryCollections.Primitives;
 using NaryCollections.Tests.Resources.Data;
 using NaryCollections.Tests.Resources.DataGeneration;
 using NaryCollections.Tests.Resources.Tools;

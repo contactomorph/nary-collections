@@ -1,5 +1,5 @@
 using System.Drawing;
-using NaryCollections.Details;
+using NaryCollections.Primitives;
 using NaryCollections.Tests.Resources.Types;
 
 namespace NaryCollections.Tests.Resources.DataGeneration;

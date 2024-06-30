@@ -1,8 +1,9 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using NaryCollections.Primitives;
 using NaryCollections.Tools;
 
-namespace NaryCollections.Details;
+namespace NaryCollections.Components;
 
 public static class DataProjectorCompilation
 {

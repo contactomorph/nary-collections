@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
-using NaryCollections.Details;
+using NaryCollections.Primitives;
 
 namespace NaryCollections.Tests.Resources.Tools;
 

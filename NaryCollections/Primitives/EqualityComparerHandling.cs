@@ -2,7 +2,7 @@ using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace NaryCollections.Details;
+namespace NaryCollections.Primitives;
 
 public static class EqualityComparerHandling
 {

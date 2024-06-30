@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
+using NaryCollections.Primitives;
 
-namespace NaryCollections.Details;
+namespace NaryCollections.Components;
 
 internal static class TableHandling
 {

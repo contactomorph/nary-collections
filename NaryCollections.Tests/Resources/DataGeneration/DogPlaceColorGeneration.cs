@@ -1,4 +1,5 @@
-using NaryCollections.Details;
+using NaryCollections.Components;
+using NaryCollections.Primitives;
 
 namespace NaryCollections.Tests.Resources.DataGeneration;
 

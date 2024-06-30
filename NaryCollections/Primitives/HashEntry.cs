@@ -1,4 +1,4 @@
-namespace NaryCollections.Details;
+namespace NaryCollections.Primitives;
 
 public struct HashEntry
 {

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace NaryCollections.Details;
+namespace NaryCollections.Primitives;
 
 public static class DataEntry
 {

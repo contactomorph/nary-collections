@@ -1,7 +1,8 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
-using NaryCollections.Details;
+using NaryCollections.Components;
+using NaryCollections.Primitives;
 using NaryCollections.Tools;
 
 namespace NaryCollections.Implementation;
