@@ -35,11 +35,16 @@ public static class DataProjectorCompilation
             [projectorInterfaceType]);
         
         var comparerFields = DefineConstructor(typeBuilder, dataTypeProjection.ComparerTypes, projectionIndexes);
-        DefineGetHashCodeAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
         DefineAreDataEqualAt(typeBuilder, dataTypeProjection, projectorInterfaceType, comparerFields);
-        DefineGetBackIndexAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
-        DefineSetBackIndexAt(typeBuilder, dataTypeProjection, projectorInterfaceType);
         DefineComputeHashCode(typeBuilder, dataTypeProjection, projectorInterfaceType, comparerFields);
+
+        Type resizeHandlerInterfaceType = projectorInterfaceType
+            .GetInterfaces()
+            .Single(i => i.Name.StartsWith(nameof(IResizeHandler<ValueTuple>)));
+        
+        UpdateHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        UpdateHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        UpdateHandlerCompilation.DefineSetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
 
         var type = typeBuilder.CreateType();
 
@@ -82,55 +87,6 @@ public static class DataProjectorCompilation
         il.Emit(OpCodes.Ret);
 
         return comparerFields;
-    }
-
-    private static void DefineGetHashCodeAt(
-        TypeBuilder typeBuilder,
-        DataTypeProjection dataTypeProjection,
-        Type projectorInterfaceType)
-    {
-        const string methodName = nameof(IDataProjector<object, object>.GetHashCodeAt);
-        
-        MethodBuilder methodBuilder = typeBuilder
-            .DefineMethod(
-                methodName,
-                ProjectorMethodAttributes,
-                typeof(uint),
-                [dataTypeProjection.DataTableType, typeof(int)]);
-        ILGenerator il = methodBuilder.GetILGenerator();
-        
-        var hashTupleField = dataTypeProjection.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
-        
-        var hashMapping = dataTypeProjection.HashProjectionMapping;
-        
-        foreach (var indexedField in hashMapping)
-        {
-            // dataTable
-            il.Emit(OpCodes.Ldarg_1);
-            // index
-            il.Emit(OpCodes.Ldarg_2);
-            // &dataTable[index]
-            il.Emit(OpCodes.Ldelema, dataTypeProjection.DataEntryType);
-            // &dataTable[index].HashTuple
-            il.Emit(OpCodes.Ldflda, hashTupleField);
-            // dataTable[index].HashTuple.Item⟨i⟩
-            il.Emit(OpCodes.Ldfld, indexedField.Field);
-        }
-
-        if (1 < hashMapping.Count)
-        {
-            // new ValueTuple<…>(…)
-            il.Emit(OpCodes.Newobj, hashMapping.OutputType.GetConstructor());
-            // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
-            il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashMapping.OutputType));
-        }
-        
-        il.Emit(OpCodes.Ret);
-
-        typeBuilder.DefineMethodOverride(
-            methodBuilder,
-            LookForMethod(projectorInterfaceType, methodName));
     }
 
     private static void DefineAreDataEqualAt(
@@ -233,76 +189,6 @@ public static class DataProjectorCompilation
         il.Emit(OpCodes.Ldc_I4_0);
         
         il.MarkLabel(endLabel);
-        il.Emit(OpCodes.Ret);
-
-        typeBuilder.DefineMethodOverride(methodBuilder, LookForMethod(projectorInterfaceType, methodName));
-    }
-
-    private static void DefineGetBackIndexAt(
-        TypeBuilder typeBuilder,
-        DataTypeProjection dataTypeDecomposition,
-        Type projectorInterfaceType)
-    {
-        const string methodName = nameof(IDataProjector<object, object>.GetBackIndex);
-        
-        MethodBuilder methodBuilder = typeBuilder
-            .DefineMethod(
-                methodName,
-                ProjectorMethodAttributes,
-                typeof(int),
-                [dataTypeDecomposition.DataTableType, typeof(int)]);
-        ILGenerator il = methodBuilder.GetILGenerator();
-
-        var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
-        
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
-        // &dataTable[index].BackIndexesTuple
-        il.Emit(OpCodes.Ldflda, backIndexesTupleField);
-        // dataTable[index].BackIndexesTuple.Item⟨p⟩
-        il.Emit(OpCodes.Ldfld, dataTypeDecomposition.BackIndexProjectionField);
-        
-        il.Emit(OpCodes.Ret);
-
-        typeBuilder.DefineMethodOverride(methodBuilder, LookForMethod(projectorInterfaceType, methodName));
-    }
-
-    private static void DefineSetBackIndexAt(
-        TypeBuilder typeBuilder,
-        DataTypeProjection dataTypeDecomposition,
-        Type projectorInterfaceType)
-    {
-        const string methodName = nameof(IDataProjector<object, object>.SetBackIndex);
-        
-        MethodBuilder methodBuilder = typeBuilder
-            .DefineMethod(
-                methodName,
-                ProjectorMethodAttributes,
-                typeof(void),
-                [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
-        ILGenerator il = methodBuilder.GetILGenerator();
-
-        var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
-        
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // index
-        il.Emit(OpCodes.Ldarg_2);
-        // &dataTable[index]
-        il.Emit(OpCodes.Ldelema, dataTypeDecomposition.DataEntryType);
-        // &dataTable[index].BackIndexesTuple
-        il.Emit(OpCodes.Ldflda, backIndexesTupleField);
-        // backIndex
-        il.Emit(OpCodes.Ldarg_3);
-        // dataTable[index].BackIndexesTuple.Item⟨p⟩ = backIndex
-        il.Emit(OpCodes.Stfld, dataTypeDecomposition.BackIndexProjectionField);
-        
         il.Emit(OpCodes.Ret);
 
         typeBuilder.DefineMethodOverride(methodBuilder, LookForMethod(projectorInterfaceType, methodName));
