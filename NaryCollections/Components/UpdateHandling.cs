@@ -2,7 +2,7 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
-internal static class UpdateHandling<TDataEntry, TResizeHandler>
+public static class UpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
     where TResizeHandler : struct, IResizeHandler<TDataEntry>
 {
