@@ -32,16 +32,22 @@ public static class CompositeHandlerCompilation
                 dataTypeProjection.ComparerTupleTypes,
                 itemType);
 
+        Type resizeHandlerInterfaceType = typeof(IResizeHandler<>).MakeGenericType(dataTypeProjection.DataEntryType);
+
         var typeBuilder = moduleBuilder.DefineType(
             $"CompositeHandler_{backIndexRank}",
             TypeAttributes.Class | TypeAttributes.Sealed,
             typeof(ValueType),
-            [compositeHandlerInterfaceType]);
+            [compositeHandlerInterfaceType, resizeHandlerInterfaceType]);
         
         DefineConstructor(typeBuilder);
         DefineContains(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
         DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
         DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
+
+        UpdateHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        UpdateHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        UpdateHandlerCompilation.DefineSetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
 
         var type = typeBuilder.CreateType();
 
