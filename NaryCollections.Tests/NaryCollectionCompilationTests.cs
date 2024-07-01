@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using NaryCollections.Implementation;
@@ -14,6 +13,7 @@ namespace NaryCollections.Tests;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
 using IndexTuple = (int, int, int, int, int);
+using NaryCollection = INaryCollection<DogPlaceColor>;
 
 public class NaryCollectionCompilationTests
 {
@@ -89,20 +89,17 @@ public class NaryCollectionCompilationTests
 
         var collection = factory();
         
-        var privateFields = collection
-            .GetType()
-            .BaseType!
-            .GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+        var privateFields = FieldHelpers.GetInstanceFields(collection);
 
-        var projector = CreateGetter<IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple>>(
+        var projector = FieldHelpers.GetFieldValue<IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple>>(
             privateFields, 
-            "_completeProjector"
-            )(collection);
+            "_completeProjector",
+            collection);
         
-        var hashTableGetter = CreateGetter<HashEntry[]>(
+        var hashTableGetter = FieldHelpers.CreateGetter<NaryCollection, HashEntry[]>(
             privateFields,
             "_mainHashTable");
-        var dataTableGetter = CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(
+        var dataTableGetter = FieldHelpers.CreateGetter<NaryCollection, DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(
             privateFields,
             "_dataTable");
 
@@ -138,14 +135,5 @@ public class NaryCollectionCompilationTests
                 projector,
                 DogPlaceColorProjector.Instance.ComputeHashTuple);
         }
-    }
-
-    private static Func<INaryCollection<DogPlaceColor>, T> CreateGetter<T>(FieldInfo[] fields, string name)
-    {
-        var field = fields.Single(f => f.Name == name);
-        var instance = Expression.Parameter(typeof(INaryCollection<DogPlaceColor>), "instance");
-        var downcastInstance = Expression.Convert(instance, field.DeclaringType!);
-        var body = Expression.Convert(Expression.Field(downcastInstance, field), typeof(T));
-        return Expression.Lambda<Func<INaryCollection<DogPlaceColor>, T>>(body, instance).Compile();
     }
 }
