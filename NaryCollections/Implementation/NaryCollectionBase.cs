@@ -170,12 +170,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
         {
-            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
-                ref _mainHashTable,
+            _mainHashTable = UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
                 _dataTable,
                 _completeProjector,
                 newHashTableCapacity: HashEntry.IncreaseCapacity(_mainHashTable.Length),
-                _count);
+                newDataCount: _count);
         }
         else
         {
@@ -217,30 +216,29 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
 
         ++_version;
 
-        int dataIndex = _mainHashTable[result.HashIndex].ForwardIndex;
+        int dataIndex = _mainHashTable[result.ReducedHashCode].ForwardIndex;
         
-        UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.RemoveForUnique(
-            _mainHashTable,
-            _dataTable,
-            _completeProjector,
+        DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
+            ref _dataTable,
             dataIndex,
-            _count);
+            ref _count);
 
         if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
         {
-            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
-                ref _mainHashTable,
+            _mainHashTable = UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
                 _dataTable,
                 _completeProjector,
                 newHashTableCapacity: HashEntry.DecreaseCapacity(_mainHashTable.Length),
-                _count);
+                newDataCount: _count);
         }
         else
         {
-            DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
-                ref _dataTable, 
-                dataIndex,
-                ref _count);
+            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.RemoveForUnique(
+                _mainHashTable,
+                _dataTable,
+                _completeProjector,
+                result,
+                newDataCount: _count);
         }
         
         return true;

@@ -13,7 +13,7 @@ internal static class UpdateHandling<TDataEntry, TResizeHandler>
         SearchResult lastSearchResult,
         int candidateDataIndex)
     {
-        uint candidateReducedHashCode = (uint)lastSearchResult.HashIndex;
+        uint candidateReducedHashCode = lastSearchResult.ReducedHashCode;
         uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
 
         if (lastSearchResult.Case == SearchCase.EmptyEntryFound)
@@ -63,10 +63,22 @@ internal static class UpdateHandling<TDataEntry, TResizeHandler>
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
-        int dataIndex,
-        int dataCount)
+        SearchResult successfulSearchResult,
+        int newDataCount)
     {
-        uint reducedHashCode = (uint)handler.GetBackIndex(dataTable, dataIndex);
+        uint reducedHashCode = successfulSearchResult.ReducedHashCode;
+        
+        // If the removed item was not the last item in dataTable,
+        // this last item has now been moved in dataTable from last position to dataIndex.
+        // We must look for this back index of this item, then find the corresponding entry in hashTable
+        // and finally update the HashEntry.ForwardIndex
+        var dataIndex = hashTable[reducedHashCode].ForwardIndex;
+        if (dataIndex != newDataCount)
+        {
+            var backIndex = handler.GetBackIndex(dataTable, dataIndex);
+            hashTable[backIndex].ForwardIndex = dataIndex;
+        }
+        
         uint nextReducedHashCode = reducedHashCode;
         HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
 
@@ -87,25 +99,17 @@ internal static class UpdateHandling<TDataEntry, TResizeHandler>
             reducedHashCode = nextReducedHashCode;
             HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
         }
-        
-        int lastDataIndex = dataCount - 1;
-        if (dataIndex < lastDataIndex)
-        {
-            var backIndex = handler.GetBackIndex(dataTable, lastDataIndex);
-            hashTable[backIndex].ForwardIndex = dataIndex;
-        }
     }
 
-    public static void ChangeCapacityForUnique(
-        ref HashEntry[] hashTable,
+    public static HashEntry[] ChangeCapacityForUnique(
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
-        int count)
+        int newDataCount)
     {
-        hashTable = new HashEntry[newHashTableCapacity];
+        var hashTable = new HashEntry[newHashTableCapacity];
         
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < newDataCount; i++)
         {
             var hashCode = handler.GetHashCodeAt(dataTable, i);
             var reducedHashCode = HashCodeReduction.ComputeReducedHashCode(hashCode, newHashTableCapacity);
@@ -114,5 +118,7 @@ internal static class UpdateHandling<TDataEntry, TResizeHandler>
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
             AddForUnique(hashTable, dataTable, handler, searchResult, i);
         }
+
+        return hashTable;
     }
 }

@@ -7,21 +7,21 @@ public enum SearchCase
     ItemFound = 2,
 }
 
-public record struct SearchResult(SearchCase Case, int HashIndex, uint DriftPlusOne)
+public record struct SearchResult(SearchCase Case, uint ReducedHashCode, uint DriftPlusOne)
 {
     public static SearchResult CreateForEmptyEntry(uint reducedHash, uint driftPlusOne)
     {
-        return new SearchResult(SearchCase.EmptyEntryFound, (int)reducedHash, driftPlusOne);
+        return new SearchResult(SearchCase.EmptyEntryFound, reducedHash, driftPlusOne);
     }
     
     public static SearchResult CreateWhenSearchStopped(uint reducedHash, uint driftPlusOne)
     {
-        return new SearchResult(SearchCase.SearchStopped, (int)reducedHash, driftPlusOne);
+        return new SearchResult(SearchCase.SearchStopped, reducedHash, driftPlusOne);
     }
     
     public static SearchResult CreateForItemFound(uint reducedHash, uint driftPlusOne)
     {
-        return new SearchResult(SearchCase.ItemFound, (int)reducedHash, driftPlusOne);
+        return new SearchResult(SearchCase.ItemFound, reducedHash, driftPlusOne);
     }
 }
 

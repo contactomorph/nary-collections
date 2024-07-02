@@ -351,18 +351,21 @@ public class UpdateHandlingTests
             var dataTableCopy = dataTable.ToArray();
 
             int dataIndexToRemove = 2;
-            
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
-                hashTableCopy,
-                dataTableCopy,
-                dogProjector,
-                dataIndexToRemove,
-                dataCount);
+            var successfulResult = SearchResult.CreateForItemFound(
+                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
+                0);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
+            
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dogProjector,
+                successfulResult, 
+                dataCount);
             
             EqualsAt(3, hashTableCopy, (HashEntry.DriftForUnused, 0));
             EqualsAt(10, hashTableCopy, (HashEntry.Optimal, 2));
@@ -381,18 +384,21 @@ public class UpdateHandlingTests
             var dataTableCopy = dataTable.ToArray();
 
             int dataIndexToRemove = 8;
+            var successfulResult = SearchResult.CreateForItemFound(
+                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
+                0);
+            
+            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
+                ref dataTableCopy,
+                dataIndexToRemove,
+                ref dataCount);
             
             UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
-                dataIndexToRemove,
-                dataCount);
-
-            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
-                ref dataTableCopy,
-                dataIndexToRemove,
-                ref dataCount);
+                successfulResult,
+                newDataCount: dataCount);
             
             EqualsAt(10, hashTableCopy, (HashEntry.DriftForUnused, 0));
             AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 10);
@@ -410,18 +416,21 @@ public class UpdateHandlingTests
             var dataTableCopy = dataTable.ToArray();
 
             int dataIndexToRemove = 3;
-            
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
-                hashTableCopy,
-                dataTableCopy,
-                dogProjector,
-                dataIndexToRemove,
-                dataCount);
+            var successfulResult = SearchResult.CreateForItemFound(
+                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
+                0);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
+            
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dogProjector,
+                successfulResult,
+                newDataCount: dataCount);
             
             EqualsAt(5, hashTableCopy, (HashEntry.Optimal, 4));
             EqualsAt(6, hashTableCopy, (2, 5));
@@ -444,18 +453,21 @@ public class UpdateHandlingTests
             var dataTableCopy = dataTable.ToArray();
 
             int dataIndexToRemove = 5;
-            
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
-                hashTableCopy,
-                dataTableCopy,
-                dogProjector,
-                dataIndexToRemove,
-                dataCount);
+            var successfulResult = SearchResult.CreateForItemFound(
+                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
+                0);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
+            
+            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dogProjector,
+                successfulResult,
+                newDataCount: dataCount);
             
             EqualsAt(7, hashTableCopy, (2, 6));
             EqualsAt(8, hashTableCopy, (HashEntry.Optimal, 7));
@@ -487,8 +499,7 @@ public class UpdateHandlingTests
 
         for (int i = 0; i < 5; ++i)
         {
-            UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
-                ref hashTable,
+            hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 dataTable,
                 dogPlaceColorProjector,
                 HashEntry.IncreaseCapacity(hashTable.Length),
@@ -504,8 +515,7 @@ public class UpdateHandlingTests
 
         for (int i = 0; i < 5; ++i)
         {
-            UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
-                ref hashTable,
+            hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 dataTable,
                 dogPlaceColorProjector,
                 HashEntry.DecreaseCapacity(hashTable.Length),
