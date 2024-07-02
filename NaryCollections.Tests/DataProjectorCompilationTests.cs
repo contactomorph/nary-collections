@@ -12,6 +12,7 @@ namespace NaryCollections.Tests;
 
 using ColorPlaceTuple = (Color Color, string Place);
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
+using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
 public class DataProjectorCompilationTests
@@ -116,6 +117,36 @@ public class DataProjectorCompilationTests
             {
                 Assert.IsFalse(projector.AreDataEqualAt(dataTable, i - 1, dog, hashCode));
             }
+        }
+    }
+    
+    [Test]
+    public void ScalarGetAndEqualAtTest2()
+    {
+        DogPlaceColorGeneration.CreateDataTableOnly(DogPlaceColorTuples.Data, out var dataTable);
+        
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0],
+            0,
+            1);
+
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler = (IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>)del.DynamicInvoke()!;
+        
+        var comparerTuple = (DogComparer, StringComparer, ColorComparer);
+        
+        for (int i = 0; i < dataTable.Length; ++i)
+        {
+            var dataTuple = dataTable[i].DataTuple;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (dataTuple.Dog is null)
+                continue;
+            var expectedDogHashCode = (uint)dataTuple.Dog.GetHashCode();
+            
+            Assert.IsTrue(handler.AreDataEqualAt(dataTable, comparerTuple, i, dataTuple.Dog, expectedDogHashCode));
         }
     }
     
