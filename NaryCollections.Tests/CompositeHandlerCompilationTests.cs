@@ -15,6 +15,7 @@ using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
 using BackIndexTuple = ValueTuple<int>;
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
 public class CompositeHandlerCompilationTests
 {
@@ -84,10 +85,11 @@ public class CompositeHandlerCompilationTests
         
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
 
-            var lastSearchResult = MembershipHandling<DataEntry<DogPlaceColorTuple, HashTuple, BackIndexTuple>, Dog, DogProjector>.ContainsForUnique(
+            var lastSearchResult = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableGetter(handler),
                 dataTable,
                 dogProjector,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 hc,
                 dog);
 
@@ -161,11 +163,12 @@ public class CompositeHandlerCompilationTests
 
             hashTable = hashTableGetter(handler);
             var successfulSearchResult =
-                MembershipHandling<DataEntry<DogPlaceColorTuple, HashTuple, BackIndexTuple>, Dog, DogProjector>
+                MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>
                     .ContainsForUnique(
                         hashTable,
                         dataTable,
                         dogProjector,
+                        (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                         hc,
                         dog);
 

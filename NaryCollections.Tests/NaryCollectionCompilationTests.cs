@@ -13,6 +13,8 @@ namespace NaryCollections.Tests;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
 using IndexTuple = (int, int, int, int, int);
+using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, int, int, int, int)>;
 
 public class NaryCollectionCompilationTests
 {
@@ -79,8 +81,7 @@ public class NaryCollectionCompilationTests
         Assert.That(set.Contains(DogPlaceColorTuples.Data[3]), Is.False);
         Assert.That(set.Count, Is.EqualTo(4));
     }
-
-
+    
     [Test]
     public void FillDogPlaceColorTupleCollectionRandomlyTest()
     {
@@ -93,7 +94,7 @@ public class NaryCollectionCompilationTests
         manipulator.GetFieldValue(
             collection,
             "_completeProjector",
-            out IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple> projector);
+            out IDataProjector<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple> projector);
         
         var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_mainHashTable");
         var dataTableGetter = manipulator

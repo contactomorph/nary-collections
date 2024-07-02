@@ -10,6 +10,7 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashColorTuple = (uint, uint, uint);
+using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
 public class UpdateHandlingTests
@@ -28,10 +29,11 @@ public class UpdateHandlingTests
 
         foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
         
@@ -40,10 +42,11 @@ public class UpdateHandlingTests
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
         
@@ -72,10 +75,11 @@ public class UpdateHandlingTests
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, DogPlaceColorTuple, DogPlaceColorProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple, DogPlaceColorProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)DogPlaceColorProjector.Instance.ComputeHashTuple(tuple).GetHashCode(),
                 tuple);
         
@@ -105,11 +109,12 @@ public class UpdateHandlingTests
 
         foreach (var dog in Dogs.KnownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForNonUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForNonUnique(
                 hashTable,
                 correspondenceTable,
                 dataTable,
                 projector,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
         
@@ -118,10 +123,11 @@ public class UpdateHandlingTests
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
                 projector,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
         
@@ -172,10 +178,11 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
 
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
             
@@ -212,10 +219,11 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
             
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
             
@@ -252,10 +260,11 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
             
@@ -293,10 +302,11 @@ public class UpdateHandlingTests
                 dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
                 dogProjector,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
             

@@ -5,14 +5,16 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Implementation;
 
-public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TProjector, TSchema>
+public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TProjector, TSchema>
     : INaryCollection<TSchema>, IConflictingSet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
-    where TProjector : struct, IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple>
+    where TComparerTuple : struct, ITuple, IStructuralEquatable
+    where TProjector : struct, IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple>
     where TSchema : Schema<TDataTuple>, new()
 {
+    protected readonly TComparerTuple ComparerTuple;
     private readonly TProjector _completeProjector;
     private DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
     private HashEntry[] _mainHashTable;
@@ -29,10 +31,12 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NaryCollectionBase(
         TSchema schema,
-        TProjector completeProjector)
+        TProjector completeProjector,
+        TComparerTuple comparerTuple)
     {
         Schema = schema;
         _completeProjector = completeProjector;
+        ComparerTuple = comparerTuple;
         _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
         _mainHashTable = new HashEntry[HashEntry.TableMinimalLength];
         _count = 0;
@@ -119,10 +123,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
+            ComparerTuple,
             hc,
             dataTuple);
 
@@ -150,10 +155,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
+            ComparerTuple,
             hc,
             dataTuple);
         
@@ -204,10 +210,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple, TProjector>.ContainsForUnique(
+        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
             _mainHashTable,
             _dataTable,
             _completeProjector,
+            ComparerTuple,
             hc,
             dataTuple);
         

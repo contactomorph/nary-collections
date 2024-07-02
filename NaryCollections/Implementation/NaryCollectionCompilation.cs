@@ -30,6 +30,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         var dataTypeDecomposition = new DataTypeProjection(dataTupleType, 0, (byte)composites.Length, allIndexes);
         var hashTupleType = dataTypeDecomposition.HashTupleType;
         var backIndexTupleType = dataTypeDecomposition.BackIndexTupleType;
+        var comparerTupleType = dataTypeDecomposition.ComparerTupleType;
         
         var completeProjectorCtor = DataProjectorCompilation.GenerateProjectorConstructor(
             moduleBuilder,
@@ -43,20 +44,27 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             .Select(Expression.Constant)
             .ToArray<Expression>();
         
-        var baseCollectionType = typeof(NaryCollectionBase<,,,,>)
-            .MakeGenericType([dataTupleType, hashTupleType, backIndexTupleType, completeProjectorType, schemaType]);
+        var baseCollectionType = typeof(NaryCollectionBase<,,,,,>)
+            .MakeGenericType([
+                dataTupleType,
+                hashTupleType,
+                backIndexTupleType,
+                comparerTupleType,
+                completeProjectorType,
+                schemaType,
+            ]);
         
         var typeBuilder = moduleBuilder.DefineType(
             "NaryCollection",
             TypeAttributes.Class | TypeAttributes.Sealed,
             baseCollectionType);
 
-        var comparerFields = DefineConstructor(
+        DefineConstructor(
             typeBuilder,
             schemaType,
             completeProjectorType,
-            dataTypeDecomposition.ComparerTypes);
-        DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType, comparerFields);
+            comparerTupleType);
+        DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType);
 
         var type = typeBuilder.CreateType();
         
@@ -65,7 +73,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         Expression[] ctorParameters = [
             Expression.Constant(schema),
             Expression.New(completeProjectorCtor, comparers),
-            ..comparers
+            Expression.New(comparerTupleType.GetConstructor(), comparers)
         ];
 
         var factoryExpression = Expression.Lambda<Func<INaryCollection<TSchema>>>(Expression.New(ctor, ctorParameters));
@@ -94,16 +102,16 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         return Enumerable.Range(0, length).Select(i => (byte)i).ToArray();
     }
 
-    private static List<FieldBuilder> DefineConstructor(
+    private static void DefineConstructor(
         TypeBuilder typeBuilder,
         Type schemaType,
         Type completeProjectorType,
-        IReadOnlyList<Type> comparerTypes)
+        ValueTupleType comparerTupleType)
     {
         var ctorBuilder = typeBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Any,
-            [schemaType, completeProjectorType, ..comparerTypes]);
+            [schemaType, completeProjectorType, comparerTupleType]);
         var il = ctorBuilder.GetILGenerator();
 
         var baseCtor = typeBuilder
@@ -111,48 +119,24 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
             .Single();
         
-        List<FieldBuilder> comparerFields = new();
-        int j = 0;
-        foreach (var comparerType in comparerTypes)
-        {
-            var comparerField = typeBuilder.DefineField(
-                "_comparer" + j,
-                comparerType,
-                FieldAttributes.InitOnly);
-            comparerFields.Add(comparerField);
-            ++j;
-        }
-        
         // this
         il.Emit(OpCodes.Ldarg_0);
         // schema
         il.Emit(OpCodes.Ldarg_1);
         // completeProjector
         il.Emit(OpCodes.Ldarg_2);
-        // base(schema, completeProjector)
+        // comparerTuple
+        il.Emit(OpCodes.Ldarg_3);
+        // base(schema, completeProjector, comparerTuple)
         il.Emit(OpCodes.Call, baseCtor);
-
-        for (byte b = 0; b < comparerFields.Count; ++b)
-        {
-            var comparerField = comparerFields[b];
-            // this
-            il.Emit(OpCodes.Ldarg_0);
-            // comparer⟨b⟩
-            il.Emit(OpCodes.Ldarg_S, b + 3);
-            // this._comparer⟨b⟩ = comparer⟨b⟩
-            il.Emit(OpCodes.Stfld, comparerField);
-        }
         
         il.Emit(OpCodes.Ret);
-
-        return comparerFields;
     }
 
     private static void DefineComputeHashTuple(
         TypeBuilder typeBuilder,
         DataTypeDecomposition dataTypeDecomposition,
-        Type baseCollectionType,
-        IReadOnlyList<FieldBuilder> comparerFields)
+        Type baseCollectionType)
     {
         const string methodName = "ComputeHashTuple";
         
@@ -164,21 +148,29 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 [dataTypeDecomposition.DataTupleType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        int j = 0;
+        var comparerTupleField = baseCollectionType
+             .GetField(
+                "ComparerTuple",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) ??
+                throw new MissingFieldException();
+        
+        int i = 0;
         foreach (var dataField in dataTypeDecomposition.DataTupleType)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);
-            // this._comparer⟨j⟩
-            il.Emit(OpCodes.Ldfld, comparerFields[j]);
+            // this._comparerTuple
+            il.Emit(OpCodes.Ldfld, comparerTupleField);
+            // this._comparerTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, dataTypeDecomposition.ComparerTupleType[i]);
             // dataTuple
             il.Emit(OpCodes.Ldarg_1);
             // dataTuple.Item⟨i⟩
             il.Emit(OpCodes.Ldfld, dataField);
-            // EqualityComparerHandling.Compute⟨Struct|Ref⟩HashCode(this._comparer⟨j⟩, dataTuple.Item⟨i⟩)
+            // EqualityComparerHandling.Compute⟨Struct|Ref⟩HashCode(this._comparerTuple.Item⟨i⟩, dataTuple.Item⟨i⟩)
             il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(dataField.FieldType));
         
-            ++j;
+            ++i;
         }
         
         var hashTupleType = dataTypeDecomposition.HashTupleType;

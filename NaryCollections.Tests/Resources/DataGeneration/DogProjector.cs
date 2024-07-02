@@ -4,9 +4,11 @@ using NaryCollections.Tests.Resources.Types;
 
 namespace NaryCollections.Tests.Resources.DataGeneration;
 
+using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) : IDataProjector<DogPlaceColorEntry, Dog>
+internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
+    IDataProjector<DogPlaceColorEntry, ComparerTuple, Dog>
 {
     public static readonly DogProjector Instance = new(EqualityComparer<Dog>.Default);
     
@@ -17,7 +19,12 @@ internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
         return dataTable[index].HashTuple.Item1;
     }
 
-    public bool AreDataEqualAt(DogPlaceColorEntry[] dataTable, int index, Dog item, uint hashCode)
+    public bool AreDataEqualAt(
+        DogPlaceColorEntry[] dataTable,
+        ComparerTuple comparerTuple,
+        int index,
+        Dog item,
+        uint hashCode)
     {
         return dataTable[index].HashTuple.Item1 == hashCode &&
                _comparer.Equals(dataTable[index].DataTuple.Dog, item);
