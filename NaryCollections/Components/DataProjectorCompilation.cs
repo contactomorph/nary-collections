@@ -7,9 +7,6 @@ namespace NaryCollections.Components;
 
 public static class DataProjectorCompilation
 {
-    private static readonly MethodAttributes ProjectorMethodAttributes =
-        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.Final;
-
     public static ConstructorInfo GenerateProjectorConstructor(
         ModuleBuilder moduleBuilder,
         Type dataTupleType,
@@ -23,7 +20,7 @@ public static class DataProjectorCompilation
             backIndexCount,
             projectionIndexes);
         
-        var itemType = GetItemType(dataTypeProjection);
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         
         Type projectorInterfaceType = typeof(IDataProjector<,>)
             .MakeGenericType(dataTypeProjection.DataEntryType, itemType);
@@ -97,11 +94,11 @@ public static class DataProjectorCompilation
     {
         const string methodName = nameof(IDataProjector<object, object>.AreDataEqualAt);
         
-        var itemType = GetItemType(dataTypeProjection);
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(bool),
                 [dataTypeProjection.DataTableType, typeof(int), itemType, typeof(uint)]);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -202,11 +199,11 @@ public static class DataProjectorCompilation
     {
         const string methodName = nameof(IDataProjector<object, object>.ComputeHashCode);
         
-        var itemType = GetItemType(dataTypeProjection);
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -258,12 +255,6 @@ public static class DataProjectorCompilation
     }
 
     private static string GetComparerFieldName(int i) => $"_comparer{i}";
-
-    private static Type GetItemType(DataTypeProjection dataTypeProjection)
-    {
-        var dataMappingOutput = dataTypeProjection.DataProjectionMapping.OutputType;
-        return dataMappingOutput.Count == 1 ? dataMappingOutput[0].FieldType : dataMappingOutput;
-    }
 
     private static MethodInfo LookForMethod(Type interfaceType, string methodName)
     {

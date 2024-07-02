@@ -15,9 +15,6 @@ public static class UpdateHandlerCompilation
 
         public void SetBackIndex(ValueTuple[] dataTable, int index, int backIndex) => throw new NotImplementedException();
     }
-    
-    private static readonly MethodAttributes ProjectorMethodAttributes =
-        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.Final;
 
     internal static void DefineGetHashCodeAt(
         TypeBuilder typeBuilder,
@@ -29,7 +26,7 @@ public static class UpdateHandlerCompilation
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -76,7 +73,7 @@ public static class UpdateHandlerCompilation
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(int),
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -110,7 +107,7 @@ public static class UpdateHandlerCompilation
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();

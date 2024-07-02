@@ -6,9 +6,6 @@ namespace NaryCollections.Components;
 
 public static class CompositeHandlerCompilation
 {
-    private static readonly MethodAttributes ProjectorMethodAttributes =
-        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.Final;
-    
     public static ConstructorInfo GenerateConstructor(
         ModuleBuilder moduleBuilder,
         Type dataTupleType,
@@ -22,7 +19,7 @@ public static class CompositeHandlerCompilation
             backIndexCount,
             projectionIndexes);
         
-        var itemType = GetItemType(dataTypeProjection);
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         
         Type compositeHandlerInterfaceType = typeof(ICompositeHandler<,,,,>)
             .MakeGenericType(
@@ -88,12 +85,12 @@ public static class CompositeHandlerCompilation
     {
         const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Contains);
         
-        var itemType = GetItemType(dataTypeProjection);
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(SearchResult),
                 [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleTypes, typeof(uint), itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -128,7 +125,7 @@ public static class CompositeHandlerCompilation
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -228,7 +225,7 @@ public static class CompositeHandlerCompilation
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
         ILGenerator il = methodBuilder.GetILGenerator();
@@ -310,11 +307,5 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ret);
 
         typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
-    }
-
-    private static Type GetItemType(DataTypeProjection dataTypeProjection)
-    {
-        var dataMappingOutput = dataTypeProjection.DataProjectionMapping.OutputType;
-        return dataMappingOutput.Count == 1 ? dataMappingOutput[0].FieldType : dataMappingOutput;
     }
 }
