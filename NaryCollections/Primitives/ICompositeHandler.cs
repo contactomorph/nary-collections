@@ -17,13 +17,12 @@ public interface ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, in TComp
 
     void Add(
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
-        TComparerTuple comparerTuple,
         SearchResult lastSearchResult,
-        int candidateDataIndex);
+        int candidateDataIndex,
+        int newDataCount);
 
     void Remove(
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
-        TComparerTuple comparerTuple,
-        int dataIndex,
-        int dataCount);
+        SearchResult successfulSearchResult,
+        int newDataCount);
 }

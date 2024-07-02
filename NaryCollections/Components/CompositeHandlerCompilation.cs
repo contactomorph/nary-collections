@@ -116,7 +116,7 @@ public static class CompositeHandlerCompilation
                 methodName,
                 ProjectorMethodAttributes,
                 typeof(void),
-                [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleTypes, typeof(SearchResult), typeof(int)]);
+                [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
         il.Emit(OpCodes.Ret);
@@ -133,7 +133,7 @@ public static class CompositeHandlerCompilation
                 methodName,
                 ProjectorMethodAttributes,
                 typeof(void),
-                [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleTypes, typeof(int), typeof(int)]);
+                [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
         il.Emit(OpCodes.Ret);
