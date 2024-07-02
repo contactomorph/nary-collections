@@ -4,7 +4,7 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
-internal static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
+public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
     where TDataEntry : struct
     where TComparerTuple : struct, ITuple, IStructuralEquatable
     where TEquator : struct, IDataEquator<TDataEntry, TComparerTuple, T>

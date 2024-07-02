@@ -9,7 +9,7 @@ public interface ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, in TComp
     where TIndexTuple: struct, ITuple, IStructuralEquatable
     where TComparerTuple : struct, ITuple, IStructuralEquatable
 {
-    SearchResult Contains(
+    SearchResult Find(
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         TComparerTuple comparerTuple,
         uint candidateHashCode,

@@ -40,7 +40,7 @@ public static class CompositeHandlerCompilation
             [compositeHandlerInterfaceType, resizeHandlerInterfaceType, dataEquatorInterfaceType]);
         
         var hashTableField = DefineConstructor(typeBuilder);
-        DefineContains(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
+        DefineFind(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
         DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
         DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
 
@@ -81,14 +81,22 @@ public static class CompositeHandlerCompilation
         return hashTableField;
     }
 
-    private static void DefineContains(
+    private static void DefineFind(
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
-        Type compositeHandlerInterfaceType)
+        Type compositeHandlerInterfaceType,
+        FieldBuilder hashTableField)
     {
-        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Contains);
+        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find);
         
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);
+        
+        var updateHandlingType = typeof(MembershipHandling<,,,>)
+            .MakeGenericType(
+                dataTypeProjection.DataEntryType,
+                dataTypeProjection.ComparerTupleType,
+                itemType,
+                typeBuilder);
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
@@ -97,10 +105,30 @@ public static class CompositeHandlerCompilation
                 typeof(SearchResult),
                 [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleType, typeof(uint), itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
+        
+        var genericContainsForUniqueMethod = typeof(MembershipHandling<,,,>)
+            .GetMethod(nameof(MembershipHandling<ValueTuple, ValueTuple, object, DataEquatorCompilation.FakeDataEquator>.ContainsForUnique))!;
+        
+        var containsForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericContainsForUniqueMethod);
 
-        il.Emit(OpCodes.Ldc_I4_0);
-        il.Emit(OpCodes.Ldc_I4_0);
-        il.Emit(OpCodes.Call, typeof(SearchResult).GetMethod(nameof(SearchResult.CreateForItemFound))!);
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // this._hashTable
+        il.Emit(OpCodes.Ldfld, hashTableField);
+        // dataTable
+        il.Emit(OpCodes.Ldarg_1);
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // *this
+        il.Emit(OpCodes.Ldobj, typeBuilder);
+        // comparerTuple
+        il.Emit(OpCodes.Ldarg_2);
+        // candidateHashCode
+        il.Emit(OpCodes.Ldarg_3);
+        // candidateItem
+        il.Emit(OpCodes.Ldarg_S, (byte)4);
+        // ContainsForUnique(this._hashTable, dataTable, *this, comparerTuple, candidateHashCode, candidateItem)
+        il.Emit(OpCodes.Call, containsForUniqueMethod);
         
         il.Emit(OpCodes.Ret);
 

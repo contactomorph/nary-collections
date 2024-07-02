@@ -191,4 +191,66 @@ public class CompositeHandlerCompilationTests
                 dogPlaceColorProjector.ComputeHashTuple);
         }
     }
+    
+    [Test]
+    public void FindTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0],
+            0,
+            1);
+
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler =
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>)
+            del.DynamicInvoke()!;
+
+        var data = Dogs.KnownDogsWithHashCode
+            .Select(dh => (dh.Dog, "Berlin", Color.Yellow))
+            .ToList();
+
+        var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
+        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
+        var comparerTuple = (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default);
+        
+        DogPlaceColorGeneration.CreateTablesForUnique(
+            data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog,
+            dogPlaceColorProjector);
+        
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        manipulator.SetFieldValue(handler, "_hashTable", hashTable);
+        
+        foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
+        {
+            var tuple = (dog, "Montevideo", Color.Thistle);
+            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+
+            Assert.That(hashTuple.Item1, Is.EqualTo(hc));
+            
+            var successfulSearchResult = handler.Find(dataTable, comparerTuple, hc, dog);
+
+            Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
+            Assert.That(successfulSearchResult.DriftPlusOne, Is.GreaterThanOrEqualTo(1));
+        }
+        
+        foreach (var (dog, hc) in Dogs.NewDogsWithHashCode)
+        {
+            var tuple = (dog, "Montevideo", Color.Thistle);
+            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+
+            Assert.That(hashTuple.Item1, Is.EqualTo(hc));
+            
+            var unsuccessfulSearchResult = handler.Find(dataTable, comparerTuple, hc, dog);
+
+            Assert.That(unsuccessfulSearchResult.Case, Is.Not.EqualTo(SearchCase.ItemFound));
+            Assert.That(unsuccessfulSearchResult.DriftPlusOne, Is.GreaterThanOrEqualTo(1));
+        }
+    }
 }
