@@ -70,11 +70,8 @@ public class CompositeHandlerCompilationTests
         var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
         var dogProjector = new DogProjector(dogComparer);
 
-        var fields = FieldHelpers.GetInstanceFields(handler);
-        var hashTableGetter = FieldHelpers
-            .CreateGetter<ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>, HashEntry[]>(
-                fields,
-                "_hashTable");
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_hashTable");
         
         Assert.That(
             hashTableGetter(handler).Length,

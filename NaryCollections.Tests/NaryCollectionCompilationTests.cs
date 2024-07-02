@@ -13,7 +13,6 @@ namespace NaryCollections.Tests;
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
 using IndexTuple = (int, int, int, int, int);
-using NaryCollection = INaryCollection<DogPlaceColor>;
 
 public class NaryCollectionCompilationTests
 {
@@ -89,19 +88,16 @@ public class NaryCollectionCompilationTests
 
         var collection = factory();
         
-        var privateFields = FieldHelpers.GetInstanceFields(collection);
+        var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        var projector = FieldHelpers.GetFieldValue<IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple>>(
-            privateFields, 
+        manipulator.GetFieldValue(
+            collection,
             "_completeProjector",
-            collection);
+            out IDataProjector<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>, DogPlaceColorTuple> projector);
         
-        var hashTableGetter = FieldHelpers.CreateGetter<NaryCollection, HashEntry[]>(
-            privateFields,
-            "_mainHashTable");
-        var dataTableGetter = FieldHelpers.CreateGetter<NaryCollection, DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>(
-            privateFields,
-            "_dataTable");
+        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_mainHashTable");
+        var dataTableGetter = manipulator
+            .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>("_dataTable");
 
         var set = collection.AsSet();
         var referenceSet = new HashSet<DogPlaceColorTuple>();
