@@ -113,4 +113,79 @@ public class CompositeHandlerCompilationTests
             hashTableGetter(handler).Length,
             Is.EqualTo(HashEntry.IncreaseCapacity(HashEntry.TableMinimalLength)));
     }
+    
+    [Test]
+    public void RemoveTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder, 
+            typeof(DogPlaceColorTuple),
+            [0],
+            0,
+            1);
+        
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler =
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>)
+            del.DynamicInvoke()!;
+
+        var data = Dogs.KnownDogsWithHashCode
+            .Select(dh => (dh.Dog, "Berlin", Color.Yellow))
+            .ToList();
+
+        var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
+        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
+        var dogProjector = new DogProjector(dogComparer);
+        
+        DogPlaceColorGeneration.CreateTablesForUnique(
+            data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog,
+            dogPlaceColorProjector);
+        
+        int dataCount = data.Count;
+        
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        manipulator.SetFieldValue(handler, "_hashTable", hashTable);
+        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_hashTable");
+
+        foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
+        {
+            var tuple = (dog, "Montevideo", Color.Thistle);
+            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+
+            Assert.That(hashTuple.Item1, Is.EqualTo(hc));
+
+            hashTable = hashTableGetter(handler);
+            var successfulSearchResult =
+                MembershipHandling<DataEntry<DogPlaceColorTuple, HashTuple, BackIndexTuple>, Dog, DogProjector>
+                    .ContainsForUnique(
+                        hashTable,
+                        dataTable,
+                        dogProjector,
+                        hc,
+                        dog);
+
+            Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
+
+            var dataIndex = hashTable[successfulSearchResult.ReducedHashCode].ForwardIndex;
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, BackIndexTuple>.RemoveOnlyData(
+                ref dataTable,
+                dataIndex,
+                ref dataCount);
+        
+            handler.Remove(dataTable, successfulSearchResult, dataCount);
+
+            Consistency.CheckForUnique(
+                hashTableGetter(handler),
+                dataTable,
+                dataCount,
+                dogPlaceColorProjector,
+                dogPlaceColorProjector.ComputeHashTuple);
+        }
+    }
 }

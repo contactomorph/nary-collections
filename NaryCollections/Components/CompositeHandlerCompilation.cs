@@ -43,7 +43,7 @@ public static class CompositeHandlerCompilation
         var hashTableField = DefineConstructor(typeBuilder);
         DefineContains(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
         DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
-        DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType);
+        DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
 
         UpdateHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         UpdateHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
@@ -200,7 +200,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IncreaseCapacity))!);
         // newDataCount
         il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // ChangeCapacityForUnique(dataTable, *this, HashEntry.DecreaseCapacity(_hashTable.Length), newDataCount)
+        // ChangeCapacityForUnique(dataTable, *this, HashEntry.IncreaseCapacity(_hashTable.Length), newDataCount)
         il.Emit(OpCodes.Call, changeCapacityForUniqueMethod);
         // this._hashTable = ChangeCapacityForUnique(…)
         il.Emit(OpCodes.Stfld, hashTableField);
@@ -212,17 +212,100 @@ public static class CompositeHandlerCompilation
         typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
     }
 
-    private static void DefineRemove(TypeBuilder typeBuilder, DataTypeProjection dataTypeProjection, Type compositeHandlerInterfaceType)
+    private static void DefineRemove(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeProjection,
+        Type compositeHandlerInterfaceType,
+        FieldBuilder hashTableField)
     {
         const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove);
+        
+        Type[] parameterTypes = [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)];
+        
+        var updateHandlingType = typeof(UpdateHandling<,>)
+            .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
                 ProjectorMethodAttributes,
                 typeof(void),
-                [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)]);
+                parameterTypes);
         ILGenerator il = methodBuilder.GetILGenerator();
+        
+        Label resizeLabel = il.DefineLabel();
+        Label endLabel = il.DefineLabel();
+        
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // this._hashTable
+        il.Emit(OpCodes.Ldfld, hashTableField);
+        // this._hashTable.Length
+        il.Emit(OpCodes.Ldlen);
+        // newDataCount
+        il.Emit(OpCodes.Ldarg_3);
+        // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount)
+        il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IsSparseEnough))!);
+        // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount) → resizeLabel
+        il.Emit(OpCodes.Brtrue_S, resizeLabel);
+        
+        var genericRemoveForUniqueMethod = typeof(UpdateHandling<,>)
+            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.RemoveForUnique))!;
+        
+        var removeForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveForUniqueMethod);
+        
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // this._hashTable
+        il.Emit(OpCodes.Ldfld, hashTableField);
+        // dataTable
+        il.Emit(OpCodes.Ldarg_1);
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // *this
+        il.Emit(OpCodes.Ldobj, typeBuilder);
+        // successfulSearchResult
+        il.Emit(OpCodes.Ldarg_2);
+        // newDataCount
+        il.Emit(OpCodes.Ldarg_3);
+        // AddForUnique(this._hashTable, dataTable, *this, successfulSearchResult, newDataCount)
+        il.Emit(OpCodes.Call, removeForUniqueMethod);
+        // → endLabel
+        il.Emit(OpCodes.Br_S, endLabel);
+        
+        var genericChangeCapacityForUniqueMethod = typeof(UpdateHandling<,>)
+            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
+        
+        var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
+            updateHandlingType,
+            genericChangeCapacityForUniqueMethod);
+        
+        il.MarkLabel(resizeLabel);
+        
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // dataTable
+        il.Emit(OpCodes.Ldarg_1);
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // *this
+        il.Emit(OpCodes.Ldobj, typeBuilder);
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // this._hashTable
+        il.Emit(OpCodes.Ldfld, hashTableField);
+        // this._hashTable.Length
+        il.Emit(OpCodes.Ldlen);
+        // HashEntry.DecreaseCapacity(this._hashTable.Length)
+        il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.DecreaseCapacity))!);
+        // newDataCount
+        il.Emit(OpCodes.Ldarg_3);
+        // ChangeCapacityForUnique(dataTable, *this, HashEntry.DecreaseCapacity(_hashTable.Length), newDataCount)
+        il.Emit(OpCodes.Call, changeCapacityForUniqueMethod);
+        // this._hashTable = ChangeCapacityForUnique(…)
+        il.Emit(OpCodes.Stfld, hashTableField);
+        
+        il.MarkLabel(endLabel);
 
         il.Emit(OpCodes.Ret);
 
