@@ -44,9 +44,9 @@ public static class CompositeHandlerCompilation
         DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
         DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
 
-        UpdateHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
-        UpdateHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
-        UpdateHandlerCompilation.DefineSetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        ResizeHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        ResizeHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
+        ResizeHandlerCompilation.DefineSetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         DataEquatorCompilation.DefineAreDataEqualAt(typeBuilder, dataTypeProjection, dataEquatorInterfaceType);
 
         var type = typeBuilder.CreateType();
@@ -150,7 +150,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
         var genericAddForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.AddForUnique))!;
+            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.AddForUnique))!;
         
         var addForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddForUniqueMethod);
         
@@ -174,7 +174,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Br_S, endLabel);
         
         var genericChangeCapacityForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
+            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
         
         var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
             updateHandlingType,
@@ -250,7 +250,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
         var genericRemoveForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.RemoveForUnique))!;
+            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.RemoveForUnique))!;
         
         var removeForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveForUniqueMethod);
         
@@ -274,7 +274,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Br_S, endLabel);
         
         var genericChangeCapacityForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, UpdateHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
+            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
         
         var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
             updateHandlingType,

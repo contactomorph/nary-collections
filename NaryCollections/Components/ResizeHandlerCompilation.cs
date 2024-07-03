@@ -1,11 +1,9 @@
-using System.Reflection;
 using System.Reflection.Emit;
 using NaryCollections.Primitives;
-using NaryCollections.Tools;
 
 namespace NaryCollections.Components;
 
-public static class UpdateHandlerCompilation
+public static class ResizeHandlerCompilation
 {
     public struct FakeResizeHandler : IResizeHandler<ValueTuple>
     {
