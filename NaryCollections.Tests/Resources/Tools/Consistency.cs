@@ -10,7 +10,7 @@ public static class Consistency
         HashEntry[] hashTable,
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple> projector,
+        IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>> handler,
         Func<TDataTuple, THashTuple> hashTupleComputation)
         where TDataTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
@@ -21,7 +21,7 @@ public static class Consistency
             var hashTuple = hashTupleComputation(dataTable[i].DataTuple);
             if (!hashTuple.Equals(dataTable[i].HashTuple))
                 throw new InvalidDataException("Hash tuple is incorrect");
-            int backIndex = projector.GetBackIndex(dataTable, i);
+            int backIndex = handler.GetBackIndex(dataTable, i);
             if (i != hashTable[backIndex].ForwardIndex)
                 throw CreateConsistencyError("hashTable[].ForwardIndex", "dataTable[].BackIndexesTuple");
         }
@@ -31,7 +31,7 @@ public static class Consistency
             if (hashTable[i].DriftPlusOne != HashEntry.DriftForUnused)
             {
                 int forwardIndex = hashTable[i].ForwardIndex;
-                if (i != projector.GetBackIndex(dataTable, forwardIndex))
+                if (i != handler.GetBackIndex(dataTable, forwardIndex))
                     throw CreateConsistencyError("hashTable[].ForwardIndex", "dataTable[].BackIndexesTuple");
             }
         }
@@ -42,7 +42,7 @@ public static class Consistency
         CorrespondenceEntry[] correspondenceTable,
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TDataTuple> projector,
+        IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>> handler,
         Func<TDataTuple, THashTuple> hashTupleComputation)
         where TDataTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable
@@ -53,7 +53,7 @@ public static class Consistency
             var hashTuple = hashTupleComputation(dataTable[i].DataTuple);
             if (!hashTuple.Equals(dataTable[i].HashTuple))
                 throw new InvalidDataException("Hash tuple is incorrect");
-            int correspondenceIndex = projector.GetBackIndex(dataTable, i);
+            int correspondenceIndex = handler.GetBackIndex(dataTable, i);
             if (i != correspondenceTable[correspondenceIndex].DataIndex)
                 throw CreateConsistencyError("correspondenceEntries[].DataIndex", "dataTable[].BackIndexesTuple");
             switch (correspondenceTable[correspondenceIndex].Status)
