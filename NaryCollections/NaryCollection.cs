@@ -10,17 +10,17 @@ public static class NaryCollection
         throw new NotImplementedException();
     }
 
-    public static ISet<TDataTuple> AsSet<TDataTuple>(
+    public static IConflictingSet<TDataTuple> AsSet<TDataTuple>(
         this INaryCollection<Schema<TDataTuple>> collection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        return (ISet<TDataTuple>)collection;
+        return (IConflictingSet<TDataTuple>)collection;
     }
     
-    public static IReadOnlySet<TDataTuple> AsReadOnlySet<TDataTuple>(
+    public static IReadOnlyConflictingSet<TDataTuple> AsReadOnlySet<TDataTuple>(
         this IReadOnlyNaryCollection<Schema<TDataTuple>> collection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        return (IReadOnlySet<TDataTuple>)collection;
+        return (IReadOnlyConflictingSet<TDataTuple>)collection;
     }
 }

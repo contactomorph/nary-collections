@@ -6,7 +6,7 @@ using NaryCollections.Primitives;
 namespace NaryCollections.Implementation;
 
 public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TProjector, TSchema>
-    : INaryCollection<TSchema>, ISet<TDataTuple>, IReadOnlySet<TDataTuple>
+    : INaryCollection<TSchema>, IConflictingSet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
@@ -242,6 +242,20 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TP
         }
         
         return true;
+    }
+
+    #endregion
+    
+    #region Implements IConflictingSet<TDataTuple>
+
+    public bool IsConflictingWith(TDataTuple item)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool ForceAdd(TDataTuple item)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
