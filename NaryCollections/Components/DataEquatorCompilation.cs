@@ -16,7 +16,7 @@ internal static class DataEquatorCompilation
         
         Type[] parameterTypes = [
             dataTypeProjection.DataTableType,
-            dataTypeProjection.ComparerTupleTypes,
+            dataTypeProjection.ComparerTupleType,
             typeof(int),
             itemType,
             typeof(uint),
@@ -74,7 +74,7 @@ internal static class DataEquatorCompilation
         foreach (var (i, mappingField) in dataMapping)
         {
             var itemComponentField = dataMapping.OutputType[j];
-            var comparerField = dataTypeProjection.ComparerTupleTypes[i];
+            var comparerField = dataTypeProjection.ComparerTupleType[i];
             
             // comparerTuple
             il.Emit(OpCodes.Ldarg_2);

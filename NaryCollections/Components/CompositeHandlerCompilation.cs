@@ -26,12 +26,12 @@ public static class CompositeHandlerCompilation
                 dataTypeProjection.DataTupleType,
                 dataTypeProjection.HashTupleType,
                 dataTypeProjection.BackIndexTupleType,
-                dataTypeProjection.ComparerTupleTypes,
+                dataTypeProjection.ComparerTupleType,
                 itemType);
 
         Type resizeHandlerInterfaceType = typeof(IResizeHandler<>).MakeGenericType(dataTypeProjection.DataEntryType);
         Type dataEquatorInterfaceType = typeof(IDataEquator<,,>)
-            .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleTypes, itemType);
+            .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleType, itemType);
 
         var typeBuilder = moduleBuilder.DefineType(
             $"CompositeHandler_{backIndexRank}",
@@ -95,7 +95,7 @@ public static class CompositeHandlerCompilation
                 methodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(SearchResult),
-                [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleTypes, typeof(uint), itemType]);
+                [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleType, typeof(uint), itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
         il.Emit(OpCodes.Ldc_I4_0);

@@ -12,7 +12,7 @@ internal class DataTypeDecomposition
     public Type[] ComparerTypes { get; }
     
     // typeof((IEqualityComparer<TD1>, …, IEqualityComparer<TDn>))
-    public ValueTupleType ComparerTupleTypes { get; }
+    public ValueTupleType ComparerTupleType { get; }
 
     // typeof((uint, …, uint))
     public ValueTupleType HashTupleType { get; }
@@ -39,6 +39,6 @@ internal class DataTypeDecomposition
         ComparerTypes = DataTupleType
             .Select(f  => typeof(IEqualityComparer<>).MakeGenericType(f.FieldType))
             .ToArray();
-        ComparerTupleTypes = ValueTupleType.FromComponents(ComparerTypes);
+        ComparerTupleType = ValueTupleType.FromComponents(ComparerTypes);
     }
 }
