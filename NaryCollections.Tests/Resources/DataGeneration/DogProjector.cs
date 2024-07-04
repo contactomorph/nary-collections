@@ -37,5 +37,5 @@ internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
         dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
 
-    public uint ComputeHashCode(Dog item) => (uint)_comparer.GetHashCode(item);
+    public uint ComputeHashCode(ComparerTuple comparerTuple, Dog item) => (uint)_comparer.GetHashCode(item);
 }

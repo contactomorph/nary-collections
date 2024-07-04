@@ -260,14 +260,18 @@ public class DataProjectorCompilationTests
             1);
         
         var projector = CallDogCtor(constructor);
+        var comparerTuple = (DogComparer, StringComparer, ColorComparer);
 
         var dog = new Dog("Portos", "Régis");
-        var hc = projector.ComputeHashCode(dog);
+        var hc = projector.ComputeHashCode(comparerTuple, dog);
         
         Assert.That(hc, Is.EqualTo((uint)dog.GetHashCode()));
+
+        var dogComparer = new CustomDogEqualityComparer((dog, 4));
+        comparerTuple = (dogComparer, StringComparer, ColorComparer);
         
-        var projector2 = CallDogCtor(constructor, new CustomDogEqualityComparer((dog, 4)));
-        var hc2 = projector2.ComputeHashCode(dog);
+        var projector2 = CallDogCtor(constructor, dogComparer);
+        var hc2 = projector2.ComputeHashCode(comparerTuple, dog);
         
         Assert.That(hc2, Is.EqualTo((uint)4));
     }
@@ -283,8 +287,9 @@ public class DataProjectorCompilationTests
             1);
         
         var projector = CallColorPlaceCtor(constructor);
+        var comparerTuple = (DogComparer, StringComparer, ColorComparer);
 
-        var hc = projector.ComputeHashCode((Color.DarkViolet, "Tokyo"));
+        var hc = projector.ComputeHashCode(comparerTuple, (Color.DarkViolet, "Tokyo"));
 
         var hashTuple = (
             EqualityComparerHandling.ComputeStructHashCode(ColorComparer, Color.DarkViolet),
@@ -304,9 +309,10 @@ public class DataProjectorCompilationTests
             1);
         
         var projector = CallDogPlaceColorCtor(constructor);
+        var comparerTuple = (DogComparer, StringComparer, ColorComparer);
 
         var dog = new Dog("Aramis", "Louis");
-        var hc = projector.ComputeHashCode((dog, "Rio de Janeiro", Color.LawnGreen));
+        var hc = projector.ComputeHashCode(comparerTuple, (dog, "Rio de Janeiro", Color.LawnGreen));
 
         var hashTuple = (
             EqualityComparerHandling.ComputeRefHashCode(DogComparer, dog),

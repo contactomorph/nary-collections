@@ -1,6 +1,6 @@
 namespace NaryCollections.Primitives;
 
-public interface IItemHasher<in T>
+public interface IItemHasher<in TComparerTuple, in T>
 {
-    uint ComputeHashCode(T item);
+    uint ComputeHashCode(TComparerTuple comparerTuple, T item);
 }

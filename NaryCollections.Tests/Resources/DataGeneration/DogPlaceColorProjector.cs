@@ -54,7 +54,10 @@ internal readonly struct DogPlaceColorProjector : IDataProjector<DogPlaceColorEn
         dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
 
-    public uint ComputeHashCode(DogPlaceColorTuple item) => (uint)ComputeHashTuple(item).GetHashCode();
+    public uint ComputeHashCode(ComparerTuple comparerTuple, DogPlaceColorTuple item)
+    {
+        return (uint)ComputeHashTuple(item).GetHashCode();
+    }
 
     public (uint, uint, uint) ComputeHashTuple(DogPlaceColorTuple dataTuple)
     {
