@@ -7,12 +7,12 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
 
-internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
-    IDataProjector<DogPlaceColorEntry, ComparerTuple, Dog>
+internal readonly struct DogProjector :
+    IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>,
+    IResizeHandler<DogPlaceColorEntry>,
+    IItemHasher<ComparerTuple, Dog>
 {
-    public static readonly DogProjector Instance = new(EqualityComparer<Dog>.Default);
-    
-    private readonly IEqualityComparer<Dog> _comparer = comparer ?? EqualityComparer<Dog>.Default;
+    public static readonly DogProjector Instance = new();
 
     public uint GetHashCodeAt(DogPlaceColorEntry[] dataTable, int index)
     {
@@ -27,7 +27,7 @@ internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
         uint hashCode)
     {
         return dataTable[index].HashTuple.Item1 == hashCode &&
-               _comparer.Equals(dataTable[index].DataTuple.Dog, item);
+               comparerTuple.Item1.Equals(dataTable[index].DataTuple.Dog, item);
     }
 
     public int GetBackIndex(DogPlaceColorEntry[] dataTable, int index) => dataTable[index].BackIndexesTuple.Item1;
@@ -37,5 +37,5 @@ internal readonly struct DogProjector(IEqualityComparer<Dog>? comparer = null) :
         dataTable[index].BackIndexesTuple.Item1 = backIndex;
     }
 
-    public uint ComputeHashCode(ComparerTuple comparerTuple, Dog item) => (uint)_comparer.GetHashCode(item);
+    public uint ComputeHashCode(ComparerTuple comparerTuple, Dog item) => (uint)comparerTuple.Item1.GetHashCode(item);
 }

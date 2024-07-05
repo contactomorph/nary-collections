@@ -32,13 +32,13 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         var backIndexTupleType = dataTypeDecomposition.BackIndexTupleType;
         var comparerTupleType = dataTypeDecomposition.ComparerTupleType;
         
-        var completeProjectorCtor = DataProjectorCompilation.GenerateProjectorConstructor(
+        var handlerCtor = CompositeHandlerCompilation.GenerateConstructor(
             moduleBuilder,
             dataTupleType,
             allIndexes, 
             0, 
             (byte)composites.Length);
-        var completeProjectorType = completeProjectorCtor.DeclaringType!;
+        var compositeHandlerType = handlerCtor.DeclaringType!;
         
         var comparers = GetEqualityComparers(dataTypeDecomposition.DataTupleType)
             .Select(Expression.Constant)
@@ -50,7 +50,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 hashTupleType,
                 backIndexTupleType,
                 comparerTupleType,
-                completeProjectorType,
+                compositeHandlerType,
                 schemaType,
             ]);
         
@@ -62,7 +62,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DefineConstructor(
             typeBuilder,
             schemaType,
-            completeProjectorType,
+            compositeHandlerType,
             comparerTupleType);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType);
 
@@ -72,7 +72,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         Expression[] ctorParameters = [
             Expression.Constant(schema),
-            Expression.New(completeProjectorCtor, comparers),
+            Expression.New(handlerCtor, Expression.Constant(false)),
             Expression.New(comparerTupleType.GetConstructor(), comparers)
         ];
 

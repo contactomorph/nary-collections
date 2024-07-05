@@ -68,8 +68,6 @@ public class CompositeHandlerCompilationTests
         var dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, BackIndexTuple>[10];
         
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode);
-        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
-        var dogProjector = new DogProjector(dogComparer);
 
         var manipulator = FieldManipulator.ForRealTypeOf(handler);
         var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_hashTable");
@@ -81,14 +79,14 @@ public class CompositeHandlerCompilationTests
         foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
         {
             var tuple = (dog, "Montevideo", Color.Thistle);
-            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
         
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
 
             var lastSearchResult = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableGetter(handler),
                 dataTable,
-                dogProjector,
+                DogProjector.Instance,
                 (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 hc,
                 dog);
@@ -107,8 +105,8 @@ public class CompositeHandlerCompilationTests
                 hashTableGetter(handler),
                 dataTable,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
 
         Assert.That(
@@ -137,8 +135,6 @@ public class CompositeHandlerCompilationTests
             .ToList();
 
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
-        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
-        var dogProjector = new DogProjector(dogComparer);
         
         DogPlaceColorGeneration.CreateTablesForUnique(
             data,
@@ -146,7 +142,7 @@ public class CompositeHandlerCompilationTests
             out var dataTable,
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog,
-            dogPlaceColorProjector);
+            DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         
         int dataCount = data.Count;
         
@@ -157,7 +153,7 @@ public class CompositeHandlerCompilationTests
         foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
         {
             var tuple = (dog, "Montevideo", Color.Thistle);
-            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
 
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
 
@@ -167,7 +163,7 @@ public class CompositeHandlerCompilationTests
                     .ContainsForUnique(
                         hashTable,
                         dataTable,
-                        dogProjector,
+                        DogProjector.Instance,
                         (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                         hc,
                         dog);
@@ -185,8 +181,8 @@ public class CompositeHandlerCompilationTests
                 hashTableGetter(handler),
                 dataTable,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
     }
     
@@ -211,7 +207,6 @@ public class CompositeHandlerCompilationTests
             .ToList();
 
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
-        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
         var comparerTuple = (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default);
         
         DogPlaceColorGeneration.CreateTablesForUnique(
@@ -220,7 +215,7 @@ public class CompositeHandlerCompilationTests
             out var dataTable,
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog,
-            dogPlaceColorProjector);
+            DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         
         var manipulator = FieldManipulator.ForRealTypeOf(handler);
         manipulator.SetFieldValue(handler, "_hashTable", hashTable);
@@ -228,7 +223,7 @@ public class CompositeHandlerCompilationTests
         foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
         {
             var tuple = (dog, "Montevideo", Color.Thistle);
-            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
 
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
             
@@ -241,7 +236,7 @@ public class CompositeHandlerCompilationTests
         foreach (var (dog, hc) in Dogs.NewDogsWithHashCode)
         {
             var tuple = (dog, "Montevideo", Color.Thistle);
-            var hashTuple = dogPlaceColorProjector.ComputeHashTuple(tuple);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
 
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
             

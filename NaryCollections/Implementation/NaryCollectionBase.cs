@@ -5,19 +5,18 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Implementation;
 
-public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TProjector, TSchema>
+public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : INaryCollection<TSchema>, IConflictingSet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
     where TComparerTuple : struct, ITuple, IStructuralEquatable
-    where TProjector : struct, IDataProjector<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple>
+    where TCompositeHandler : struct, ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TDataTuple>
     where TSchema : Schema<TDataTuple>, new()
 {
     protected readonly TComparerTuple ComparerTuple;
-    private readonly TProjector _completeProjector;
+    private TCompositeHandler _compositeHandler;
     private DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
-    private HashEntry[] _mainHashTable;
     private int _count;
     private uint _version;
 
@@ -31,14 +30,13 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NaryCollectionBase(
         TSchema schema,
-        TProjector completeProjector,
+        TCompositeHandler compositeHandler,
         TComparerTuple comparerTuple)
     {
         Schema = schema;
-        _completeProjector = completeProjector;
+        _compositeHandler = compositeHandler;
         ComparerTuple = comparerTuple;
         _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
-        _mainHashTable = new HashEntry[HashEntry.TableMinimalLength];
         _count = 0;
         _version = 0;
     }
@@ -121,15 +119,10 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     public bool Contains(TDataTuple dataTuple)
     {
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
-        
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
-            _mainHashTable,
-            _dataTable,
-            _completeProjector,
-            ComparerTuple,
-            hc,
-            dataTuple);
+        
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
 
         return result.Case == SearchCase.ItemFound;
     }
@@ -155,13 +148,9 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
-            _mainHashTable,
-            _dataTable,
-            _completeProjector,
-            ComparerTuple,
-            hc,
-            dataTuple);
+        
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
         
         if (result.Case == SearchCase.ItemFound)
             return false;
@@ -174,23 +163,8 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             hashTuple,
             ref _count);
 
-        if (HashEntry.IsFullEnough(_mainHashTable.Length, _count))
-        {
-            _mainHashTable = UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
-                _dataTable,
-                _completeProjector,
-                newHashTableCapacity: HashEntry.IncreaseCapacity(_mainHashTable.Length),
-                newDataCount: _count);
-        }
-        else
-        {
-            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.AddForUnique(
-                _mainHashTable,
-                _dataTable,
-                _completeProjector,
-                result,
-                candidateDataIndex);
-        }
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        handlerReference.Add(_dataTable, result, candidateDataIndex, newDataCount: _count);
         
         return true;
     }
@@ -199,10 +173,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
 
     public void Clear()
     {
-        ++_version;
-        _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
-        _mainHashTable = new HashEntry[DataEntry.TableMinimalLength];
-        _count = 0;
+        throw new NotImplementedException();
+        // ++_version;
+        // _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
+        // _compositeHandler.Clear();
+        // _count = 0;
     }
 
     public bool Remove(TDataTuple dataTuple)
@@ -210,13 +185,9 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         THashTuple hashTuple = ComputeHashTuple(dataTuple);
         
         var hc = (uint)hashTuple.GetHashCode();
-        var result = MembershipHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple, TDataTuple, TProjector>.ContainsForUnique(
-            _mainHashTable,
-            _dataTable,
-            _completeProjector,
-            ComparerTuple,
-            hc,
-            dataTuple);
+        
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
         
         if (result.Case != SearchCase.ItemFound)
             return false;
@@ -227,24 +198,9 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             ref _dataTable,
             result.ForwardIndex,
             ref _count);
-
-        if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))
-        {
-            _mainHashTable = UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.ChangeCapacityForUnique(
-                _dataTable,
-                _completeProjector,
-                newHashTableCapacity: HashEntry.DecreaseCapacity(_mainHashTable.Length),
-                newDataCount: _count);
-        }
-        else
-        {
-            UpdateHandling<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TProjector>.RemoveForUnique(
-                _mainHashTable,
-                _dataTable,
-                _completeProjector,
-                result,
-                newDataCount: _count);
-        }
+        
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        handlerReference.Remove(_dataTable, result, newDataCount: _count);
         
         return true;
     }

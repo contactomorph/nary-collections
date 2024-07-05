@@ -91,12 +91,14 @@ public class NaryCollectionCompilationTests
         
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        manipulator.GetFieldValue(
-            collection,
-            "_completeProjector",
-            out IDataProjector<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple> projector);
+        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry>>(
+            "_compositeHandler");
+
+        var resizeHandler = resizeHandlerGetter(collection);
         
-        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_mainHashTable");
+        var handlerManipulator = FieldManipulator.ForRealTypeOf(resizeHandler);
+        
+        var hashTableGetter = handlerManipulator.CreateGetter<HashEntry[]>("_hashTable");
         var dataTableGetter = manipulator
             .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>("_dataTable");
 
@@ -107,7 +109,7 @@ public class NaryCollectionCompilationTests
         
         for(int i = 0; i < 10000; ++i)
         {
-            if (referenceSet.Count < random.Next(100))
+            if (referenceSet.Count < random.Next(500))
             {
                 Dog dog = Dogs.AllDogs[random.Next(Dogs.AllDogs.Count)];
                 Color color = someColors[random.Next(someColors.Length)];
@@ -122,15 +124,17 @@ public class NaryCollectionCompilationTests
                 set.Remove(tuple);
             }
             
-            var hashTable = hashTableGetter(collection);
+            resizeHandler = resizeHandlerGetter(collection);
+            
+            var hashTable = hashTableGetter(resizeHandler);
             var dataTable = dataTableGetter(collection);
         
             Consistency.CheckForUnique(
                 hashTable,
                 dataTable,
                 set.Count,
-                projector,
-                DogPlaceColorProjector.Instance.ComputeHashTuple);
+                resizeHandler,
+                DogPlaceColorProjector.GetHashTupleComputer());
         }
     }
 }

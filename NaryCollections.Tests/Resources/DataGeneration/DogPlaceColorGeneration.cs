@@ -14,7 +14,7 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         DogPlaceColorProjector? maybeProjector = null)
     {
-        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
+        var handler = maybeProjector ?? DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
         
@@ -23,7 +23,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = projector.ComputeHashTuple(tuple);;
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer()(tuple);
             
             dataTable[i] = new()
             {
@@ -45,9 +45,9 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
-        DogPlaceColorProjector? maybeProjector = null)
+        Func<DogPlaceColorTuple, (uint, uint, uint)>? hashTupleComputer = null)
     {
-        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
+        hashTupleComputer ??= DogPlaceColorProjector.GetHashTupleComputer();
         int size = data.Count * 3 / 2;
         
         hashTable = new HashEntry[size];
@@ -59,7 +59,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = projector.ComputeHashTuple(tuple);
+            var hashTuple = hashTupleComputer(tuple);
             
             dataTable[i] = new()
             {
@@ -137,9 +137,9 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
-        DogPlaceColorProjector? maybeProjector = null)
+        Func<DogPlaceColorTuple, (uint, uint, uint)>? hashTupleComputer = null)
     {
-        var projector = maybeProjector ?? DogPlaceColorProjector.Instance;
+        hashTupleComputer ??= DogPlaceColorProjector.GetHashTupleComputer();
         int size = data.Count  * 2 / 2;
         
         hashTable = new HashEntry[size];
@@ -151,7 +151,7 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
-            var hashTuple = projector.ComputeHashTuple(tuple);
+            var hashTuple = hashTupleComputer(tuple);
             
             correspondenceTable[i] = new()
             {

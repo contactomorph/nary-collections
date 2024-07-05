@@ -25,14 +25,14 @@ public class UpdateHandlingTests
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
-        var projector = DogProjector.Instance;
+        var handler = DogProjector.Instance;
 
         foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
-                projector,
+                handler,
                 (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
@@ -45,7 +45,7 @@ public class UpdateHandlingTests
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
-                projector,
+                handler,
                 (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
@@ -58,7 +58,7 @@ public class UpdateHandlingTests
             dataTable,
             DogPlaceColorTuples.DataWithUniqueDogs.Count,
             DogPlaceColorProjector.Instance,
-            DogPlaceColorProjector.Instance.ComputeHashTuple);
+            DogPlaceColorProjector.GetHashTupleComputer());
     }
     
     [Test]
@@ -71,16 +71,16 @@ public class UpdateHandlingTests
             hashTuple => (uint)hashTuple.GetHashCode(),
             dataTuple => dataTuple);
         
-        var projector = DogPlaceColorProjector.Instance;
+        var handler = DogPlaceColorProjector.Instance;
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple, DogPlaceColorProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
-                projector,
+                handler,
                 (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
-                (uint)DogPlaceColorProjector.Instance.ComputeHashTuple(tuple).GetHashCode(),
+                (uint)DogPlaceColorProjector.GetHashTupleComputer()(tuple).GetHashCode(),
                 tuple);
         
             Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
@@ -91,7 +91,7 @@ public class UpdateHandlingTests
             dataTable,
             DogPlaceColorTuples.Data.Count,
             DogPlaceColorProjector.Instance,
-            DogPlaceColorProjector.Instance.ComputeHashTuple);
+            DogPlaceColorProjector.GetHashTupleComputer());
     }
 
     [Test]
@@ -105,7 +105,7 @@ public class UpdateHandlingTests
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog);
         
-        var projector = DogProjector.Instance;
+        var handler = DogProjector.Instance;
 
         foreach (var dog in Dogs.KnownDogs)
         {
@@ -113,7 +113,7 @@ public class UpdateHandlingTests
                 hashTable,
                 correspondenceTable,
                 dataTable,
-                projector,
+                handler,
                 (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
@@ -126,7 +126,7 @@ public class UpdateHandlingTests
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTable,
                 dataTable,
-                projector,
+                handler,
                 (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 (uint)dog.GetHashCode(),
                 dog);
@@ -140,7 +140,7 @@ public class UpdateHandlingTests
             dataTable,
             Dogs.KnownDogs.Count,
             DogPlaceColorProjector.Instance,
-            DogPlaceColorProjector.Instance.ComputeHashTuple);
+            DogPlaceColorProjector.GetHashTupleComputer());
     }
 
     [Test]
@@ -151,8 +151,6 @@ public class UpdateHandlingTests
             .ToList();
         
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
-        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
-        var dogProjector = new DogProjector(dogComparer);
         
         DogPlaceColorGeneration.CreateTablesForUnique(
             data,
@@ -160,7 +158,7 @@ public class UpdateHandlingTests
             out var dataTable,
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog,
-            dogPlaceColorProjector);
+            DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         
         Assert.That(hashTable, Is.EqualTo(DogPlaceColorTuples.ExpectedHashTableSource));
 
@@ -175,13 +173,13 @@ public class UpdateHandlingTests
             var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
-                dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
 
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
@@ -191,7 +189,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 result,
                 candidateDataIndex);
 
@@ -202,8 +200,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -216,13 +214,13 @@ public class UpdateHandlingTests
             var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
-                dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
             
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
@@ -232,7 +230,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 result,
                 candidateDataIndex);
 
@@ -243,8 +241,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -257,13 +255,13 @@ public class UpdateHandlingTests
             var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
-                dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
@@ -273,7 +271,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 result,
                 candidateDataIndex);
         
@@ -285,8 +283,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -299,13 +297,13 @@ public class UpdateHandlingTests
             var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
-                dogPlaceColorProjector.ComputeHashTuple((dog, "Montevideo", Color.Thistle)),
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
             var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
                 dogHc,
                 dog);
@@ -315,7 +313,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 result,
                 candidateDataIndex);
         
@@ -329,8 +327,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
     }
     
@@ -342,16 +340,14 @@ public class UpdateHandlingTests
             .ToList();
 
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
-        var dogPlaceColorProjector = new DogPlaceColorProjector(dogComparer);
-        var dogProjector = new DogProjector(dogComparer);
-
+        
         DogPlaceColorGeneration.CreateTablesForUnique(
             data,
             out var hashTable,
             out var dataTable,
             hashTuple => hashTuple.Item1,
             dataTuple => dataTuple.Dog,
-            dogPlaceColorProjector);
+            DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
 
         Assert.That(hashTable, Is.EqualTo(DogPlaceColorTuples.ExpectedHashTableSource));
 
@@ -374,7 +370,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 successfulResult, 
                 dataCount);
             
@@ -386,8 +382,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -408,7 +404,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 successfulResult,
                 newDataCount: dataCount);
             
@@ -419,8 +415,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -441,7 +437,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 successfulResult,
                 newDataCount: dataCount);
             
@@ -457,8 +453,8 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
         {
             int dataCount = data.Count;
@@ -479,7 +475,7 @@ public class UpdateHandlingTests
             UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
                 hashTableCopy,
                 dataTableCopy,
-                dogProjector,
+                DogProjector.Instance,
                 successfulResult,
                 newDataCount: dataCount);
             
@@ -493,29 +489,26 @@ public class UpdateHandlingTests
                 hashTableCopy,
                 dataTableCopy,
                 dataCount,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
     }
 
     [Test]
     public void CapacityChangeForUniqueTest()
     {
-        var dogPlaceColorProjector = DogPlaceColorProjector.Instance;
-
         DogPlaceColorGeneration.CreateTablesForUnique(
             DogPlaceColorTuples.Data,
             out var hashTable,
             out var dataTable,
             hashTuple => (uint)hashTuple.GetHashCode(),
-            dataTuple => dataTuple,
-            dogPlaceColorProjector);
+            dataTuple => dataTuple);
 
         for (int i = 0; i < 5; ++i)
         {
             hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 dataTable,
-                dogPlaceColorProjector,
+                DogPlaceColorProjector.Instance,
                 HashEntry.IncreaseCapacity(hashTable.Length),
                 DogPlaceColorTuples.Data.Count);
         
@@ -523,15 +516,15 @@ public class UpdateHandlingTests
                 hashTable,
                 dataTable,
                 DogPlaceColorTuples.Data.Count,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer());
         }
 
         for (int i = 0; i < 5; ++i)
         {
             hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
                 dataTable,
-                dogPlaceColorProjector,
+                DogPlaceColorProjector.Instance,
                 HashEntry.DecreaseCapacity(hashTable.Length),
                 DogPlaceColorTuples.Data.Count);
         
@@ -539,8 +532,8 @@ public class UpdateHandlingTests
                 hashTable,
                 dataTable,
                 DogPlaceColorTuples.Data.Count,
-                dogPlaceColorProjector,
-                dogPlaceColorProjector.ComputeHashTuple);
+                DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer());
         }
     }
 
