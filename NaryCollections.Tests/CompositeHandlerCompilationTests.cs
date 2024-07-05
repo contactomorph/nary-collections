@@ -174,11 +174,9 @@ public class CompositeHandlerCompilationTests
 
             Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
 
-            var dataIndex = hashTable[successfulSearchResult.ReducedHashCode].ForwardIndex;
-            
             DataHandling<DogPlaceColorTuple, HashTuple, BackIndexTuple>.RemoveOnlyData(
                 ref dataTable,
-                dataIndex,
+                successfulSearchResult.ForwardIndex,
                 ref dataCount);
         
             handler.Remove(dataTable, successfulSearchResult, dataCount);

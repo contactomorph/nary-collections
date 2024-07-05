@@ -363,7 +363,8 @@ public class UpdateHandlingTests
             int dataIndexToRemove = 2;
             var successfulResult = SearchResult.CreateForItemFound(
                 (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0);
+                0,
+                dataIndexToRemove);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
@@ -396,7 +397,8 @@ public class UpdateHandlingTests
             int dataIndexToRemove = 8;
             var successfulResult = SearchResult.CreateForItemFound(
                 (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0);
+                0,
+                dataIndexToRemove);
             
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
@@ -428,7 +430,8 @@ public class UpdateHandlingTests
             int dataIndexToRemove = 3;
             var successfulResult = SearchResult.CreateForItemFound(
                 (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0);
+                0,
+                dataIndexToRemove);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,
@@ -465,7 +468,8 @@ public class UpdateHandlingTests
             int dataIndexToRemove = 5;
             var successfulResult = SearchResult.CreateForItemFound(
                 (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0);
+                0,
+                dataIndexToRemove);
 
             DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
                 ref dataTableCopy,

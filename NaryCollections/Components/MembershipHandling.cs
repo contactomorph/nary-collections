@@ -31,7 +31,7 @@ public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
             // we have a good candidate for data
             int occupiedDataIndex = hashTable[reducedHashCode].ForwardIndex;
             if (equator.AreDataEqualAt(dataTable, comparerTuple, occupiedDataIndex, candidateItem, candidateHashCode))
-                return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne);
+                return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne, occupiedDataIndex);
 
             HashCodeReduction.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
             driftPlusOne++;
@@ -66,7 +66,7 @@ public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
                 // there are possible multiple lines in the correspondence table
                 int occupiedDataIndex = correspondenceTable[occupiedCorrespondenceIndex].DataIndex;
                 if (equator.AreDataEqualAt(dataTable, comparerTuple, occupiedDataIndex, candidateItem, candidateHashCode))
-                    return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne);
+                    return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne, occupiedCorrespondenceIndex);
 
                 occupiedCorrespondenceIndex = correspondenceTable[occupiedCorrespondenceIndex].Next;
             } while (occupiedCorrespondenceIndex != CorrespondenceEntry.NoNextCorrespondence);

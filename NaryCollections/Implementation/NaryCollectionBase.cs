@@ -222,12 +222,10 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             return false;
 
         ++_version;
-
-        int dataIndex = _mainHashTable[result.ReducedHashCode].ForwardIndex;
         
         DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
             ref _dataTable,
-            dataIndex,
+            result.ForwardIndex,
             ref _count);
 
         if (HashEntry.IsSparseEnough(_mainHashTable.Length, _count))

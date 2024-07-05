@@ -72,7 +72,7 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         // this last item has now been moved in dataTable from last position to dataIndex.
         // We must look for this back index of this item, then find the corresponding entry in hashTable
         // and finally update the HashEntry.ForwardIndex
-        var dataIndex = hashTable[reducedHashCode].ForwardIndex;
+        var dataIndex = successfulSearchResult.ForwardIndex;
         if (dataIndex != newDataCount)
         {
             var backIndex = handler.GetBackIndex(dataTable, dataIndex);
