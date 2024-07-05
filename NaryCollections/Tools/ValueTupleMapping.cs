@@ -5,7 +5,9 @@ using System.Text;
 
 namespace NaryCollections.Tools;
 
-public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo Field)>, IEquatable<ValueTupleMapping>
+using Correspondence = (Type Type, byte OutputIndex, FieldInfo OutputField, byte InputIndex, FieldInfo InputField);
+
+public readonly struct ValueTupleMapping : IReadOnlyList<Correspondence>, IEquatable<ValueTupleMapping>
 {
     private static readonly LambdaExpression EmptyLambdaExpression;
 
@@ -19,28 +21,28 @@ public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo 
     public static readonly ValueTupleMapping EmptyTupleToEmptyTuple = default;
 
     private readonly LambdaExpression? _expression;
-    private readonly (byte Index, FieldInfo Field)[]? _indexedFields;
+    private readonly Correspondence[]? _correspondences;
     
     public ValueTupleType InputType { get; }
     public ValueTupleType OutputType { get; }
-    public int Count => _indexedFields?.Length ?? 0;
+    public int Count => _correspondences?.Length ?? 0;
 
     private ValueTupleMapping(
         ValueTupleType inputType,
         ValueTupleType outputType,
         LambdaExpression expression,
-        (byte, FieldInfo)[]? indexedFields)
+        Correspondence[]? correspondences)
     {
         InputType = inputType;
         OutputType = outputType;
         _expression = expression;
-        _indexedFields = indexedFields;
+        _correspondences = correspondences;
     }
 
-    public static ValueTupleMapping From(ValueTupleType inputType, params byte[] outputPositions)
+    public static ValueTupleMapping From(ValueTupleType inputType, params byte[] inputPositions)
     {
-        if (outputPositions == null) throw new ArgumentNullException(nameof(outputPositions));
-        if (outputPositions.Length == 0)
+        if (inputPositions == null) throw new ArgumentNullException(nameof(inputPositions));
+        if (inputPositions.Length == 0)
         {
             if (inputType == ValueTupleType.Empty)
                 return default;
@@ -51,23 +53,38 @@ public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo 
         }
         else
         {
-            List<(byte Index, FieldInfo Field)> indexedFields = new();
-            foreach (var position in outputPositions)
+            List<FieldInfo> inputComponentFields = new();
+            foreach (var position in inputPositions)
             {
                 if (inputType.Count <= position)
-                    throw new ArgumentOutOfRangeException(nameof(outputPositions));
-                indexedFields.Add((position, inputType[position]));
+                    throw new ArgumentOutOfRangeException(nameof(inputPositions));
+                inputComponentFields.Add(inputType[position]);
             }
-
-            var outputTypes = indexedFields.Select(f => f.Field.FieldType).ToArray();
+            var outputTypes = inputComponentFields.Select(f => f.FieldType).ToArray();
             var outputType = ValueTupleType.FromComponents(outputTypes);
 
+            List<Correspondence> correspondences = new();
+            byte outputPosition = 0;
+            foreach (var position in inputPositions)
+            {
+                Correspondence correspondence = (
+                    Type: outputTypes[outputPosition],
+                    OutputIndex: outputPosition,
+                    OutputField: outputType[outputPosition],
+                    InputIndex: position,
+                    InputField: inputType[position]);
+                correspondences.Add(correspondence);
+                ++outputPosition;
+            }
+
             var parameter = Expression.Parameter(inputType, "tuple");
-            var fieldAccesses = indexedFields.Select(f => Expression.MakeMemberAccess(parameter, f.Field)).ToArray();
+            var fieldAccesses = correspondences
+                .Select(f => Expression.MakeMemberAccess(parameter, f.InputField))
+                .ToArray();
             var ctorCall = Expression.New(outputType.GetConstructor(), fieldAccesses);
             var expression = Expression.Lambda(ctorCall, parameter);
             
-            return new(inputType, outputType, expression, indexedFields.ToArray());   
+            return new(inputType, outputType, expression, correspondences.ToArray());   
         }
     }
 
@@ -84,27 +101,27 @@ public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo 
 
     public bool Equals(ValueTupleMapping other)
     {
-        if (_indexedFields is null) return other._indexedFields is null;
-        if (other._indexedFields is null) return false;
-        return _indexedFields.Length == other._indexedFields.Length
+        if (_correspondences is null) return other._correspondences is null;
+        if (other._correspondences is null) return false;
+        return _correspondences.Length == other._correspondences.Length
                && InputType == other.InputType
-               && _indexedFields.SequenceEqual(other._indexedFields);
+               && _correspondences.SequenceEqual(other._correspondences);
     }
 
-    public IEnumerator<(byte Index, FieldInfo Field)> GetEnumerator()
+    public IEnumerator<Correspondence> GetEnumerator()
     {
-        return ((IEnumerable<(byte, FieldInfo)>?)_indexedFields ?? []).GetEnumerator();
+        return ((IEnumerable<Correspondence>?)_correspondences ?? []).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     
-    public (byte Index, FieldInfo Field) this[int index]
+    public Correspondence this[int index]
     {
         get
         {
-            if (_indexedFields is null || _indexedFields.Length <= index)
+            if (_correspondences is null || _correspondences.Length <= index)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            return _indexedFields[index];
+            return _correspondences[index];
         }
     }
 
@@ -113,13 +130,13 @@ public readonly struct ValueTupleMapping : IReadOnlyList<(byte Index, FieldInfo 
     public override int GetHashCode()
     {
         int hc = InputType.GetHashCode();
-        return _indexedFields is null ? hc : _indexedFields.Aggregate(hc, HashCode.Combine);
+        return _correspondences is null ? hc : _correspondences.Aggregate(hc, HashCode.Combine);
     }
 
     public override string ToString()
     {
         if (InputType == ValueTupleType.Empty) return "(): [] ==> (): []";
-        var body = _indexedFields?.Select(f => $"t{f.Index}") ?? [];
+        var body = _correspondences?.Select(f => $"t{f.InputIndex}") ?? [];
         return new StringBuilder("t: ")
             .Append(InputType)
             .Append(" => (")

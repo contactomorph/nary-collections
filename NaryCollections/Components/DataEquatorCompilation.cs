@@ -62,7 +62,7 @@ internal static class DataEquatorCompilation
             // &dataTable[index].HashTuple
             il.Emit(OpCodes.Ldflda, hashTupleField);
             // dataTable[index].HashTuple.Item⟨i⟩
-            il.Emit(OpCodes.Ldfld, indexedField.Field);
+            il.Emit(OpCodes.Ldfld, indexedField.InputField);
         }
 
         if (1 < hashMapping.Count)
@@ -83,10 +83,8 @@ internal static class DataEquatorCompilation
         
         var dataMapping = dataTypeProjection.DataProjectionMapping;
 
-        int j = 0;
-        foreach (var (i, mappingField) in dataMapping)
+        foreach (var (type, _, outputField, i, inputField) in dataMapping)
         {
-            var itemComponentField = dataMapping.OutputType[j];
             var comparerField = dataTypeProjection.ComparerTupleType[i];
             
             // comparerTuple
@@ -102,20 +100,18 @@ internal static class DataEquatorCompilation
             // &dataTable[index].DataTuple
             il.Emit(OpCodes.Ldflda, dataTupleField);
             // dataTable[index].DataTuple.Item⟨i⟩
-            il.Emit(OpCodes.Ldfld, mappingField);
+            il.Emit(OpCodes.Ldfld, inputField);
             // item
             il.Emit(OpCodes.Ldarg_S, (byte)4);
             if (1 < dataMapping.Count)
             {
                 // item.Item⟨j⟩
-                il.Emit(OpCodes.Ldfld, itemComponentField);
+                il.Emit(OpCodes.Ldfld, outputField);
             }
             // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, dataTable[index].DataTuple.Item⟨i⟩, ⟨itemComponent⟩)
-            il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(itemComponentField.FieldType));
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(type));
             // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, ⟨dataComponent⟩, ⟨itemComponent⟩) → falseLabel
             il.Emit(OpCodes.Brfalse_S, falseLabel);
-        
-            ++j;
         }
         // true
         il.Emit(OpCodes.Ldc_I4_1);

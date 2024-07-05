@@ -27,7 +27,7 @@ internal static class ItemHasherCompilation
         {
             var getHashCode = EqualityComparerHandling.GetItemHashCodeMethod(itemType);
 
-            byte b = dataMapping[0].Index;
+            byte b = dataMapping[0].InputIndex;
             var comparerField = dataTypeProjection.ComparerTupleType[b];
             
             // comparerTuple
@@ -41,10 +41,8 @@ internal static class ItemHasherCompilation
         }
         else
         {
-            int j = 0;
-            foreach (var (b, _) in dataMapping)
+            foreach (var (type, _, outputField, b, _) in dataMapping)
             {
-                var itemField = dataMapping.OutputType[j];
                 var comparerField = dataTypeProjection.ComparerTupleType[b];
             
                 // comparerTuple
@@ -54,11 +52,9 @@ internal static class ItemHasherCompilation
                 // item
                 il.Emit(OpCodes.Ldarg_2);
                 // item.Item⟨j⟩
-                il.Emit(OpCodes.Ldfld, itemField);
+                il.Emit(OpCodes.Ldfld, outputField);
                 // EqualityComparerHandling.Compute⟨Struct|Ref⟩HashCode(comparerTuple.Item⟨b⟩, item.Item⟨j⟩)
-                il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(itemField.FieldType));
-
-                ++j;
+                il.Emit(OpCodes.Call, EqualityComparerHandling.GetItemHashCodeMethod(type));
             }
             
             var itemHashTupleType = ValueTupleType.FromRepeatedComponent<uint>(dataMapping.Count);

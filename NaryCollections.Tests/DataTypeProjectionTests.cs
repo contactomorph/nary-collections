@@ -7,6 +7,7 @@ using NaryCollections.Tools;
 namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
+using ColorDogTuple = (Color Color, Dog Dog);
 
 public class DataTypeProjectionTests
 {
@@ -38,15 +39,15 @@ public class DataTypeProjectionTests
             p1.DataProjectionMapping,
             Is.EquivalentTo(new[]
             {
-                (2, typeof(DogPlaceColorTuple).GetField("Item3")),
-                (0, typeof(DogPlaceColorTuple).GetField("Item1")),
+                (typeof(Color), 0, typeof(ColorDogTuple).GetField("Item1"), 2, typeof(DogPlaceColorTuple).GetField("Item3")),
+                (typeof(Dog), 1, typeof(ColorDogTuple).GetField("Item2"), 0, typeof(DogPlaceColorTuple).GetField("Item1")),
             }));
         Assert.That(
             p1.HashProjectionMapping,
             Is.EquivalentTo(new[]
             {
-                (2, typeof((uint, uint, uint)).GetField("Item3")),
-                (0, typeof((uint, uint, uint)).GetField("Item1")),
+                (typeof(uint), 0, typeof((uint, uint)).GetField("Item1"), 2, typeof((uint, uint, uint)).GetField("Item3")),
+                (typeof(uint), 1, typeof((uint, uint)).GetField("Item2"), 0, typeof((uint, uint, uint)).GetField("Item1")),
             }));
         Assert.That(p1.BackIndexProjectionField, Is.EqualTo(typeof((int, int, int, int)).GetField("Item4")));
     }

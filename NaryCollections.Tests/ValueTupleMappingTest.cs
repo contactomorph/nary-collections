@@ -45,9 +45,15 @@ public class ValueTupleMappingTest
         var mapping = ValueTupleMapping.From(inputType, [2, 2, 1, 0]);
 
         var expectedValueType = ValueTupleType.FromComponents(typeof(Uri), typeof(Uri), typeof(Guid), typeof(uint));
-        Assert.That(
-            mapping.Select(f => f.Field.ToString()),
-            Is.EqualTo(new [] { "System.Uri Item3", "System.Uri Item3", "System.Guid Item2", "UInt32 Item1" }));
+        Assert.That(mapping.Select(f =>
+                (f.Type, f.OutputIndex, f.OutputField.ToString(), f.InputIndex, f.InputField.ToString())),
+            Is.EqualTo(new []
+            {
+                (typeof(Uri), 0, "System.Uri Item1", 2, "System.Uri Item3"),
+                (typeof(Uri), 1, "System.Uri Item2", 2, "System.Uri Item3"),
+                (typeof(Guid), 2, "System.Guid Item3", 1, "System.Guid Item2"),
+                (typeof(uint), 3, "UInt32 Item4", 0, "UInt32 Item1"),
+            }));
         Assert.That(mapping.InputType, Is.EqualTo(inputType));
         Assert.That(mapping.OutputType, Is.EqualTo(expectedValueType));
         

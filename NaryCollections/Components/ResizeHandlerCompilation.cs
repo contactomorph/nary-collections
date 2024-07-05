@@ -45,7 +45,7 @@ public static class ResizeHandlerCompilation
             // &dataTable[index].HashTuple
             il.Emit(OpCodes.Ldflda, hashTupleField);
             // dataTable[index].HashTuple.Item⟨i⟩
-            il.Emit(OpCodes.Ldfld, indexedField.Field);
+            il.Emit(OpCodes.Ldfld, indexedField.InputField);
         }
 
         if (1 < hashMapping.Count)
