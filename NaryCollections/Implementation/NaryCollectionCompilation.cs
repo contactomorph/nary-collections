@@ -83,6 +83,9 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, handlerFieldBuilders);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType);
+        DefineFindInOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType);
+        DefineAddToOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType);
+        DefineRemoveFromOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType);
 
         var type = typeBuilder.CreateType();
         
@@ -213,7 +216,83 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         il.Emit(OpCodes.Ret);
 
-        var method = baseCollectionType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public) ??
+        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
+                     throw new InvalidProgramException();
+        
+        typeBuilder.DefineMethodOverride(methodBuilder, method);
+    }
+    
+    private static void DefineFindInOtherComposites(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeDecomposition,
+        Type baseCollectionType)
+    {
+        const string methodName = "FindInOtherComposites";
+
+        Type[] paramTypes = [
+            dataTypeDecomposition.DataTupleType,
+            dataTypeDecomposition.HashTupleType,
+            typeof(SearchResult[]).MakeByRefType()
+        ];
+        
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                methodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(bool),
+                paramTypes);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        il.Emit(OpCodes.Ldc_I4_0);
+        il.Emit(OpCodes.Ret);
+
+        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
+                     throw new InvalidProgramException();
+        
+        typeBuilder.DefineMethodOverride(methodBuilder, method);
+    }
+    
+    private static void DefineAddToOtherComposites(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeDecomposition,
+        Type baseCollectionType)
+    {
+        const string methodName = "AddToOtherComposites";
+        
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                methodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(void),
+                [typeof(SearchResult[]), typeof(int), typeof(int)]);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        il.Emit(OpCodes.Ret);
+
+        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
+                     throw new InvalidProgramException();
+        
+        typeBuilder.DefineMethodOverride(methodBuilder, method);
+    }
+    
+    private static void DefineRemoveFromOtherComposites(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeDecomposition,
+        Type baseCollectionType)
+    {
+        const string methodName = "RemoveFromOtherComposites";
+        
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                methodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(void),
+                [typeof(SearchResult[]), typeof(int)]);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        il.Emit(OpCodes.Ret);
+
+        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
                      throw new InvalidProgramException();
         
         typeBuilder.DefineMethodOverride(methodBuilder, method);

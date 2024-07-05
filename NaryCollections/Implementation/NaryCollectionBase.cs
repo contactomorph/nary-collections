@@ -154,6 +154,10 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         if (result.Case == SearchCase.ItemFound)
             return false;
+        
+        var found = FindInOtherComposites(dataTuple, hashTuple, out var otherResults);
+        if (found)
+            return false;
 
         ++_version;
         
@@ -165,10 +169,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
 
         ref TCompositeHandler handlerReference = ref _compositeHandler;
         handlerReference.Add(_dataTable, result, candidateDataIndex, newDataCount: _count);
+        AddToOtherComposites(otherResults, candidateDataIndex, newDataCount: _count);
         
         return true;
     }
-    
+
     void ICollection<TDataTuple>.Add(TDataTuple dataTuple) => Add(dataTuple);
 
     public void Clear()
@@ -191,6 +196,8 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         if (result.Case != SearchCase.ItemFound)
             return false;
+        
+        FindInOtherComposites(dataTuple, hashTuple, out var otherResults);
 
         ++_version;
         
@@ -201,6 +208,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         ref TCompositeHandler handlerReference = ref _compositeHandler;
         handlerReference.Remove(_dataTable, result, newDataCount: _count);
+        RemoveFromOtherComposites(otherResults, newDataCount: _count);
         
         return true;
     }
@@ -246,4 +254,18 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     #endregion
 
     protected abstract THashTuple ComputeHashTuple(TDataTuple dataTuple);
+    
+    protected abstract bool FindInOtherComposites(
+        TDataTuple dataTuple,
+        THashTuple hashTuple,
+        out SearchResult[] otherResults);
+
+    protected abstract void AddToOtherComposites(
+        SearchResult[] otherResults,
+        int candidateDataIndex,
+        int newDataCount);
+    
+    protected abstract void RemoveFromOtherComposites(
+        SearchResult[] otherResults,
+        int newDataCount);
 }
