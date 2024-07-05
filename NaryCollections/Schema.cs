@@ -8,6 +8,11 @@ namespace NaryCollections;
 
 public abstract class Schema
 {
+    public interface ISignature
+    {
+        ImmutableArray<(byte Position, IParticipant Participant)> Participants { get; }
+    }
+    
     private protected bool Locked;
     private protected readonly List<IParticipant> Participants;
     private protected readonly List<Composite> Composites;
@@ -22,6 +27,8 @@ public abstract class Schema
         Participants = new();
         Composites = new();
     }
+
+    internal abstract ISignature GetSignature();
     
     protected Participant<T> AddParticipant<T>()
     {
@@ -220,14 +227,21 @@ public abstract class Schema
 public abstract class Schema<TDataTuple> : Schema
     where TDataTuple : struct, ITuple, IStructuralEquatable
 {
-    protected sealed class Signature
+    protected sealed class Signature : ISignature
     {
-        internal Signature() { }
+        internal Signature(IEnumerable<IParticipant> participants)
+        {
+            Participants = [..participants.Select((p, i) => ((byte)i, p))];
+        }
+
+        public ImmutableArray<(byte, IParticipant)> Participants { get; }
     }
 
     public sealed override Type DataTupleType => typeof(TDataTuple);
 
     protected abstract Signature Sign { get; }
+
+    internal override ISignature GetSignature() => Sign;
 
     protected Schema<ValueTuple<T>>.Signature Conclude<T>(Participant<T> p)
     {
@@ -236,8 +250,8 @@ public abstract class Schema<TDataTuple> : Schema
         if (typeof(ValueTuple<T>) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
-        FreezeSchema(p);
-        return new Schema<ValueTuple<T>>.Signature();
+        var participants = FreezeSchema(p);
+        return new Schema<ValueTuple<T>>.Signature(participants);
     }
 
     protected Schema<(T1, T2)>.Signature Conclude<T1, T2>(Participant<T1> p1, Participant<T2> p2)
@@ -247,8 +261,8 @@ public abstract class Schema<TDataTuple> : Schema
         if (typeof((T1, T2)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
-        FreezeSchema(p1, p2);
-        return new Schema<(T1, T2)>.Signature();
+        var participants = FreezeSchema(p1, p2);
+        return new Schema<(T1, T2)>.Signature(participants);
     }
 
     protected Schema<(T1, T2, T3)>.Signature Conclude<T1, T2, T3>(
@@ -261,8 +275,8 @@ public abstract class Schema<TDataTuple> : Schema
         if (typeof((T1, T2, T3)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
-        FreezeSchema(p1, p2, p3);
-        return new Schema<(T1, T2, T3)>.Signature();
+        var participants = FreezeSchema(p1, p2, p3);
+        return new Schema<(T1, T2, T3)>.Signature(participants);
     }
 
     protected Schema<(T1, T2, T3, T4)>.Signature Conclude<T1, T2, T3, T4>(
@@ -276,8 +290,8 @@ public abstract class Schema<TDataTuple> : Schema
         if (typeof((T1, T2, T3, T4)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
-        FreezeSchema(p1, p2, p3, p4);
-        return new Schema<(T1, T2, T3, T4)>.Signature();
+        var participants = FreezeSchema(p1, p2, p3, p4);
+        return new Schema<(T1, T2, T3, T4)>.Signature(participants);
     }
 
     protected Schema<(T1, T2, T3, T4, T5)>.Signature Conclude<T1, T2, T3, T4, T5>(
@@ -292,8 +306,8 @@ public abstract class Schema<TDataTuple> : Schema
         if (typeof((T1, T2, T3, T4, T5)) != typeof(TDataTuple))
             throw new InvalidOperationException();
         Locked = true;
-        FreezeSchema(p1, p2, p3, p4, p5);
-        return new Schema<(T1, T2, T3, T4, T5)>.Signature();
+        var participants = FreezeSchema(p1, p2, p3, p4, p5);
+        return new Schema<(T1, T2, T3, T4, T5)>.Signature(participants);
     }
 
     protected Schema<(T1, T2, T3, T4, T5, T6)>.Signature Conclude<T1, T2, T3, T4, T5, T6>(
@@ -308,11 +322,11 @@ public abstract class Schema<TDataTuple> : Schema
             throw GenerateLockException();
         if (typeof((T1, T2, T3, T4, T5, T6)) != typeof(TDataTuple))
             throw new InvalidOperationException();
-        FreezeSchema(p1, p2, p3, p4, p5, p6);
-        return new Schema<(T1, T2, T3, T4, T5, T6)>.Signature();
+        var participants = FreezeSchema(p1, p2, p3, p4, p5, p6);
+        return new Schema<(T1, T2, T3, T4, T5, T6)>.Signature(participants);
     }
 
-    private void FreezeSchema(params IParticipant?[] signatureParticipants)
+    private IEnumerable<IParticipant> FreezeSchema(params IParticipant?[] signatureParticipants)
     {
         HashSet<IParticipant> declaredParticipants = [..Participants];
         foreach (var participant in signatureParticipants)
@@ -329,8 +343,7 @@ public abstract class Schema<TDataTuple> : Schema
             throw new InvalidOperationException("Some declared participants are not used in the signature");
 
         Locked = true;
-        Participants.Clear();
-        Participants.AddRange(Participants);
+        return signatureParticipants.Select(p => p!);
     }
 
     internal override ImmutableArray<Composite> GetComposites()

@@ -9,9 +9,6 @@ namespace NaryCollections.Implementation;
 
 internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema, new()
 {
-    private static readonly MethodAttributes ProjectorMethodAttributes =
-        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.Final;
-    
     private static Builder? _builder;
 
     public sealed record Builder(ConstructorInfo Ctor, Func<INaryCollection<TSchema>> Factory);
@@ -26,8 +23,9 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         var dataTupleType = ValueTupleType.From(schema.DataTupleType) ?? throw new InvalidProgramException();
         var composites = schema.GetComposites();
+        byte backIndexCount = (byte)(composites.Length + 1);
         var allIndexes = GetArrayOfAllIndexes(dataTupleType.Count);
-        var dataTypeDecomposition = new DataTypeProjection(dataTupleType, 0, (byte)composites.Length, allIndexes);
+        var dataTypeDecomposition = new DataTypeProjection(dataTupleType, 0, backIndexCount, allIndexes);
         var hashTupleType = dataTypeDecomposition.HashTupleType;
         var backIndexTupleType = dataTypeDecomposition.BackIndexTupleType;
         var comparerTupleType = dataTypeDecomposition.ComparerTupleType;
@@ -37,7 +35,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             dataTupleType,
             allIndexes, 
             0, 
-            (byte)composites.Length);
+            backIndexCount);
         var compositeHandlerType = handlerCtor.DeclaringType!;
         
         var comparers = GetEqualityComparers(dataTypeDecomposition.DataTupleType)
@@ -59,11 +57,31 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             TypeAttributes.Class | TypeAttributes.Sealed,
             baseCollectionType);
 
-        DefineConstructor(
-            typeBuilder,
-            schemaType,
-            compositeHandlerType,
-            comparerTupleType);
+        var positionPerParticipants = schema
+            .GetSignature()
+            .Participants
+            .ToDictionary(p => p.Participant, p => p.Position);
+        
+        List<FieldBuilder> handlerFieldBuilders = new();
+        foreach (var composite in composites)
+        {
+            var indexes = composite.Participants.Select(p => positionPerParticipants[p]).ToArray();
+            var rank = (byte)(composite.Rank + 1);
+            
+            var otherHandlerCtor = CompositeHandlerCompilation.GenerateConstructor(
+                moduleBuilder,
+                dataTupleType,
+                indexes,
+                rank, 
+                backIndexCount);
+            var otherCompositeHandlerType = otherHandlerCtor.DeclaringType!;
+            
+            var fieldBuilder = typeBuilder
+                .DefineField("_compositeHandler_" + rank, otherCompositeHandlerType, FieldAttributes.Private);
+            handlerFieldBuilders.Add(fieldBuilder);
+        }
+        
+        DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, handlerFieldBuilders);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType);
 
         var type = typeBuilder.CreateType();
@@ -106,7 +124,8 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         TypeBuilder typeBuilder,
         Type schemaType,
         Type completeProjectorType,
-        ValueTupleType comparerTupleType)
+        ValueTupleType comparerTupleType,
+        IReadOnlyList<FieldBuilder> handlerFieldBuilders)
     {
         var ctorBuilder = typeBuilder.DefineConstructor(
             MethodAttributes.Public,
@@ -129,6 +148,20 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         il.Emit(OpCodes.Ldarg_3);
         // base(schema, completeProjector, comparerTuple)
         il.Emit(OpCodes.Call, baseCtor);
+
+        foreach (var fieldBuilder in handlerFieldBuilders)
+        {
+            var ctor = fieldBuilder.FieldType.GetConstructor([typeof(bool)])!;
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // false
+            il.Emit(OpCodes.Ldc_I4_0);
+            // new CompositeHandler(false)
+            il.Emit(OpCodes.Newobj, ctor);
+            // this._compositeHandler_⟨i⟩ = new CompositeHandler(false)
+            il.Emit(OpCodes.Stfld, fieldBuilder);
+        }
         
         il.Emit(OpCodes.Ret);
     }
@@ -143,7 +176,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 methodName,
-                ProjectorMethodAttributes,
+                CommonCompilation.ProjectorMethodAttributes,
                 dataTypeDecomposition.HashTupleType,
                 [dataTypeDecomposition.DataTupleType]);
         ILGenerator il = methodBuilder.GetILGenerator();

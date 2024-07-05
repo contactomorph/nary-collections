@@ -12,8 +12,8 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
-using IndexTuple = (int, int, int, int, int);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, int, int, int, int)>;
+using IndexTuple = (int, int, int, int, int, int);
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, int, int, int, int, int)>;
 
 public class NaryCollectionCompilationTests
 {
@@ -222,5 +222,33 @@ public class NaryCollectionCompilationTests
             Assert.That(hashEntry, Is.EqualTo(default(HashEntry)));
         foreach (var dataEntry in dataTable)
             Assert.That(dataEntry.DataTuple.Dog, Is.Null);
+    }
+    
+    [Test]
+    public void InspectDogPlaceColorTupleCollectionTest()
+    {
+        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+
+        var collection = factory();
+        
+        var manipulator = FieldManipulator.ForRealTypeOf(collection);
+
+        manipulator.GetFieldValue(collection, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry> h0);
+        manipulator.GetFieldValue(collection, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry> h1);
+        manipulator.GetFieldValue(collection, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry> h2);
+        manipulator.GetFieldValue(collection, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry> h3);
+        manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry> h4);
+        manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry> h5);
+        
+        var manipulatorForH3 = FieldManipulator.ForRealTypeOf(h3);
+        manipulatorForH3.GetFieldValue(h3, "_hashTable", out HashEntry[] hashTable3);
+        
+        Assert.That(hashTable3.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
+        var manipulatorForH5 = FieldManipulator.ForRealTypeOf(h5);
+        manipulatorForH5.GetFieldValue(h5, "_hashTable", out HashEntry[] hashTable5);
+        
+        Assert.That(hashTable5.Select(h => h.DriftPlusOne), Is.All.Zero);
+
     }
 }
