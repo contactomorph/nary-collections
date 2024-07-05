@@ -43,6 +43,7 @@ public static class CompositeHandlerCompilation
         DefineFind(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
         DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
         DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
+        DefineClear(typeBuilder, compositeHandlerInterfaceType, hashTableField);
 
         ResizeHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         ResizeHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
@@ -334,6 +335,35 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Stfld, hashTableField);
         
         il.MarkLabel(endLabel);
+
+        il.Emit(OpCodes.Ret);
+
+        typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
+    }
+    
+    private static void DefineClear(
+        TypeBuilder typeBuilder,
+        Type compositeHandlerInterfaceType,
+        FieldBuilder hashTableField)
+    {
+        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Clear);
+        
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                methodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(void),
+                []);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        // this
+        il.Emit(OpCodes.Ldarg_0);
+        // HashEntry.TableMinimalLength
+        il.Emit(OpCodes.Ldc_I4, HashEntry.TableMinimalLength);
+        // new HashEntry[HashEntry.TableMinimalLength]
+        il.Emit(OpCodes.Newarr, typeof(HashEntry));
+        // this._hashTable = new HashEntry[HashEntry.TableMinimalLength]
+        il.Emit(OpCodes.Stfld, hashTableField);
 
         il.Emit(OpCodes.Ret);
 

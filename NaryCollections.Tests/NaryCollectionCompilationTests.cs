@@ -156,4 +156,71 @@ public class NaryCollectionCompilationTests
         }
         Assert.That(set, Is.Empty);
     }
+
+
+    [Test]
+    public void ClearDogPlaceColorTupleCollectionRandomlyTest()
+    {
+        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+
+        var collection = factory();
+
+        var set = collection.AsSet();
+        
+        var random = new Random(4223023);
+        var someColors = Enum.GetValues<KnownColor>().Take(10).Select(Color.FromKnownColor).ToArray();
+        
+        for(int i = 0; i < 1000; ++i)
+        {
+            Dog dog = Dogs.AllDogs[random.Next(Dogs.AllDogs.Count)];
+            Color color = someColors[random.Next(someColors.Length)];
+            DogPlaceColorTuple tuple = (dog, "France", color);
+            set.Add(tuple);
+        }
+        
+        var manipulator = FieldManipulator.ForRealTypeOf(collection);
+
+        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry>>(
+            "_compositeHandler");
+
+        var resizeHandler = resizeHandlerGetter(collection);
+        
+        var handlerManipulator = FieldManipulator.ForRealTypeOf(resizeHandler);
+        
+        var hashTableGetter = handlerManipulator.CreateGetter<HashEntry[]>("_hashTable");
+        var dataTableGetter = manipulator
+            .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>("_dataTable");
+        
+        resizeHandler = resizeHandlerGetter(collection);
+            
+        var hashTable = hashTableGetter(resizeHandler);
+        var dataTable = dataTableGetter(collection);
+        
+        Consistency.CheckForUnique(
+            hashTable,
+            dataTable,
+            set.Count,
+            resizeHandler,
+            DogPlaceColorProjector.GetHashTupleComputer());
+        
+        set.Clear();
+        
+        resizeHandler = resizeHandlerGetter(collection);
+        hashTable = hashTableGetter(resizeHandler);
+        dataTable = dataTableGetter(collection);
+        
+        Assert.That(set, Is.Empty);
+        
+        Consistency.CheckForUnique(
+            hashTable,
+            dataTable,
+            set.Count,
+            resizeHandler,
+            DogPlaceColorProjector.GetHashTupleComputer());
+
+        foreach (var hashEntry in hashTable)
+            Assert.That(hashEntry, Is.EqualTo(default(HashEntry)));
+        foreach (var dataEntry in dataTable)
+            Assert.That(dataEntry.DataTuple.Dog, Is.Null);
+    }
 }

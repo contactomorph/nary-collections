@@ -25,4 +25,6 @@ public interface ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, in TComp
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         SearchResult successfulSearchResult,
         int newDataCount);
+
+    void Clear();
 }

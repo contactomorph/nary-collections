@@ -173,11 +173,11 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
 
     public void Clear()
     {
-        throw new NotImplementedException();
-        // ++_version;
-        // _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
-        // _compositeHandler.Clear();
-        // _count = 0;
+        ++_version;
+        _count = 0;
+        _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        handlerReference.Clear();
     }
 
     public bool Remove(TDataTuple dataTuple)
