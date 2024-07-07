@@ -7,7 +7,8 @@ namespace NaryCollections.Implementation;
 
 internal static class NaryCollectionBase
 {
-    public const string ComparerTupleFieldName = "ComparerTuple";
+    public const string ComparerTupleFieldName = "_comparerTuple";
+    public const string DataTableFieldName = "_dataTable";
     
     public const string ComputeHashTupleMethodName = "ComputeHashTuple";
     public const string FindInOtherCompositesMethodName = "FindInOtherComposites";
@@ -24,9 +25,13 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     where TCompositeHandler : struct, ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TDataTuple>
     where TSchema : Schema<TDataTuple>, new()
 {
-    protected readonly TComparerTuple ComparerTuple;
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected readonly TComparerTuple _comparerTuple;
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
     private TCompositeHandler _compositeHandler;
-    private DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
     private int _count;
     private uint _version;
 
@@ -45,7 +50,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     {
         Schema = schema;
         _compositeHandler = compositeHandler;
-        ComparerTuple = comparerTuple;
+        _comparerTuple = comparerTuple;
         _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
         _count = 0;
         _version = 0;
@@ -132,7 +137,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         var hc = (uint)hashTuple.GetHashCode();
         
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
+        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
 
         return result.Case == SearchCase.ItemFound;
     }
@@ -160,7 +165,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         var hc = (uint)hashTuple.GetHashCode();
         
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
+        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
         
         if (result.Case == SearchCase.ItemFound)
             return false;
@@ -202,7 +207,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         var hc = (uint)hashTuple.GetHashCode();
         
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        var result = _compositeHandler.Find(_dataTable, ComparerTuple, hc, dataTuple);
+        var result = _compositeHandler.Find(_dataTable, _comparerTuple, hc, dataTuple);
         
         if (result.Case != SearchCase.ItemFound)
             return false;

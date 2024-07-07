@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
@@ -10,6 +11,9 @@ internal static class CommonCompilation
 
     public static readonly BindingFlags BaseFlags =
         BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+    public static readonly MethodInfo GetCaseMethod =
+        typeof(SearchResult).GetProperty(nameof(SearchResult.Case))!.GetGetMethod()!;
     
     public static Type GetItemType(DataTypeProjection dataTypeProjection)
     {
@@ -28,5 +32,10 @@ internal static class CommonCompilation
     public static FieldInfo GetFieldInBase(Type baseType, string fieldName)
     {
         return baseType.GetField(fieldName, BaseFlags) ?? throw new MissingFieldException();
+    }
+    
+    public static MethodInfo GetMethod(Type type, string methodName)
+    {
+        return type.GetMethod(methodName, BaseFlags) ?? throw new MissingMethodException();
     }
 }

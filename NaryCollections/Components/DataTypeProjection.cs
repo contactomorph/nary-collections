@@ -25,4 +25,11 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
         HashProjectionMapping = ValueTupleMapping.From(HashTupleType, projectionIndexes);
         BackIndexProjectionField = BackIndexTupleType[backIndexRank];
     }
+
+    public DataTypeProjection ProjectAlong(byte backIndexRank, byte[] projectionIndexes)
+    {
+        if (BackIndexTupleType.Count <= backIndexRank)
+            throw new ArgumentException();
+        return new DataTypeProjection(DataTupleType, backIndexRank, (byte)BackIndexTupleType.Count, projectionIndexes);
+    }
 }
