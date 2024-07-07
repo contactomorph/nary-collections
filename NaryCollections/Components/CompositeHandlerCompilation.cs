@@ -6,6 +6,9 @@ namespace NaryCollections.Components;
 
 public static class CompositeHandlerCompilation
 {
+    public const string HashTableFieldName = "_hashTable";
+    public static string GetCompositeHandlerFieldName(byte backIndexRank) => $"CompositeHandler_{backIndexRank}";
+    
     public static ConstructorInfo GenerateConstructor(
         ModuleBuilder moduleBuilder,
         Type dataTupleType,
@@ -34,7 +37,7 @@ public static class CompositeHandlerCompilation
             .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleType, itemType);
 
         var typeBuilder = moduleBuilder.DefineType(
-            $"CompositeHandler_{backIndexRank}",
+            GetCompositeHandlerFieldName(backIndexRank),
             TypeAttributes.Class | TypeAttributes.Sealed,
             typeof(ValueType),
             [compositeHandlerInterfaceType, resizeHandlerInterfaceType, dataEquatorInterfaceType]);
@@ -58,7 +61,7 @@ public static class CompositeHandlerCompilation
     private static FieldBuilder DefineConstructor(TypeBuilder typeBuilder)
     {
         var hashTableField = typeBuilder.DefineField(
-            "_hashTable",
+            HashTableFieldName,
             typeof(HashEntry[]),
             FieldAttributes.InitOnly | FieldAttributes.Private);
         
@@ -88,8 +91,6 @@ public static class CompositeHandlerCompilation
         Type compositeHandlerInterfaceType,
         FieldBuilder hashTableField)
     {
-        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find);
-        
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         
         var updateHandlingType = typeof(MembershipHandling<,,,>)
@@ -101,7 +102,7 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(SearchResult),
                 [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleType, typeof(uint), itemType]);
@@ -133,7 +134,7 @@ public static class CompositeHandlerCompilation
         
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, compositeHandlerInterfaceType, methodBuilder);
     }
     
     private static void DefineAdd(
@@ -142,8 +143,6 @@ public static class CompositeHandlerCompilation
         Type compositeHandlerInterfaceType,
         FieldBuilder hashTableField)
     {
-        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Add);
-
         Type[] parameterTypes = [
             dataTypeProjection.DataTableType,
             typeof(SearchResult),
@@ -156,7 +155,7 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Add),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
@@ -237,8 +236,8 @@ public static class CompositeHandlerCompilation
         il.MarkLabel(endLabel);
         
         il.Emit(OpCodes.Ret);
-
-        typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
+        
+        CommonCompilation.OverrideMethod(typeBuilder, compositeHandlerInterfaceType, methodBuilder);
     }
 
     private static void DefineRemove(
@@ -247,8 +246,6 @@ public static class CompositeHandlerCompilation
         Type compositeHandlerInterfaceType,
         FieldBuilder hashTableField)
     {
-        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove);
-        
         Type[] parameterTypes = [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)];
         
         var updateHandlingType = typeof(UpdateHandling<,>)
@@ -256,7 +253,7 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
@@ -338,7 +335,7 @@ public static class CompositeHandlerCompilation
 
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, compositeHandlerInterfaceType, methodBuilder);
     }
     
     private static void DefineClear(
@@ -346,11 +343,9 @@ public static class CompositeHandlerCompilation
         Type compositeHandlerInterfaceType,
         FieldBuilder hashTableField)
     {
-        const string methodName = nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Clear);
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Clear),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 []);
@@ -367,6 +362,6 @@ public static class CompositeHandlerCompilation
 
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, compositeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, compositeHandlerInterfaceType, methodBuilder);
     }
 }

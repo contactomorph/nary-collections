@@ -23,8 +23,6 @@ internal static class DataEquatorCompilation
         DataTypeProjection dataTypeProjection,
         Type dataEquatorInterfaceType)
     {
-        const string methodName = nameof(IDataEquator<object, ValueTuple, object>.AreDataEqualAt);
-        
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         
         Type[] parameterTypes = [
@@ -37,7 +35,7 @@ internal static class DataEquatorCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(IDataEquator<object, ValueTuple, object>.AreDataEqualAt),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(bool),
                 parameterTypes);
@@ -46,8 +44,9 @@ internal static class DataEquatorCompilation
         Label falseLabel = il.DefineLabel();
         Label endLabel = il.DefineLabel();
         
-        var hashTupleField = dataTypeProjection.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
+        var hashTupleField = CommonCompilation.GetFieldInBase(
+            dataTypeProjection.DataEntryType,
+            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple));
         
         var hashMapping = dataTypeProjection.HashProjectionMapping;
         
@@ -78,8 +77,9 @@ internal static class DataEquatorCompilation
         // ⟨itemHash⟩ != hashcode → falseLabel
         il.Emit(OpCodes.Bne_Un, falseLabel);
         
-        var dataTupleField = dataTypeProjection.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple))!;
+        var dataTupleField = CommonCompilation.GetFieldInBase(
+            dataTypeProjection.DataEntryType,
+            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.DataTuple));
         
         var dataMapping = dataTypeProjection.DataProjectionMapping;
 
@@ -125,6 +125,6 @@ internal static class DataEquatorCompilation
         il.MarkLabel(endLabel);
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, dataEquatorInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, dataEquatorInterfaceType, methodBuilder);
     }
 }

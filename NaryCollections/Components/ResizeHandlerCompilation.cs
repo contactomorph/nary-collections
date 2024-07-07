@@ -19,18 +19,17 @@ public static class ResizeHandlerCompilation
         DataTypeProjection dataTypeProjection,
         Type resizeHandlerInterfaceType)
     {
-        const string methodName = nameof(IResizeHandler<object>.GetHashCodeAt);
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(IResizeHandler<object>.GetHashCodeAt),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        var hashTupleField = dataTypeProjection.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple))!;
+        var hashTupleField = CommonCompilation.GetFieldInBase(
+            dataTypeProjection.DataEntryType,
+            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.HashTuple));
         
         var hashMapping = dataTypeProjection.HashProjectionMapping;
         
@@ -58,7 +57,7 @@ public static class ResizeHandlerCompilation
         
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, resizeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, resizeHandlerInterfaceType, methodBuilder);
     }
 
     internal static void DefineGetBackIndexAt(
@@ -66,18 +65,17 @@ public static class ResizeHandlerCompilation
         DataTypeProjection dataTypeDecomposition,
         Type resizeHandlerInterfaceType)
     {
-        const string methodName = nameof(IResizeHandler<object>.GetBackIndex);
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(IResizeHandler<object>.GetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(int),
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
-        var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
+        var backIndexesTupleField = CommonCompilation.GetFieldInBase(
+            dataTypeDecomposition.DataEntryType,
+            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple));
         
         // dataTable
         il.Emit(OpCodes.Ldarg_1);
@@ -92,7 +90,7 @@ public static class ResizeHandlerCompilation
         
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, resizeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, resizeHandlerInterfaceType, methodBuilder);
     }
 
     internal static void DefineSetBackIndexAt(
@@ -100,18 +98,17 @@ public static class ResizeHandlerCompilation
         DataTypeProjection dataTypeDecomposition,
         Type resizeHandlerInterfaceType)
     {
-        const string methodName = nameof(IResizeHandler<object>.SetBackIndex);
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(IResizeHandler<object>.SetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
-        var backIndexesTupleField = dataTypeDecomposition.DataEntryType.GetField(
-            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple))!;
+        var backIndexesTupleField = CommonCompilation.GetFieldInBase(
+            dataTypeDecomposition.DataEntryType,
+            nameof(DataEntry<ValueTuple, ValueTuple, ValueTuple>.BackIndexesTuple));
         
         // dataTable
         il.Emit(OpCodes.Ldarg_1);
@@ -128,6 +125,6 @@ public static class ResizeHandlerCompilation
         
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, resizeHandlerInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, resizeHandlerInterfaceType, methodBuilder);
     }
 }

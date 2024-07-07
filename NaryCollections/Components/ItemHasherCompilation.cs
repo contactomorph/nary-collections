@@ -11,12 +11,10 @@ internal static class ItemHasherCompilation
         DataTypeProjection dataTypeProjection,
         Type itemHasherInterfaceType)
     {
-        const string methodName = nameof(IItemHasher<ValueTuple, object>.ComputeHashCode);
-        
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                nameof(IItemHasher<ValueTuple, object>.ComputeHashCode),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.ComparerTupleType, itemType]);
@@ -67,7 +65,7 @@ internal static class ItemHasherCompilation
         
         il.Emit(OpCodes.Ret);
 
-        typeBuilder.DefineMethodOverride(methodBuilder, itemHasherInterfaceType.GetMethod(methodName)!);
+        CommonCompilation.OverrideMethod(typeBuilder, itemHasherInterfaceType, methodBuilder);
     }
 
 }

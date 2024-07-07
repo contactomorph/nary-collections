@@ -138,7 +138,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         var baseCtor = typeBuilder
             .BaseType!
-            .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+            .GetConstructors(CommonCompilation.BaseFlags)
             .Single();
         
         // this
@@ -174,21 +174,17 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DataTypeDecomposition dataTypeDecomposition,
         Type baseCollectionType)
     {
-        const string methodName = "ComputeHashTuple";
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                NaryCollectionBase.ComputeHashTupleMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 dataTypeDecomposition.HashTupleType,
                 [dataTypeDecomposition.DataTupleType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        var comparerTupleField = baseCollectionType
-             .GetField(
-                "ComparerTuple",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) ??
-                throw new MissingFieldException();
+        var comparerTupleField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            NaryCollectionBase.ComparerTupleFieldName);
         
         int i = 0;
         foreach (var dataField in dataTypeDecomposition.DataTupleType)
@@ -215,11 +211,8 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         il.Emit(OpCodes.Newobj, hashTupleType.GetConstructor());
         
         il.Emit(OpCodes.Ret);
-
-        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
-                     throw new InvalidProgramException();
         
-        typeBuilder.DefineMethodOverride(methodBuilder, method);
+        CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder);
     }
     
     private static void DefineFindInOtherComposites(
@@ -227,8 +220,6 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DataTypeProjection dataTypeDecomposition,
         Type baseCollectionType)
     {
-        const string methodName = "FindInOtherComposites";
-
         Type[] paramTypes = [
             dataTypeDecomposition.DataTupleType,
             dataTypeDecomposition.HashTupleType,
@@ -237,7 +228,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                NaryCollectionBase.FindInOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(bool),
                 paramTypes);
@@ -245,11 +236,8 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         il.Emit(OpCodes.Ldc_I4_0);
         il.Emit(OpCodes.Ret);
-
-        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
-                     throw new InvalidProgramException();
         
-        typeBuilder.DefineMethodOverride(methodBuilder, method);
+        CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder);
     }
     
     private static void DefineAddToOtherComposites(
@@ -257,11 +245,9 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DataTypeProjection dataTypeDecomposition,
         Type baseCollectionType)
     {
-        const string methodName = "AddToOtherComposites";
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                NaryCollectionBase.AddToOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [typeof(SearchResult[]), typeof(int), typeof(int)]);
@@ -269,10 +255,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         il.Emit(OpCodes.Ret);
 
-        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
-                     throw new InvalidProgramException();
-        
-        typeBuilder.DefineMethodOverride(methodBuilder, method);
+        CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder);
     }
     
     private static void DefineRemoveFromOtherComposites(
@@ -280,21 +263,16 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DataTypeProjection dataTypeDecomposition,
         Type baseCollectionType)
     {
-        const string methodName = "RemoveFromOtherComposites";
-        
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                methodName,
+                NaryCollectionBase.RemoveFromOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [typeof(SearchResult[]), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
         il.Emit(OpCodes.Ret);
-
-        var method = baseCollectionType.GetMethod(methodName, CommonCompilation.BaseMethodFlags) ??
-                     throw new InvalidProgramException();
         
-        typeBuilder.DefineMethodOverride(methodBuilder, method);
+        CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder);
     }
 }
