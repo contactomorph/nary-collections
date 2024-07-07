@@ -5,42 +5,62 @@ namespace NaryCollections.Tests.Resources.Tools;
 
 public sealed class FieldManipulator<T> where T : notnull
 {
-    private readonly FieldInfo[] _fields;
+    private readonly IReadOnlySet<FieldInfo> _fields;
     
     public FieldManipulator(T instance)
     {
-        List<FieldInfo> fields = new();
+        Dictionary<string, FieldInfo> fieldsByName = new();
         var type = instance.GetType();
         while (type is not null)
         {
-            fields.AddRange(
-                type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance));
+            var fields = type
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in fields)
+            {
+                if (!fieldsByName.TryAdd(field.Name, field))
+                {
+                    var existing = fieldsByName[field.Name];
+                    if (existing.DeclaringType != field.DeclaringType || existing.FieldType != field.FieldType)
+                        throw new AmbiguousMatchException($"Multiple fields of name {field.Name}");
+                }
+            }
             type = type.BaseType;
         }
-        _fields = fields.ToArray();
+        _fields = fieldsByName.Values.ToHashSet();
     }
     
     public void GetFieldValue<TOutput>(T instance, string fieldName, out TOutput output)
     {
-        var field = _fields.SingleOrDefault(f => f.Name == fieldName);
-        if (field is null)
-            throw new MissingFieldException($"Not field of name {fieldName}");
-        output = (TOutput)field.GetValue(instance)!;
+        var fields = _fields.Where(f => f.Name == fieldName).Take(2).ToArray();
+        output = fields.Length switch
+        {
+            0 => throw new MissingFieldException($"Not field of name {fieldName}"),
+            1 => (TOutput)fields[0].GetValue(instance)!,
+            _ => throw new AmbiguousMatchException($"Multiple fields of name {fieldName}")
+        };
     }
     
     public void SetFieldValue<TOutput>(T instance, string fieldName, TOutput newValue)
     {
-        var field = _fields.SingleOrDefault(f => f.Name == fieldName);
-        if (field is null)
-            throw new MissingFieldException($"Not field of name {fieldName}");
+        var fields = _fields.Where(f => f.Name == fieldName).Take(2).ToArray();
+        var field = fields.Length switch
+        {
+            0 => throw new MissingFieldException($"Not field of name {fieldName}"),
+            1 => fields[0],
+            _ => throw new AmbiguousMatchException($"Multiple fields of name {fieldName}")
+        };
         field.SetValue(instance, newValue);
     }
     
     public Func<T, TOutput> CreateGetter<TOutput>(string fieldName)
     {
-        var field = _fields.SingleOrDefault(f => f.Name == fieldName);
-        if (field is null)
-            throw new MissingFieldException($"Not field of name {fieldName}");
+        var fields = _fields.Where(f => f.Name == fieldName).Take(2).ToArray();
+        var field = fields.Length switch
+        {
+            0 => throw new MissingFieldException($"Not field of name {fieldName}"),
+            1 => fields[0],
+            _ => throw new AmbiguousMatchException($"Multiple fields of name {fieldName}")
+        };
         var instance = Expression.Parameter(typeof(T), "instance");
         var downcastInstance = Expression.Convert(instance, field.DeclaringType!);
         var body = Expression.Convert(Expression.Field(downcastInstance, field), typeof(TOutput));
