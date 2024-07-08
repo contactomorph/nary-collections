@@ -13,7 +13,7 @@ namespace NaryCollections.Tests;
 using ColorPlaceTuple = (Color Color, string Place);
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, CorrespondenceEntry)>;
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
 public class DataProjectorCompilationTests
 {

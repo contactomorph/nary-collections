@@ -4,7 +4,7 @@ namespace NaryCollections.Tests.Resources.DataGeneration;
 
 using DogPlaceColorTuple = (Types.Dog Dog, string Place, System.Drawing.Color Color);
 using HashTuple = (uint, uint, uint);
-using IndexTuple = (int, CorrespondenceEntry);
+using IndexTuple = (int, MultiIndex);
 
 internal static class DogPlaceColorGeneration
 {
@@ -130,7 +130,7 @@ internal static class DogPlaceColorGeneration
     public static void CreateTablesForNonUnique(
         IReadOnlyCollection<DogPlaceColorTuple> data,
         out HashEntry[] hashTable,
-        out CorrespondenceEntry[] correspondenceTable,
+        out MultiIndex[] correspondenceTable,
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
@@ -140,7 +140,7 @@ internal static class DogPlaceColorGeneration
         int size = data.Count  * 2 / 2;
         
         hashTable = new HashEntry[size];
-        correspondenceTable = new CorrespondenceEntry[size];
+        correspondenceTable = new MultiIndex[size];
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
         
         var tupleSet = new HashSet<DogPlaceColorTuple>();
@@ -155,7 +155,7 @@ internal static class DogPlaceColorGeneration
                 Status = EntryStatus.First,
                 DataIndex = i,
                 Previous = -1, // to be replaced
-                Next = CorrespondenceEntry.NoNextCorrespondence,
+                Next = MultiIndex.NoNextCorrespondence,
             };
             dataTable[i] = new()
             {
@@ -192,7 +192,7 @@ internal static class DogPlaceColorGeneration
     
     private static void UpdateHashTable(
         HashEntry[] hashTable,
-        CorrespondenceEntry[] correspondenceTable,
+        MultiIndex[] correspondenceTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         uint newItemHashCode,
         int newItemCorrespondenceIndex,

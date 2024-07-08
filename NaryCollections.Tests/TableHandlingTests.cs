@@ -10,9 +10,9 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashColorTuple = (uint, uint, uint);
-using IndexTuple = (int, CorrespondenceEntry);
+using IndexTuple = (int, MultiIndex);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, CorrespondenceEntry)>;
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
 public class UpdateHandlingTests
 {

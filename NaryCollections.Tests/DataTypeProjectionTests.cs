@@ -7,7 +7,7 @@ using NaryCollections.Tools;
 namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
-using IndexTuple = (int, CorrespondenceEntry, CorrespondenceEntry, int);
+using IndexTuple = (int, MultiIndex, MultiIndex, int);
 using ColorDogTuple = (Color Color, Dog Dog);
 
 public class DataTypeProjectionTests

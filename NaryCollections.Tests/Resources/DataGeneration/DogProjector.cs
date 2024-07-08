@@ -5,7 +5,7 @@ using NaryCollections.Tests.Resources.Types;
 namespace NaryCollections.Tests.Resources.DataGeneration;
 
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, CorrespondenceEntry)>;
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
 internal readonly struct DogProjector :
     IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>,

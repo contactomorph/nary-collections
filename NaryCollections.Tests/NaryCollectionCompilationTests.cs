@@ -12,11 +12,11 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
-using IndexTuple = (int, CorrespondenceEntry, CorrespondenceEntry, int, CorrespondenceEntry, CorrespondenceEntry);
+using IndexTuple = (int, MultiIndex, MultiIndex, int, MultiIndex, MultiIndex);
 using DogPlaceColorEntry = DataEntry<
     (Dog Dog, string Place, Color Color),
     (uint, uint, uint),
-    (int, CorrespondenceEntry, CorrespondenceEntry, int, CorrespondenceEntry, CorrespondenceEntry)>;
+    (int, MultiIndex, MultiIndex, int, MultiIndex, MultiIndex)>;
 
 public class NaryCollectionCompilationTests
 {

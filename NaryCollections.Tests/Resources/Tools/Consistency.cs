@@ -36,10 +36,10 @@ public static class Consistency
             }
         }
     }
-    
+
     public static void CheckForNonUnique<TDataTuple, THashTuple, TIndexTuple>(
         HashEntry[] hashTable,
-        CorrespondenceEntry[] correspondenceTable,
+        MultiIndex[] correspondenceTable,
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
         IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>> handler,
@@ -63,7 +63,7 @@ public static class Consistency
                     if (correspondenceIndex != hashTable[hashIndex].ForwardIndex)
                         throw CreateConsistencyError("hashTable[].ForwardIndex", "correspondenceTable[].Previous");
                     int next1 = correspondenceTable[correspondenceIndex].Next;
-                    if (next1 != CorrespondenceEntry.NoNextCorrespondence && correspondenceTable[next1].Status != EntryStatus.Subsequent)
+                    if (next1 != MultiIndex.NoNextCorrespondence && correspondenceTable[next1].Status != EntryStatus.Subsequent)
                         throw CreateConsistencyError("correspondenceTable[].Next", "correspondenceTable[].Status");
                     break;
                 case EntryStatus.Subsequent:
@@ -71,7 +71,7 @@ public static class Consistency
                     if (correspondenceIndex != correspondenceTable[previous].Next)
                         throw CreateConsistencyError("correspondenceTable[].Next", "correspondenceTable[].Previous");
                     int next2 = correspondenceTable[correspondenceIndex].Next;
-                    if (next2 != CorrespondenceEntry.NoNextCorrespondence && correspondenceTable[next2].Status != EntryStatus.Subsequent)
+                    if (next2 != MultiIndex.NoNextCorrespondence && correspondenceTable[next2].Status != EntryStatus.Subsequent)
                         throw CreateConsistencyError("correspondenceTable[].Next", "correspondenceTable[].Status");
                     break;
                 default:
@@ -93,7 +93,7 @@ public static class Consistency
                         throw new InvalidDataException("Known index");
                     int previousJ = i;
                     int currentJ = correspondenceTable[i].Next;
-                    while (currentJ != CorrespondenceEntry.NoNextCorrespondence)
+                    while (currentJ != MultiIndex.NoNextCorrespondence)
                     {
                         if (!verifiedIndex.Add(currentJ))
                             throw new InvalidDataException("Known index");

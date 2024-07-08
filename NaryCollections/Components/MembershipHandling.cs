@@ -40,7 +40,7 @@ public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
 
     public static SearchResult ContainsForNonUnique(
         HashEntry[] hashTable,
-        CorrespondenceEntry[] correspondenceTable,
+        MultiIndex[] correspondenceTable,
         TDataEntry[] dataTable,
         TEquator equator,
         TComparerTuple comparerTuple,
@@ -69,7 +69,7 @@ public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
                     return SearchResult.CreateForItemFound(reducedHashCode, driftPlusOne, occupiedCorrespondenceIndex);
 
                 occupiedCorrespondenceIndex = correspondenceTable[occupiedCorrespondenceIndex].Next;
-            } while (occupiedCorrespondenceIndex != CorrespondenceEntry.NoNextCorrespondence);
+            } while (occupiedCorrespondenceIndex != MultiIndex.NoNextCorrespondence);
 
             HashCodeReduction.MoveReducedHashCode(ref reducedHashCode, hashTable.Length);
             driftPlusOne++;

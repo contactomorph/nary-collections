@@ -36,7 +36,7 @@ internal class DataTypeDecomposition
         HashTupleType = ValueTupleType.FromRepeatedComponent<uint>(DataTupleType.Count);
 
         var backIndexTypes = backIndexMultiplicities
-            .Select(m => m ? typeof(CorrespondenceEntry) : typeof(int))
+            .Select(m => m ? typeof(MultiIndex) : typeof(int))
             .ToArray();
         
         BackIndexTupleType = ValueTupleType.FromComponents(backIndexTypes);

@@ -1,6 +1,6 @@
 namespace NaryCollections.Primitives;
 
-public struct CorrespondenceEntry
+public struct MultiIndex
 {
     public static readonly int NoNextCorrespondence = -1;
     
