@@ -37,6 +37,49 @@ public static class Consistency
         }
     }
 
+    public static void CheckForNonUnique<TDataTuple, THashTuple, TIndexTuple>(
+        HashEntry[] hashTable,
+        DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
+        int dataLength,
+        IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>, MultiIndex> handler,
+        Func<TDataTuple, THashTuple> hashTupleComputation)
+        where TDataTuple: struct, ITuple, IStructuralEquatable
+        where THashTuple: struct, ITuple, IStructuralEquatable
+        where TIndexTuple: struct, ITuple, IStructuralEquatable
+    {
+        for (int i = 0; i < dataLength; i++)
+        {
+            var hashTuple = hashTupleComputation(dataTable[i].DataTuple);
+            if (!hashTuple.Equals(dataTable[i].HashTuple))
+                throw new InvalidDataException("Hash tuple is incorrect");
+            MultiIndex multiIndex = handler.GetBackIndex(dataTable, i);
+            if (multiIndex.IsSubsequent)
+            {
+                if (handler.GetBackIndex(dataTable, multiIndex.Previous).Next != i)
+                    throw CreateConsistencyError("dataTable...[].Next", "dataTable...[].Previous");
+                if (multiIndex.Next != MultiIndex.NoNext && !handler.GetBackIndex(dataTable, multiIndex.Next).IsSubsequent)
+                    throw CreateConsistencyError("dataTable...[].Next", "dataTable...[].IsSubsequent");
+            }
+            else
+            {
+                if (hashTable[multiIndex.Previous].ForwardIndex != i)
+                    throw CreateConsistencyError("hashTable[].ForwardIndex", "dataTable...[].Previous");
+                if (multiIndex.Next != MultiIndex.NoNext && !handler.GetBackIndex(dataTable, multiIndex.Next).IsSubsequent)
+                    throw CreateConsistencyError("dataTable...[].Next", "dataTable...[].IsSubsequent");
+            }
+        }
+    
+        for (int i = 0; i < hashTable.Length; i++)
+        {
+            if (hashTable[i].DriftPlusOne != HashEntry.DriftForUnused)
+            {
+                int forwardIndex = hashTable[i].ForwardIndex;
+                if (i != handler.GetBackIndex(dataTable, forwardIndex).Previous)
+                    throw CreateConsistencyError("hashTable[].ForwardIndex", "dataTable...[].Previous");
+            }
+        }
+    }
+
     private static Exception CreateConsistencyError(string firstPlace, string secondPlace)
     {
         return new InvalidDataException($"{firstPlace} and {secondPlace} are inconsistent");

@@ -96,6 +96,56 @@ public class UpdateHandlingTests
     }
 
     [Test]
+    public void CheckItemExistenceForNonUniqueParticipantTest()
+    {
+        var data = Colors.KnownColors
+            .SelectMany(color => new [] { (Dogs.KnownDogs[0], "Berlin", color), (Dogs.KnownDogs[1], "Berlin", color) })
+            .ToList();
+        
+        DogPlaceColorGeneration.CreateTablesForNonUnique(
+            data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item3,
+            dataTuple => dataTuple.Color);
+        
+        var handler = ColorProjector.Instance;
+        
+        foreach (var color in Colors.KnownColors)
+        {
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Color, ColorProjector>.Find(
+                hashTable,
+                dataTable,
+                handler,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
+                (uint)color.GetHashCode(),
+                color);
+        
+            Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
+        }
+        
+        foreach (var color in Colors.UnknownColors)
+        {
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Color, ColorProjector>.Find(
+                hashTable,
+                dataTable,
+                handler,
+                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
+                (uint)color.GetHashCode(),
+                color);
+        
+            Assert.That(result.Case, Is.Not.EqualTo(SearchCase.ItemFound));
+        }
+
+        Consistency.CheckForNonUnique(
+            hashTable,
+            dataTable,
+            data.Count,
+            ColorProjector.Instance,
+            DogPlaceColorProjector.GetHashTupleComputer());
+    }
+
+    [Test]
     public void CheckItemAdditionForUniqueParticipantTest()
     {
         var data = Dogs.KnownDogsWithHashCode
