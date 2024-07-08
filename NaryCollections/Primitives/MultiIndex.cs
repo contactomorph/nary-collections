@@ -2,25 +2,27 @@ namespace NaryCollections.Primitives;
 
 public struct MultiIndex
 {
-    public static readonly int NoNextCorrespondence = -1;
+    public static readonly int NoNext = -1;
     
-    public int Previous; // index in the hash table if Status == First, previous entry in the correspondence table if Status == Subsequent
-    public EntryStatus Status;
-    public int DataIndex; // Index in the data table
-    public int Next; // Index of next entry in the correspondence table, -1 if this is last
+    // index in the hash table if !Subsequent
+    // previous entry in the data table if Subsequent
+    public int Previous;
+    public bool IsSubsequent;
+    public int Next; // Index of next entry in the data table, -1 if this is last
 
     public override string ToString()
     {
-        return Status switch
+        if (IsSubsequent)
         {
-            EntryStatus.Unused => "\u2205",
-            EntryStatus.First => Next == NoNextCorrespondence ?
-                $"{Previous} \u2190 (\u00B7 \u00B7, \u00B7 \u00B7) \u2192 {DataIndex}" :
-                $"{Previous} \u2190 (\u00B7 \u00B7, \u2193 {Next}) \u2192 {DataIndex}",
-            EntryStatus.Subsequent => Next == NoNextCorrespondence ?
-                $"\u00B7 \u2190 (\u2191 {Previous}, \u00B7 \u00B7) \u2192 {DataIndex}" :
-                $"\u00B7 \u2190 (\u2191 {Previous}, \u2193 {Next}) \u2192 {DataIndex}",
-            _ => throw new InvalidDataException(),
-        };
+            return Next == NoNext
+                ? $"\u00B7 \u2190 (\u2191 {Previous}, \u00B7 \u00B7)"
+                : $"\u00B7 \u2190 (\u2191 {Previous}, \u2193 {Next})";
+        }
+        else
+        {
+            return Next == NoNext
+                ? $"{Previous} \u2190 (\u00B7 \u00B7, \u00B7 \u00B7) \u2192"
+                : $"{Previous} \u2190 (\u00B7 \u00B7, \u2193 {Next}) \u2192";
+        }
     }
 }

@@ -96,55 +96,6 @@ public class UpdateHandlingTests
     }
 
     [Test]
-    public void CheckItemExistenceForNonUniqueParticipantTest()
-    {
-        DogPlaceColorGeneration.CreateTablesForNonUnique(
-            DogPlaceColorTuples.Data,
-            out var hashTable,
-            out var correspondenceTable,
-            out var dataTable,
-            hashTuple => hashTuple.Item1,
-            dataTuple => dataTuple.Dog);
-        
-        var handler = DogProjector.Instance;
-
-        foreach (var dog in Dogs.KnownDogs)
-        {
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForNonUnique(
-                hashTable,
-                correspondenceTable,
-                dataTable,
-                handler,
-                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
-                (uint)dog.GetHashCode(),
-                dog);
-        
-            Assert.That(result.Case, Is.EqualTo(SearchCase.ItemFound));
-        }
-        
-        foreach (var dog in Dogs.UnknownDogs)
-        {
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
-                hashTable,
-                dataTable,
-                handler,
-                (EqualityComparer<Dog>.Default, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
-                (uint)dog.GetHashCode(),
-                dog);
-        
-            Assert.That(result.Case, Is.Not.EqualTo(SearchCase.ItemFound));
-        }
-
-        Consistency.CheckForNonUnique(
-            hashTable,
-            correspondenceTable,
-            dataTable,
-            Dogs.KnownDogs.Count,
-            DogPlaceColorProjector.Instance,
-            DogPlaceColorProjector.GetHashTupleComputer());
-    }
-
-    [Test]
     public void CheckItemAdditionForUniqueParticipantTest()
     {
         var data = Dogs.KnownDogsWithHashCode
