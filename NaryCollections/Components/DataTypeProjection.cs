@@ -14,12 +14,16 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
     // typeof((int, …, int)).GetField($"Item⟨r⟩")
     public FieldInfo BackIndexProjectionField { get; }
     
-    public DataTypeProjection(Type dataTupleType, byte backIndexRank, byte backIndexCount, byte[] projectionIndexes) :
-        base(dataTupleType, backIndexCount)
+    public DataTypeProjection(
+        Type dataTupleType,
+        byte backIndexRank,
+        bool[] backIndexMultiplicities,
+        byte[] projectionIndexes) :
+        base(dataTupleType, backIndexMultiplicities)
     {
         if (projectionIndexes.Length == 0)
             throw new ArgumentException();
-        if (backIndexCount <= backIndexRank)
+        if (backIndexMultiplicities.Length <= backIndexRank)
             throw new ArgumentException();
         DataProjectionMapping = ValueTupleMapping.From(DataTupleType, projectionIndexes);
         HashProjectionMapping = ValueTupleMapping.From(HashTupleType, projectionIndexes);
@@ -30,6 +34,6 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
     {
         if (BackIndexTupleType.Count <= backIndexRank)
             throw new ArgumentException();
-        return new DataTypeProjection(DataTupleType, backIndexRank, (byte)BackIndexTupleType.Count, projectionIndexes);
+        return new DataTypeProjection(DataTupleType, backIndexRank, BackIndexMultiplicities, projectionIndexes);
     }
 }

@@ -23,9 +23,14 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         var dataTupleType = ValueTupleType.From(schema.DataTupleType) ?? throw new InvalidProgramException();
         var composites = schema.GetComposites();
-        byte backIndexCount = (byte)(composites.Length + 1);
+
+        var backIndexMultiplicities = composites.Select(c => !c.Unique).Prepend(false).ToArray();
         var allIndexes = GetArrayOfAllIndexes(dataTupleType.Count);
-        var dataTypeDecomposition = new DataTypeProjection(dataTupleType, 0, backIndexCount, allIndexes);
+        var dataTypeDecomposition = new DataTypeProjection(
+            dataTupleType,
+            0,
+            backIndexMultiplicities,
+            allIndexes);
         var hashTupleType = dataTypeDecomposition.HashTupleType;
         var backIndexTupleType = dataTypeDecomposition.BackIndexTupleType;
         var comparerTupleType = dataTypeDecomposition.ComparerTupleType;
@@ -35,7 +40,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             dataTupleType,
             allIndexes, 
             0, 
-            backIndexCount);
+            backIndexMultiplicities);
         var compositeHandlerType = handlerCtor.DeclaringType!;
         
         var comparers = GetEqualityComparers(dataTypeDecomposition.DataTupleType)
@@ -73,7 +78,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 dataTupleType,
                 indexes,
                 rank, 
-                backIndexCount);
+                backIndexMultiplicities);
             
             var fieldBuilder = typeBuilder.DefineField(
                 "_compositeHandler_" + rank,

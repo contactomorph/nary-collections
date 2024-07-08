@@ -14,12 +14,12 @@ public static class CompositeHandlerCompilation
         Type dataTupleType,
         byte[] projectionIndexes,
         byte backIndexRank,
-        byte backIndexCount)
+        bool[] backIndexMultiplicity)
     {
         var dataTypeProjection = new DataTypeProjection(
             dataTupleType,
             backIndexRank,
-            backIndexCount,
+            backIndexMultiplicity,
             projectionIndexes);
         
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);

@@ -67,7 +67,7 @@ public class DataProjectorCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false]);
         
         var handler = CallDogCtor(constructor);
         var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
@@ -105,7 +105,7 @@ public class DataProjectorCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false]);
 
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
@@ -135,7 +135,7 @@ public class DataProjectorCompilationTests
             typeof(DogPlaceColorTuple),
             [2, 1],
             0,
-            1);
+            [false]);
         
         var handler = CallColorPlaceCtor(constructor);
         var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
@@ -170,7 +170,7 @@ public class DataProjectorCompilationTests
             typeof(DogPlaceColorTuple),
             [0, 1, 2],
             0,
-            1);
+            [false]);
         
         var handler = CallDogPlaceColorCtor(constructor);
         var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
@@ -209,7 +209,7 @@ public class DataProjectorCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false]);
         
         var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)CallDogCtor(constructor);
         

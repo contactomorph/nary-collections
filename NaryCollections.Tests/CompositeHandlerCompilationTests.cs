@@ -37,7 +37,7 @@ public class CompositeHandlerCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false, true]);
         
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
@@ -56,7 +56,7 @@ public class CompositeHandlerCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false, true]);
         
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
@@ -122,7 +122,7 @@ public class CompositeHandlerCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false, true]);
         
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
@@ -194,7 +194,7 @@ public class CompositeHandlerCompilationTests
             typeof(DogPlaceColorTuple),
             [0],
             0,
-            1);
+            [false, true]);
 
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
