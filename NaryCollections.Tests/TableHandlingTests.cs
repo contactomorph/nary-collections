@@ -10,8 +10,9 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashColorTuple = (uint, uint, uint);
+using IndexTuple = (int, CorrespondenceEntry);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, CorrespondenceEntry)>;
 
 public class UpdateHandlingTests
 {
@@ -170,7 +171,7 @@ public class UpdateHandlingTests
             var (dog, dogHc) = Dogs.NewDogsWithHashCode[0];
             Assert.That(dogHc, Is.EqualTo(4));
             
-            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), IndexTuple>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
@@ -211,7 +212,7 @@ public class UpdateHandlingTests
             var (dog, dogHc) = Dogs.NewDogsWithHashCode[1];
             Assert.That(dogHc, Is.EqualTo(3));
             
-            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), IndexTuple>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
@@ -252,7 +253,7 @@ public class UpdateHandlingTests
             var (dog, dogHc) = Dogs.NewDogsWithHashCode[2];
             Assert.That(dogHc, Is.EqualTo(1));
         
-            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), IndexTuple>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
@@ -294,7 +295,7 @@ public class UpdateHandlingTests
             var (dog, dogHc) = Dogs.NewDogsWithHashCode[3];
             Assert.That(dogHc, Is.EqualTo(5));
         
-            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), ValueTuple<int>>.AddOnlyData(
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, (uint, uint, uint), IndexTuple>.AddOnlyData(
                 ref dataTableCopy,
                 (dog, "Montevideo", Color.Thistle),
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
@@ -362,7 +363,7 @@ public class UpdateHandlingTests
                 0,
                 dataIndexToRemove);
 
-            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
@@ -396,7 +397,7 @@ public class UpdateHandlingTests
                 0,
                 dataIndexToRemove);
             
-            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
@@ -429,7 +430,7 @@ public class UpdateHandlingTests
                 0,
                 dataIndexToRemove);
 
-            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);
@@ -467,7 +468,7 @@ public class UpdateHandlingTests
                 0,
                 dataIndexToRemove);
 
-            DataHandling<DogPlaceColorTuple, HashColorTuple, ValueTuple<int>>.RemoveOnlyData(
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTableCopy,
                 dataIndexToRemove,
                 ref dataCount);

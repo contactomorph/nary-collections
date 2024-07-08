@@ -1,20 +1,17 @@
-using NaryCollections.Components;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Tests.Resources.DataGeneration;
 
 using DogPlaceColorTuple = (Types.Dog Dog, string Place, System.Drawing.Color Color);
 using HashTuple = (uint, uint, uint);
-using IndexTuple = ValueTuple<int>;
+using IndexTuple = (int, CorrespondenceEntry);
 
 internal static class DogPlaceColorGeneration
 {
     public static void CreateDataTableOnly(
         IReadOnlyCollection<DogPlaceColorTuple> data,
-        out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
-        DogPlaceColorProjector? maybeProjector = null)
+        out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable)
     {
-        var handler = maybeProjector ?? DogPlaceColorProjector.Instance;
         int size = data.Count * 3 / 2;
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
         
@@ -29,7 +26,7 @@ internal static class DogPlaceColorGeneration
             {
                 DataTuple = tuple,
                 HashTuple = hashTuple,
-                BackIndexesTuple = ValueTuple.Create(-1000),
+                BackIndexesTuple = (-1000, default),
             };
 
             if (!tupleSet.Add(tuple))
@@ -65,7 +62,7 @@ internal static class DogPlaceColorGeneration
             {
                 DataTuple = tuple,
                 HashTuple = hashTuple,
-                BackIndexesTuple = ValueTuple.Create(-1000),
+                BackIndexesTuple = (-1000, default),
             };
 
             if (!tupleSet.Add(tuple))
@@ -164,7 +161,7 @@ internal static class DogPlaceColorGeneration
             {
                 DataTuple = tuple,
                 HashTuple = hashTuple,
-                BackIndexesTuple = ValueTuple.Create(i),
+                BackIndexesTuple = (i, default),
             };
 
             if (!tupleSet.Add(tuple))

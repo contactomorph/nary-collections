@@ -13,9 +13,9 @@ namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
-using BackIndexTuple = ValueTuple<int>;
+using IndexTuple = (int, CorrespondenceEntry);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
-using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), ValueTuple<int>>;
+using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, CorrespondenceEntry)>;
 
 public class CompositeHandlerCompilationTests
 {
@@ -45,7 +45,7 @@ public class CompositeHandlerCompilationTests
         Assert.That(
             untypedHandler,
             Is.Not.Null
-                .And.InstanceOf<ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>>());
+                .And.InstanceOf<ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>>());
     }
 
     [Test]
@@ -61,11 +61,11 @@ public class CompositeHandlerCompilationTests
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
         var handler =
-            (ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>)
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
             del.DynamicInvoke()!;
 
         int dataCount = 0;
-        var dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, BackIndexTuple>[10];
+        var dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[10];
         
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode);
 
@@ -93,7 +93,7 @@ public class CompositeHandlerCompilationTests
 
             Assert.That(lastSearchResult.Case, Is.Not.EqualTo(SearchCase.ItemFound));
         
-            var candidateDataIndex = DataHandling<DogPlaceColorTuple, HashTuple, BackIndexTuple>.AddOnlyData(
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.AddOnlyData(
                 ref dataTable,
                 tuple,
                 hashTuple,
@@ -127,7 +127,7 @@ public class CompositeHandlerCompilationTests
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
         var handler =
-            (ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>)
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
             del.DynamicInvoke()!;
 
         var data = Dogs.KnownDogsWithHashCode
@@ -170,7 +170,7 @@ public class CompositeHandlerCompilationTests
 
             Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
 
-            DataHandling<DogPlaceColorTuple, HashTuple, BackIndexTuple>.RemoveOnlyData(
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTable,
                 successfulSearchResult.ForwardIndex,
                 ref dataCount);
@@ -199,7 +199,7 @@ public class CompositeHandlerCompilationTests
         var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
 
         var handler =
-            (ICompositeHandler<DogPlaceColorTuple, HashTuple, BackIndexTuple, ComparerTuple, Dog>)
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
             del.DynamicInvoke()!;
 
         var data = Dogs.KnownDogsWithHashCode
