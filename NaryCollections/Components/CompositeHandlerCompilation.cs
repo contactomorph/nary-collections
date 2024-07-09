@@ -130,7 +130,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ldarg_3);
         // candidateItem
         il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // ContainsForUnique(this._hashTable, dataTable, *this, comparerTuple, candidateHashCode, candidateItem)
+        // MembershipHandling<…>.Find(this._hashTable, dataTable, *this, comparerTuple, candidateHashCode, candidateItem)
         il.Emit(OpCodes.Call, findMethod);
         
         il.Emit(OpCodes.Ret);

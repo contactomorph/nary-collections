@@ -293,4 +293,46 @@ public class NaryCollectionCompilationTests
     {
         for (int i = 0; i < hashTable.Length; i++) hashTable[i].ForwardIndex = forwardIndex;
     }
+
+    [Test]
+    public void FindInOtherCompositeTest()
+    {
+        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+        
+        var collection = factory();
+        
+        var naryCollectionBaseType = collection.GetType().BaseType!;
+        
+        var method = naryCollectionBaseType.GetMethod(
+            NaryCollectionBase.FindInOtherCompositesMethodName,
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy)!;
+
+        var dataTupleParameter = Expression.Parameter(typeof(DogPlaceColorTuple), "dataTuple");
+        var hashTupleParameter = Expression.Parameter(typeof(HashTuple), "hashTuple");
+        var otherResultsParameter = Expression.Parameter(typeof(SearchResult[]).MakeByRefType(), "otherResults");
+        var body = Expression.Call(
+            Expression.Constant(collection),
+            method,
+            dataTupleParameter,
+            hashTupleParameter,
+            otherResultsParameter);
+        var find = Expression.Lambda<FindInOtherComposites>(
+            body,
+            dataTupleParameter,
+            hashTupleParameter,
+            otherResultsParameter).Compile();
+
+        var alreadyInside = find.Invoke(
+            (new Dog("Cannelle", "Jo"), "Nantes", Color.Lavender),
+            (1, 2, 3),
+            out var results);
+
+        Assert.That(alreadyInside, Is.False);
+        Assert.That(results, Has.Length.EqualTo(5));
+        foreach (var searchResult in results)
+        {
+            Assert.That(searchResult.Case, Is.EqualTo(SearchCase.EmptyEntryFound));
+            Assert.That(searchResult.DriftPlusOne, Is.EqualTo(HashEntry.Optimal));
+        }
+    }
 }

@@ -161,8 +161,8 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         if (result.Case == SearchCase.ItemFound)
             return false;
         
-        var found = FindInOtherComposites(dataTuple, hashTuple, out var otherResults);
-        if (found)
+        var alreadyInside = FindInOtherComposites(dataTuple, hashTuple, out var otherResults);
+        if (alreadyInside)
             return false;
 
         ++_version;

@@ -7,7 +7,7 @@ using NaryCollections.Tools;
 
 namespace NaryCollections.Implementation;
 
-using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo);
+using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo, bool MustBeUnique);
 
 internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema, new()
 {
@@ -88,7 +88,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 FieldAttributes.Private);
 
             var otherDataTypeProjection = dataTypeDecomposition.ProjectAlong(rank, indexes);
-            compositeInfo.Add((otherDataTypeProjection, fieldBuilder, otherHandlerCtor));
+            compositeInfo.Add((otherDataTypeProjection, fieldBuilder, otherHandlerCtor, composite.Unique));
         }
         
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, compositeInfo);
@@ -162,7 +162,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         // base(schema, completeProjector, comparerTuple)
         il.Emit(OpCodes.Call, baseCtor);
 
-        foreach (var (_, fieldBuilder, ctor) in compositeInfo)
+        foreach (var (_, fieldBuilder, ctor, _) in compositeInfo)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);
@@ -243,6 +243,11 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 paramTypes);
         ILGenerator il = methodBuilder.GetILGenerator();
         
+        var equalVariable = il.DeclareLocal(typeof(bool));
+        
+        var alreadyInsideLabel = il.DefineLabel();
+        var endLabel = il.DefineLabel();
+        
         // searchResults
         il.Emit(OpCodes.Ldarg_3);
         // compositeCount
@@ -259,11 +264,13 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             baseCollectionType,
             NaryCollectionBase.ComparerTupleFieldName);
 
-        foreach (var (dataTypeProjection, handlerFieldBuilder, _) in compositeInfo)
+        int i = 0;
+        
+        foreach (var (dataTypeProjection, handlerFieldBuilder, _, mustBeUnique) in compositeInfo)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);
-            // this._compositeHandler_⟨i⟩
+            // ref this._compositeHandler_⟨i⟩
             il.Emit(OpCodes.Ldflda, handlerFieldBuilder);
             // this
             il.Emit(OpCodes.Ldarg_0);
@@ -276,23 +283,24 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             
             if (1 < dataTypeProjection.DataProjectionMapping.Count)
             {
-                var hashOutputType = dataTypeProjection.HashProjectionMapping.OutputType;
+                var hashMapping = dataTypeProjection.HashProjectionMapping;
                 
-                foreach (var correspondence in dataTypeProjection.HashProjectionMapping)
+                foreach (var correspondence in hashMapping)
                 {
                     // hashTuple
                     il.Emit(OpCodes.Ldarg_2);
                     // hashTuple.Item⟨j⟩
                     il.Emit(OpCodes.Ldfld, correspondence.InputField);
                 }
+                
                 // new ValueTuple<…>(…)
-                il.Emit(OpCodes.Call, hashOutputType.GetConstructor());
+                il.Emit(OpCodes.Newobj, hashMapping.OutputType.GetConstructor());
                 // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
-                il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashOutputType));
+                il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashMapping.OutputType));
                 
-                var dataOutputType = dataTypeProjection.DataProjectionMapping.OutputType;
+                var dataMapping = dataTypeProjection.DataProjectionMapping;
                 
-                foreach (var correspondence in dataTypeProjection.HashProjectionMapping)
+                foreach (var correspondence in dataMapping)
                 {
                     // dataTuple
                     il.Emit(OpCodes.Ldarg_1);
@@ -300,7 +308,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                     il.Emit(OpCodes.Ldfld, correspondence.InputField);
                 }
                 // new ValueTuple<…>(…)
-                il.Emit(OpCodes.Call, dataOutputType.GetConstructor());
+                il.Emit(OpCodes.Newobj, dataMapping.OutputType.GetConstructor());
             }
             else
             {
@@ -313,28 +321,61 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 // dataTuple.Item⟨j⟩
                 il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].InputField);
             }
-            
+
             var findMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
                 nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find));
-
+                
             var resultLocal = il.DeclareLocal(typeof(SearchResult));
-            
-            // _compositeHandler_⟨i⟩.Find(this._dataTable, this.ComparerTuple, ⟨hc⟩, ⟨item⟩)
+
+            // (ref _compositeHandler_⟨i⟩).Find(this._dataTable, this.ComparerTuple, ⟨hc⟩, ⟨item⟩)
             il.Emit(OpCodes.Call, findMethod);
-            // result = _compositeHandler_⟨i⟩.Find(this._dataTable, this.ComparerTuple, ⟨hc⟩, ⟨item⟩)
+            // result = (ref _compositeHandler_⟨i⟩).Find(this._dataTable, this.ComparerTuple, ⟨hc⟩, ⟨item⟩)
             il.Emit(OpCodes.Stloc, resultLocal);
-            // ref result
-            il.Emit(OpCodes.Ldloca_S, resultLocal);
-            // (ref result).Case
-            il.Emit(OpCodes.Call, CommonCompilation.GetCaseMethod);
-            // SearchCase.ItemFound
-            il.Emit(OpCodes.Ldc_I4, (int)SearchCase.ItemFound);
-            // result.Case == SearchCase.ItemFound
-            il.Emit(OpCodes.Ceq);
             
-            il.Emit(OpCodes.Ret);
+            // searchResults
+            il.Emit(OpCodes.Ldarg_3);
+            // *searchResults
+            il.Emit(OpCodes.Ldind_Ref);
+            // i
+            il.Emit(OpCodes.Ldc_I4, i);
+            // result
+            il.Emit(OpCodes.Ldloc, resultLocal);
+            // (*searchResults)[i] = result
+            il.Emit(OpCodes.Stelem, typeof(SearchResult));
+
+            if (mustBeUnique)
+            {
+                // ref result
+                il.Emit(OpCodes.Ldloca, resultLocal);
+                // (ref result).Case
+                il.Emit(OpCodes.Call, CommonCompilation.GetCaseMethod);
+                // SearchCase.ItemFound
+                il.Emit(OpCodes.Ldc_I4, (int)SearchCase.ItemFound);
+                // (ref result).Case == SearchCase.ItemFound
+                il.Emit(OpCodes.Ceq);
+                // equal = (ref result).Case == SearchCase.ItemFound
+                il.Emit(OpCodes.Stloc, equalVariable);
+                // equal
+                il.Emit(OpCodes.Ldloc, equalVariable);
+                // equal → alreadyInsideLabel
+                il.Emit(OpCodes.Brtrue, alreadyInsideLabel);
+            }
+
+            ++i;
         }
+
+        // false
+        il.Emit(OpCodes.Ldc_I4_0);
+        // → endLabel
+        il.Emit(OpCodes.Br_S, endLabel);
+        
+        il.MarkLabel(alreadyInsideLabel);
+        // true
+        il.Emit(OpCodes.Ldc_I4_1);
+        
+        il.MarkLabel(endLabel);
+        il.Emit(OpCodes.Ret);
         
         CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder);
     }
