@@ -263,4 +263,56 @@ public class MultiUpdateHandlingTests
                 hashTupleComputer);
         }
     }
+    
+    [Test]
+    public void CapacityChangeForNonUniqueTest()
+    {
+        var hashTupleComputer = DogPlaceColorProjector.GetHashTupleComputer();
+        
+        DogPlaceColorGeneration.CreateTablesForNonUnique(
+            DogPlaceColorTuples.Data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog);
+        
+        Consistency.CheckForNonUnique(
+            hashTable,
+            dataTable,
+            DogPlaceColorTuples.Data.Count,
+            DogProjector.Instance,
+            hashTupleComputer);
+
+        for (int i = 0; i < 5; ++i)
+        {
+            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacityForNonUnique(
+                dataTable,
+                DogProjector.Instance,
+                HashEntry.IncreaseCapacity(hashTable.Length),
+                DogPlaceColorTuples.Data.Count);
+        
+            Consistency.CheckForNonUnique(
+                hashTable,
+                dataTable,
+                DogPlaceColorTuples.Data.Count,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+
+        for (int i = 0; i < 6; ++i)
+        {
+            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacityForNonUnique(
+                dataTable,
+                DogProjector.Instance,
+                HashEntry.DecreaseCapacity(hashTable.Length),
+                DogPlaceColorTuples.Data.Count);
+        
+            Consistency.CheckForNonUnique(
+                hashTable,
+                dataTable,
+                DogPlaceColorTuples.Data.Count,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+    }
 }

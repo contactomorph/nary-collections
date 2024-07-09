@@ -11,14 +11,15 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         TDataEntry[] dataTable,
         TResizeHandler handler,
         SearchResult lastSearchResult,
-        int candidateDataIndex)
+        int candidateDataIndex,
+        int candidateDataNext = MultiIndex.NoNext)
     {
         uint candidateReducedHashCode = lastSearchResult.ReducedHashCode;
         uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
         MultiIndex candidateMultiIndex = new()
         {
             Previous = (int)candidateReducedHashCode,
-            Next = MultiIndex.NoNext,
+            Next = candidateDataNext,
             IsSubsequent = false,
         };
 
@@ -82,5 +83,29 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
             HashCodeReduction.MoveReducedHashCode(ref candidateReducedHashCode, hashTable.Length);
             candidateDriftPlusOne++;
         }
+    }
+
+    public static HashEntry[] ChangeCapacityForNonUnique(
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int newHashTableCapacity,
+        int newDataCount)
+    {
+        var hashTable = new HashEntry[newHashTableCapacity];
+        
+        for (int i = 0; i < newDataCount; i++)
+        {
+            if (handler.GetBackIndex(dataTable, i).IsSubsequent)
+                continue;
+            var hashCode = handler.GetHashCodeAt(dataTable, i);
+            var reducedHashCode = HashCodeReduction.ComputeReducedHashCode(hashCode, newHashTableCapacity);
+            var next = handler.GetBackIndex(dataTable, i).Next;
+            var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
+                SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
+                SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
+            AddForNonUnique(hashTable, dataTable, handler, searchResult, i, next);
+        }
+
+        return hashTable;
     }
 }
