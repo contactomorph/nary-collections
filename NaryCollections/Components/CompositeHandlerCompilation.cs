@@ -32,7 +32,8 @@ public static class CompositeHandlerCompilation
                 dataTypeProjection.ComparerTupleType,
                 itemType);
 
-        Type resizeHandlerInterfaceType = typeof(IResizeHandler<>).MakeGenericType(dataTypeProjection.DataEntryType);
+        Type resizeHandlerInterfaceType = typeof(IResizeHandler<,>)
+            .MakeGenericType(dataTypeProjection.DataEntryType, typeof(int));
         Type dataEquatorInterfaceType = typeof(IDataEquator<,,>)
             .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleType, itemType);
 

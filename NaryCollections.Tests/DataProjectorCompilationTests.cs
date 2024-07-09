@@ -70,7 +70,7 @@ public class DataProjectorCompilationTests
             [false, true]);
         
         var handler = CallDogCtor(constructor);
-        var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
+        var resizeHandler = (IResizeHandler<DogPlaceColorEntry, int>)handler;
         var dataEquator = (IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>)resizeHandler;
         var comparerTuple = (DogComparer, StringComparer, ColorComparer);
 
@@ -138,7 +138,7 @@ public class DataProjectorCompilationTests
             [false, true]);
         
         var handler = CallColorPlaceCtor(constructor);
-        var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
+        var resizeHandler = (IResizeHandler<DogPlaceColorEntry, int>)handler;
         var dataEquator = (IDataEquator<DogPlaceColorEntry, ComparerTuple, ColorPlaceTuple>)handler;
         var comparerTuple = (DogComparer, StringComparer, ColorComparer);
     
@@ -173,7 +173,7 @@ public class DataProjectorCompilationTests
             [false, true]);
         
         var handler = CallDogPlaceColorCtor(constructor);
-        var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)handler;
+        var resizeHandler = (IResizeHandler<DogPlaceColorEntry, int>)handler;
         var dataEquator = (IDataEquator<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple>)handler;
         var comparerTuple = (DogComparer, StringComparer, ColorComparer);
     
@@ -211,7 +211,7 @@ public class DataProjectorCompilationTests
             0,
             [false, true]);
         
-        var resizeHandler = (IResizeHandler<DogPlaceColorEntry>)CallDogCtor(constructor);
+        var resizeHandler = (IResizeHandler<DogPlaceColorEntry, int>)CallDogCtor(constructor);
         
         for (int i = 0; i < dataTable.Length; ++i)
         {

@@ -10,7 +10,7 @@ public static class Consistency
         HashEntry[] hashTable,
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
         int dataLength,
-        IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>> handler,
+        IResizeHandler<DataEntry<TDataTuple, THashTuple, TIndexTuple>, int> handler,
         Func<TDataTuple, THashTuple> hashTupleComputation)
         where TDataTuple: struct, ITuple, IStructuralEquatable
         where THashTuple: struct, ITuple, IStructuralEquatable

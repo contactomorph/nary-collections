@@ -93,7 +93,7 @@ public class NaryCollectionCompilationTests
         
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry>>(
+        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry, int>>(
             "_compositeHandler");
 
         var resizeHandler = resizeHandlerGetter(collection);
@@ -183,7 +183,7 @@ public class NaryCollectionCompilationTests
         
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry>>(
+        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry, int>>(
             "_compositeHandler");
 
         var resizeHandler = resizeHandlerGetter(collection);
@@ -236,12 +236,12 @@ public class NaryCollectionCompilationTests
         
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        manipulator.GetFieldValue(collection, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry> h0);
-        manipulator.GetFieldValue(collection, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry> h1);
-        manipulator.GetFieldValue(collection, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry> h2);
-        manipulator.GetFieldValue(collection, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry> h3);
-        manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry> h4);
-        manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry> h5);
+        manipulator.GetFieldValue(collection, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry, int> h0);
+        manipulator.GetFieldValue(collection, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry, int> h1);
+        manipulator.GetFieldValue(collection, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry, int> h2);
+        manipulator.GetFieldValue(collection, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry, int> h3);
+        manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, int> h4);
+        manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, int> h5);
         
         var manipulatorForH3 = FieldManipulator.ForRealTypeOf(h3);
         manipulatorForH3.GetFieldValue(h3, "_hashTable", out HashEntry[] hashTable3);

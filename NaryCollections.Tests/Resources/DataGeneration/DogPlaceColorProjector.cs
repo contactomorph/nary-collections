@@ -10,7 +10,7 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 
 internal readonly struct DogPlaceColorProjector :
     IDataEquator<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple>,
-    IResizeHandler<DogPlaceColorEntry>,
+    IResizeHandler<DogPlaceColorEntry, int>,
     IItemHasher<ComparerTuple, DogPlaceColorTuple>
 {
     public static readonly DogPlaceColorProjector Instance = new();

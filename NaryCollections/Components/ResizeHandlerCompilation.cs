@@ -5,7 +5,7 @@ namespace NaryCollections.Components;
 
 public static class ResizeHandlerCompilation
 {
-    public struct FakeResizeHandler : IResizeHandler<ValueTuple>
+    public struct FakeResizeHandler : IResizeHandler<ValueTuple, int>
     {
         public uint GetHashCodeAt(ValueTuple[] dataTable, int index) => throw new NotImplementedException();
 
@@ -21,7 +21,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object>.GetHashCodeAt),
+                nameof(IResizeHandler<object, int>.GetHashCodeAt),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.DataTableType, typeof(int)]);
@@ -67,7 +67,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object>.GetBackIndex),
+                nameof(IResizeHandler<object, int>.GetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(int),
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
@@ -100,7 +100,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object>.SetBackIndex),
+                nameof(IResizeHandler<object, int>.SetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);

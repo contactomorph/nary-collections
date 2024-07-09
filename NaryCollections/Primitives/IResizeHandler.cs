@@ -1,8 +1,8 @@
 namespace NaryCollections.Primitives;
 
-public interface IResizeHandler<in TDataEntry>
+public interface IResizeHandler<in TDataEntry, TBackIndex> where TBackIndex : struct
 {
     uint GetHashCodeAt(TDataEntry[] dataTable, int index);
-    int GetBackIndex(TDataEntry[] dataTable, int index);
-    void SetBackIndex(TDataEntry[] dataTable, int index, int backIndex);
+    TBackIndex GetBackIndex(TDataEntry[] dataTable, int index);
+    void SetBackIndex(TDataEntry[] dataTable, int index, TBackIndex backIndex);
 }

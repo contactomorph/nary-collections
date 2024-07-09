@@ -4,7 +4,7 @@ namespace NaryCollections.Components;
 
 public static class UpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
-    where TResizeHandler : struct, IResizeHandler<TDataEntry>
+    where TResizeHandler : struct, IResizeHandler<TDataEntry, int>
 {
     public static void AddForUnique(
         HashEntry[] hashTable,
