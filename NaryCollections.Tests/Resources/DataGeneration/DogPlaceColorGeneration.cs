@@ -136,10 +136,11 @@ internal static class DogPlaceColorGeneration
         Func<DogPlaceColorTuple, (uint, uint, uint)>? hashTupleComputer = null)
     {
         hashTupleComputer ??= DogPlaceColorProjector.GetHashTupleComputer();
-        int size = data.Count  * 2 / 2;
+        int hashTableSize = data.Count * 4 / 5;
+        int dataTableSize = data.Count * 3 / 2;
         
-        hashTable = new HashEntry[size];
-        dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[size];
+        hashTable = new HashEntry[hashTableSize];
+        dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[dataTableSize];
         
         var tupleSet = new HashSet<DogPlaceColorTuple>();
         

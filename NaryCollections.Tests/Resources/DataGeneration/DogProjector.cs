@@ -10,14 +10,12 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 internal readonly struct DogProjector :
     IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>,
     IResizeHandler<DogPlaceColorEntry, int>,
+    IResizeHandler<DogPlaceColorEntry, MultiIndex>,
     IItemHasher<ComparerTuple, Dog>
 {
     public static readonly DogProjector Instance = new();
 
-    public uint GetHashCodeAt(DogPlaceColorEntry[] dataTable, int index)
-    {
-        return dataTable[index].HashTuple.Item1;
-    }
+    public uint GetHashCodeAt(DogPlaceColorEntry[] dataTable, int index) => dataTable[index].HashTuple.Item1;
 
     public bool AreDataEqualAt(
         DogPlaceColorEntry[] dataTable,
@@ -35,6 +33,16 @@ internal readonly struct DogProjector :
     public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, int backIndex)
     {
         dataTable[index].BackIndexesTuple.Item1 = backIndex;
+    }
+
+    MultiIndex IResizeHandler<DogPlaceColorEntry, MultiIndex>.GetBackIndex(DogPlaceColorEntry[] dataTable, int index)
+    {
+        return dataTable[index].BackIndexesTuple.Item2;
+    }
+
+    public void SetBackIndex(DogPlaceColorEntry[] dataTable, int index, MultiIndex backIndex)
+    {
+        dataTable[index].BackIndexesTuple.Item2 = backIndex;
     }
 
     public uint ComputeHashCode(ComparerTuple comparerTuple, Dog item) => (uint)comparerTuple.Item1.GetHashCode(item);

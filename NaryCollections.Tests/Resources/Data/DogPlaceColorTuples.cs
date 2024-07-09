@@ -42,4 +42,22 @@ public static class DogPlaceColorTuples
         /* 11 */ default,
         /* 12 */ default,
     ];
+    
+    // for Dogs.DogsWithHashCode
+    public static readonly IReadOnlyList<HashEntry> ExpectedHashTableSource2 = 
+    [
+        /*  0 */ default,
+        /*  1 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 2 }, // ok
+        /*  2 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 3 }, // should be in 1
+        /*  3 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 5 }, // should be in 2
+        /*  4 */ default,
+        /*  5 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 7 }, // ok
+        /*  6 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 9 }, // should be in 5
+        /*  7 */ new HashEntry { DriftPlusOne = 3, ForwardIndex = 10 }, // should be in 5
+        /*  8 */ new HashEntry { DriftPlusOne = 3, ForwardIndex = 13 }, // should be in 6
+        /*  9 */ new HashEntry { DriftPlusOne = 2, ForwardIndex = 14 }, // should be in 8
+        /* 10 */ new HashEntry { DriftPlusOne = HashEntry.Optimal, ForwardIndex = 16 }, // ok
+        /* 11 */ default,
+        /* 12 */ default,
+    ];
 }
