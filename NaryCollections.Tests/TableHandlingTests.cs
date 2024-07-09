@@ -30,7 +30,7 @@ public class UpdateHandlingTests
 
         foreach (var (dog, _, _) in DogPlaceColorTuples.DataWithUniqueDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTable,
                 dataTable,
                 handler,
@@ -43,7 +43,7 @@ public class UpdateHandlingTests
         
         foreach (var dog in Dogs.UnknownDogs)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTable,
                 dataTable,
                 handler,
@@ -76,7 +76,7 @@ public class UpdateHandlingTests
 
         foreach (var tuple in DogPlaceColorTuples.Data)
         {
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple, DogPlaceColorProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, DogPlaceColorTuple, DogPlaceColorProjector>.Find(
                 hashTable,
                 dataTable,
                 handler,
@@ -128,7 +128,7 @@ public class UpdateHandlingTests
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
 
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -169,7 +169,7 @@ public class UpdateHandlingTests
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
             
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -210,7 +210,7 @@ public class UpdateHandlingTests
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -252,7 +252,7 @@ public class UpdateHandlingTests
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer)((dog, "Montevideo", Color.Thistle)),
                 ref dataCount);
         
-            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var result = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,

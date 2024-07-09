@@ -9,7 +9,7 @@ public static class MembershipHandling<TDataEntry, TComparerTuple, T, TEquator>
     where TComparerTuple : struct, ITuple, IStructuralEquatable
     where TEquator : struct, IDataEquator<TDataEntry, TComparerTuple, T>
 {
-    public static SearchResult ContainsForUnique(
+    public static SearchResult Find(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TEquator equator,

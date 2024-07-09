@@ -109,10 +109,10 @@ public static class CompositeHandlerCompilation
                 [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleType, typeof(uint), itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        var genericContainsForUniqueMethod = typeof(MembershipHandling<,,,>)
-            .GetMethod(nameof(MembershipHandling<ValueTuple, ValueTuple, object, DataEquatorCompilation.FakeDataEquator>.ContainsForUnique))!;
+        var genericFindMethod = typeof(MembershipHandling<,,,>)
+            .GetMethod(nameof(MembershipHandling<ValueTuple, ValueTuple, object, DataEquatorCompilation.FakeDataEquator>.Find))!;
         
-        var containsForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericContainsForUniqueMethod);
+        var findMethod = TypeBuilder.GetMethod(updateHandlingType, genericFindMethod);
 
         // this
         il.Emit(OpCodes.Ldarg_0);
@@ -131,7 +131,7 @@ public static class CompositeHandlerCompilation
         // candidateItem
         il.Emit(OpCodes.Ldarg_S, (byte)4);
         // ContainsForUnique(this._hashTable, dataTable, *this, comparerTuple, candidateHashCode, candidateItem)
-        il.Emit(OpCodes.Call, containsForUniqueMethod);
+        il.Emit(OpCodes.Call, findMethod);
         
         il.Emit(OpCodes.Ret);
 

@@ -83,7 +83,7 @@ public class CompositeHandlerCompilationTests
         
             Assert.That(hashTuple.Item1, Is.EqualTo(hc));
 
-            var lastSearchResult = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.ContainsForUnique(
+            var lastSearchResult = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
                 hashTableGetter(handler),
                 dataTable,
                 DogProjector.Instance,
@@ -160,7 +160,7 @@ public class CompositeHandlerCompilationTests
             hashTable = hashTableGetter(handler);
             var successfulSearchResult =
                 MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>
-                    .ContainsForUnique(
+                    .Find(
                         hashTable,
                         dataTable,
                         DogProjector.Instance,
