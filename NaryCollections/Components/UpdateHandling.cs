@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
@@ -13,6 +14,8 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         SearchResult lastSearchResult,
         int candidateDataIndex)
     {
+        MustNotBeFound(lastSearchResult);
+        
         uint candidateReducedHashCode = lastSearchResult.ReducedHashCode;
         uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
 
@@ -66,6 +69,8 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         SearchResult successfulSearchResult,
         int newDataCount)
     {
+        MustBeFound(successfulSearchResult);
+        
         uint reducedHashCode = successfulSearchResult.ReducedHashCode;
         
         // If the removed item was not the last item in dataTable,
@@ -120,5 +125,17 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         }
 
         return hashTable;
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustBeFound(SearchResult result)
+    {
+        Debug.Assert(result.Case == SearchCase.ItemFound, "Item must have been found when removing it");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustNotBeFound(SearchResult result)
+    {
+        Debug.Assert(result.Case != SearchCase.ItemFound, "New item cannot have been found when adding it");
     }
 }
