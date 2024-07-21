@@ -2,7 +2,7 @@ namespace NaryCollections.Primitives;
 
 public struct MultiIndex
 {
-    public static readonly int NoNext = -1;
+    public const int NoNext = -1;
     
     // index in the hash table if !Subsequent
     // previous entry in the data table if Subsequent
@@ -15,14 +15,14 @@ public struct MultiIndex
         if (IsSubsequent)
         {
             return Next == NoNext
-                ? $"\u00B7 \u2190 (\u2191 {Previous}, \u00B7 \u00B7)"
-                : $"\u00B7 \u2190 (\u2191 {Previous}, \u2193 {Next})";
+                ? $"\u2329 \u2191{Previous} \u232a"
+                : $"\u2329 \u2191{Previous} \u00b7 \u2193{Next} \u232a";
         }
         else
         {
             return Next == NoNext
-                ? $"{Previous} \u2190 (\u00B7 \u00B7, \u00B7 \u00B7) \u2192"
-                : $"{Previous} \u2190 (\u00B7 \u00B7, \u2193 {Next}) \u2192";
+                ? $"\u2329 \u2190{Previous} \u232a"
+                : $"\u2329 \u2190{Previous} \u00b7 \u2193{Next} \u232a";
         }
     }
 }
