@@ -79,6 +79,35 @@ public static class Consistency
             }
         }
     }
+    
+    public static void EqualsAt(
+        int index,
+        IReadOnlyList<HashEntry> hashTable,
+        uint expectedDriftPlusOne,
+        int expectedForwardIndex)
+    {
+        var expectedEntry = new HashEntry
+        {
+            DriftPlusOne = expectedDriftPlusOne,
+            ForwardIndex = expectedForwardIndex,
+        };
+        Assert.That(hashTable[index], Is.EqualTo(expectedEntry));
+    }
+    
+    public static void AreEqualExcept(
+        IReadOnlyList<HashEntry> hashTable1,
+        IReadOnlyList<HashEntry> hashTable2,
+        params int[] excluded)
+    {
+        HashSet<int> excludedIndexes = [..excluded];
+        Assert.That(hashTable1.Count, Is.EqualTo(hashTable2.Count));
+        for (int i = 0; i < hashTable2.Count; i++)
+        {
+            if (excludedIndexes.Contains(i))
+                continue;
+            Assert.That(hashTable1[i], Is.EqualTo(hashTable2[i]), "Hash table entries are not equal at index {0}", i);
+        }
+    }
 
     private static Exception CreateConsistencyError(string firstPlace, string secondPlace)
     {
