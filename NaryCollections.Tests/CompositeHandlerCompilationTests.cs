@@ -46,6 +46,15 @@ public class CompositeHandlerCompilationTests
             untypedHandler,
             Is.Not.Null
                 .And.InstanceOf<ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>>());
+        
+        var handler =
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)untypedHandler!;
+        
+        var fm = FieldManipulator.ForRealTypeOf(handler);
+            
+        fm.GetFieldValue<HashEntry[]>(handler, "_hashTable", out var hashTable);
+        
+        Assert.That(hashTable.Select(e => e.DriftPlusOne).ToArray(), Is.All.Zero);
     }
 
     [Test]

@@ -7,6 +7,8 @@ using NaryCollections.Tools;
 
 namespace NaryCollections.Implementation;
 
+using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo);
+
 internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema, new()
 {
     private static Builder? _builder;
@@ -67,7 +69,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             .Participants
             .ToDictionary(p => p.Participant, p => p.Position);
         
-        List<(DataTypeProjection, FieldBuilder)> compositeInfo = new();
+        List<CompositeInfo> compositeInfo = new();
         foreach (var composite in composites)
         {
             var indexes = composite.Participants.Select(p => positionPerParticipants[p]).ToArray();
@@ -86,7 +88,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
                 FieldAttributes.Private);
 
             var otherDataTypeProjection = dataTypeDecomposition.ProjectAlong(rank, indexes);
-            compositeInfo.Add((otherDataTypeProjection, fieldBuilder));
+            compositeInfo.Add((otherDataTypeProjection, fieldBuilder, otherHandlerCtor));
         }
         
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, compositeInfo);
@@ -136,7 +138,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         Type schemaType,
         Type completeProjectorType,
         ValueTupleType comparerTupleType,
-        IReadOnlyList<(DataTypeProjection, FieldBuilder)> compositeInfo)
+        IReadOnlyList<CompositeInfo> compositeInfo)
     {
         var ctorBuilder = typeBuilder.DefineConstructor(
             MethodAttributes.Public,
@@ -160,10 +162,8 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         // base(schema, completeProjector, comparerTuple)
         il.Emit(OpCodes.Call, baseCtor);
 
-        foreach (var (_, fieldBuilder) in compositeInfo)
+        foreach (var (_, fieldBuilder, ctor) in compositeInfo)
         {
-            var ctor = fieldBuilder.FieldType.GetConstructor([typeof(bool)])!;
-            
             // this
             il.Emit(OpCodes.Ldarg_0);
             // false
@@ -227,7 +227,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeDecomposition,
         Type baseCollectionType,
-        IReadOnlyList<(DataTypeProjection, FieldBuilder)> compositeInfo)
+        IReadOnlyList<CompositeInfo> compositeInfo)
     {
         Type[] paramTypes = [
             dataTypeDecomposition.DataTupleType,
@@ -259,7 +259,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
             baseCollectionType,
             NaryCollectionBase.ComparerTupleFieldName);
 
-        foreach (var (dataTypeProjection, handlerFieldBuilder) in compositeInfo)
+        foreach (var (dataTypeProjection, handlerFieldBuilder, _) in compositeInfo)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);

@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using NaryCollections.Implementation;
@@ -17,6 +18,8 @@ using DogPlaceColorEntry = DataEntry<
     (Dog Dog, string Place, Color Color),
     (uint, uint, uint),
     (int, MultiIndex, MultiIndex, int, MultiIndex, MultiIndex)>;
+
+delegate bool FindInOtherComposites(DogPlaceColorTuple dataTuple, HashTuple hashTuple, out SearchResult[] otherResults);
 
 public class NaryCollectionCompilationTests
 {
@@ -243,15 +246,51 @@ public class NaryCollectionCompilationTests
         manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, int> h4);
         manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, int> h5);
         
+        var manipulatorForH0 = FieldManipulator.ForRealTypeOf(h0);
+        manipulatorForH0.GetFieldValue(h0, "_hashTable", out HashEntry[] hashTable0);
+        
+        Assert.That(hashTable0.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
+        var manipulatorForH1 = FieldManipulator.ForRealTypeOf(h1);
+        manipulatorForH1.GetFieldValue(h1, "_hashTable", out HashEntry[] hashTable1);
+        
+        Assert.That(hashTable1.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
+        var manipulatorForH2 = FieldManipulator.ForRealTypeOf(h2);
+        manipulatorForH2.GetFieldValue(h2, "_hashTable", out HashEntry[] hashTable2);
+        
+        Assert.That(hashTable2.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
         var manipulatorForH3 = FieldManipulator.ForRealTypeOf(h3);
         manipulatorForH3.GetFieldValue(h3, "_hashTable", out HashEntry[] hashTable3);
         
         Assert.That(hashTable3.Select(h => h.DriftPlusOne), Is.All.Zero);
         
+        var manipulatorForH4 = FieldManipulator.ForRealTypeOf(h4);
+        manipulatorForH4.GetFieldValue(h4, "_hashTable", out HashEntry[] hashTable4);
+        
+        Assert.That(hashTable4.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
         var manipulatorForH5 = FieldManipulator.ForRealTypeOf(h5);
         manipulatorForH5.GetFieldValue(h5, "_hashTable", out HashEntry[] hashTable5);
         
         Assert.That(hashTable5.Select(h => h.DriftPlusOne), Is.All.Zero);
+        
+        Fill(hashTable1, 10);
+        Fill(hashTable2, 20);
+        Fill(hashTable3, 30);
+        Fill(hashTable4, 40);
+        Fill(hashTable5, 50);
+        
+        Assert.That(hashTable1.Select(h => h.ForwardIndex), Is.All.EqualTo(10));
+        Assert.That(hashTable2.Select(h => h.ForwardIndex), Is.All.EqualTo(20));
+        Assert.That(hashTable3.Select(h => h.ForwardIndex), Is.All.EqualTo(30));
+        Assert.That(hashTable4.Select(h => h.ForwardIndex), Is.All.EqualTo(40));
+        Assert.That(hashTable5.Select(h => h.ForwardIndex), Is.All.EqualTo(50));
+    }
 
+    private void Fill(HashEntry[] hashTable, int forwardIndex)
+    {
+        for (int i = 0; i < hashTable.Length; i++) hashTable[i].ForwardIndex = forwardIndex;
     }
 }
