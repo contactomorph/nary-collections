@@ -76,7 +76,7 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddForNonUnique(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -117,7 +117,7 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddForNonUnique(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -158,7 +158,7 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddForNonUnique(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -200,7 +200,7 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddForNonUnique(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -245,7 +245,7 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForItemFound(dogHc + 1, 2, 9)));
             
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddForNonUnique(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -285,7 +285,7 @@ public class MultiUpdateHandlingTests
 
         for (int i = 0; i < 5; ++i)
         {
-            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacityForNonUnique(
+            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacity(
                 dataTable,
                 DogProjector.Instance,
                 HashEntry.IncreaseCapacity(hashTable.Length),
@@ -301,7 +301,7 @@ public class MultiUpdateHandlingTests
 
         for (int i = 0; i < 6; ++i)
         {
-            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacityForNonUnique(
+            hashTable = MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.ChangeCapacity(
                 dataTable,
                 DogProjector.Instance,
                 HashEntry.DecreaseCapacity(hashTable.Length),

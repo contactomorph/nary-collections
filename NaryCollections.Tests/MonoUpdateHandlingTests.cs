@@ -14,7 +14,7 @@ using IndexTuple = (int, MultiIndex);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
-public class UpdateHandlingTests
+public class MonoUpdateHandlingTests
 {
     [Test]
     public void CheckItemAdditionForUniqueParticipantTest()
@@ -61,7 +61,7 @@ public class UpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -102,7 +102,7 @@ public class UpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -143,7 +143,7 @@ public class UpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -185,7 +185,7 @@ public class UpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.AddForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -243,7 +243,7 @@ public class UpdateHandlingTests
                 dataIndexToRemove,
                 ref dataCount);
             
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -277,7 +277,7 @@ public class UpdateHandlingTests
                 dataIndexToRemove,
                 ref dataCount);
             
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -310,7 +310,7 @@ public class UpdateHandlingTests
                 dataIndexToRemove,
                 ref dataCount);
             
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -348,7 +348,7 @@ public class UpdateHandlingTests
                 dataIndexToRemove,
                 ref dataCount);
             
-            UpdateHandling<DogPlaceColorEntry, DogProjector>.RemoveForUnique(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -382,7 +382,7 @@ public class UpdateHandlingTests
 
         for (int i = 0; i < 5; ++i)
         {
-            hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
+            hashTable = MonoUpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacity(
                 dataTable,
                 DogPlaceColorProjector.Instance,
                 HashEntry.IncreaseCapacity(hashTable.Length),
@@ -398,7 +398,7 @@ public class UpdateHandlingTests
 
         for (int i = 0; i < 5; ++i)
         {
-            hashTable = UpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacityForUnique(
+            hashTable = MonoUpdateHandling<DogPlaceColorEntry, DogPlaceColorProjector>.ChangeCapacity(
                 dataTable,
                 DogPlaceColorProjector.Instance,
                 HashEntry.DecreaseCapacity(hashTable.Length),

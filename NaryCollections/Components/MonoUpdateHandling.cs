@@ -3,11 +3,11 @@ using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
 
-public static class UpdateHandling<TDataEntry, TResizeHandler>
+public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
     where TResizeHandler : struct, IResizeHandler<TDataEntry, int>
 {
-    public static void AddForUnique(
+    public static void Add(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -62,7 +62,7 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         }
     }
     
-    public static void RemoveForUnique(
+    public static void Remove(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -106,7 +106,7 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
-    public static HashEntry[] ChangeCapacityForUnique(
+    public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
@@ -121,7 +121,7 @@ public static class UpdateHandling<TDataEntry, TResizeHandler>
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            AddForUnique(hashTable, dataTable, handler, searchResult, i);
+            Add(hashTable, dataTable, handler, searchResult, i);
         }
 
         return hashTable;

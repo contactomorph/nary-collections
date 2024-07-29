@@ -150,8 +150,9 @@ public static class CompositeHandlerCompilation
             typeof(int),
             typeof(int),
         ];
-        
-        var updateHandlingType = typeof(UpdateHandling<,>)
+
+        var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
+        var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
         MethodBuilder methodBuilder = typeBuilder
@@ -177,11 +178,11 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IsFullEnough))!);
         // HashEntry.IsFullEnough(this._hashTable.Length, newDataCount) → resizeLabel
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
+
+        var genericAddMethod = updateHandlingTypeDefinition
+            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.Add))!;
         
-        var genericAddForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.AddForUnique))!;
-        
-        var addForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddForUniqueMethod);
+        var addMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddMethod);
         
         // this
         il.Emit(OpCodes.Ldarg_0);
@@ -197,17 +198,15 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ldarg_2);
         // candidateDataIndex
         il.Emit(OpCodes.Ldarg_3);
-        // AddForUnique(this._hashTable, dataTable, *this, lastSearchResult, candidateDataIndex)
-        il.Emit(OpCodes.Call, addForUniqueMethod);
+        // Add(this._hashTable, dataTable, *this, lastSearchResult, candidateDataIndex)
+        il.Emit(OpCodes.Call, addMethod);
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
-        var genericChangeCapacityForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
+        var genericChangeCapacityMethod = updateHandlingTypeDefinition
+            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacity))!;
         
-        var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
-            updateHandlingType,
-            genericChangeCapacityForUniqueMethod);
+        var changeCapacityMethod = TypeBuilder.GetMethod(updateHandlingType, genericChangeCapacityMethod);
         
         il.MarkLabel(resizeLabel);
         
@@ -229,9 +228,9 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IncreaseCapacity))!);
         // newDataCount
         il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // ChangeCapacityForUnique(dataTable, *this, HashEntry.IncreaseCapacity(_hashTable.Length), newDataCount)
-        il.Emit(OpCodes.Call, changeCapacityForUniqueMethod);
-        // this._hashTable = ChangeCapacityForUnique(…)
+        // ChangeCapacity(dataTable, *this, HashEntry.IncreaseCapacity(_hashTable.Length), newDataCount)
+        il.Emit(OpCodes.Call, changeCapacityMethod);
+        // this._hashTable = ChangeCapacity(…)
         il.Emit(OpCodes.Stfld, hashTableField);
         
         il.MarkLabel(endLabel);
@@ -249,7 +248,8 @@ public static class CompositeHandlerCompilation
     {
         Type[] parameterTypes = [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)];
         
-        var updateHandlingType = typeof(UpdateHandling<,>)
+        var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
+        var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
         MethodBuilder methodBuilder = typeBuilder
@@ -276,10 +276,10 @@ public static class CompositeHandlerCompilation
         // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount) → resizeLabel
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
-        var genericRemoveForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.RemoveForUnique))!;
+        var genericRemoveMethod = updateHandlingTypeDefinition
+            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.Remove))!;
         
-        var removeForUniqueMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveForUniqueMethod);
+        var removeMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveMethod);
         
         // this
         il.Emit(OpCodes.Ldarg_0);
@@ -295,17 +295,17 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ldarg_2);
         // newDataCount
         il.Emit(OpCodes.Ldarg_3);
-        // AddForUnique(this._hashTable, dataTable, *this, successfulSearchResult, newDataCount)
-        il.Emit(OpCodes.Call, removeForUniqueMethod);
+        // Remove(this._hashTable, dataTable, *this, successfulSearchResult, newDataCount)
+        il.Emit(OpCodes.Call, removeMethod);
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
-        var genericChangeCapacityForUniqueMethod = typeof(UpdateHandling<,>)
-            .GetMethod(nameof(UpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacityForUnique))!;
+        var genericChangeCapacityMethod = updateHandlingTypeDefinition
+            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacity))!;
         
         var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
             updateHandlingType,
-            genericChangeCapacityForUniqueMethod);
+            genericChangeCapacityMethod);
         
         il.MarkLabel(resizeLabel);
         
@@ -327,9 +327,9 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.DecreaseCapacity))!);
         // newDataCount
         il.Emit(OpCodes.Ldarg_3);
-        // ChangeCapacityForUnique(dataTable, *this, HashEntry.DecreaseCapacity(_hashTable.Length), newDataCount)
+        // ChangeCapacity(dataTable, *this, HashEntry.DecreaseCapacity(_hashTable.Length), newDataCount)
         il.Emit(OpCodes.Call, changeCapacityForUniqueMethod);
-        // this._hashTable = ChangeCapacityForUnique(…)
+        // this._hashTable = ChangeCapacity(…)
         il.Emit(OpCodes.Stfld, hashTableField);
         
         il.MarkLabel(endLabel);

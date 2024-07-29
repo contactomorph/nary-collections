@@ -6,7 +6,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
     where TResizeHandler : struct, IResizeHandler<TDataEntry, MultiIndex>
 {
-    public static void AddForNonUnique(
+    public static void Add(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -85,7 +85,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
-    public static HashEntry[] ChangeCapacityForNonUnique(
+    public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
@@ -103,7 +103,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            AddForNonUnique(hashTable, dataTable, handler, searchResult, i, next);
+            Add(hashTable, dataTable, handler, searchResult, i, next);
         }
 
         return hashTable;
