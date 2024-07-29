@@ -18,6 +18,11 @@ using DogPlaceColorEntry = DataEntry<
     (Dog Dog, string Place, Color Color),
     (uint, uint, uint),
     (int, MultiIndex, MultiIndex, int, MultiIndex, MultiIndex)>;
+using NakedIndexTuple = ValueTuple<int>;
+using NakedDogPlaceColorEntry = DataEntry<
+    (Dog Dog, string Place, Color Color),
+    (uint, uint, uint),
+    ValueTuple<int>>;
 
 delegate bool FindInOtherComposites(DogPlaceColorTuple dataTuple, HashTuple hashTuple, out SearchResult[] otherResults);
 
@@ -34,9 +39,9 @@ public class NaryCollectionCompilationTests
     }
     
     [Test]
-    public void CompileDogPlaceColorTupleCollectionTest()
+    public void CompileNakedDogPlaceColorTupleCollectionTest()
     {
-        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+        var (_, factory) = NaryCollectionCompilation<NakedDogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
 
         var collection = factory();
         
@@ -88,15 +93,15 @@ public class NaryCollectionCompilationTests
     }
     
     [Test]
-    public void FillDogPlaceColorTupleCollectionRandomlyTest()
+    public void FillNakedDogPlaceColorTupleCollectionRandomlyTest()
     {
-        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+        var (_, factory) = NaryCollectionCompilation<NakedDogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
 
         var collection = factory();
         
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
-        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry, int>>(
+        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<NakedDogPlaceColorEntry, int>>(
             "_compositeHandler");
 
         var resizeHandler = resizeHandlerGetter(collection);
@@ -105,7 +110,7 @@ public class NaryCollectionCompilationTests
         
         var hashTableGetter = handlerManipulator.CreateGetter<HashEntry[]>("_hashTable");
         var dataTableGetter = manipulator
-            .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>("_dataTable");
+            .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, NakedIndexTuple>[]>("_dataTable");
 
         var set = collection.AsSet();
         var referenceSet = new HashSet<DogPlaceColorTuple>();
@@ -162,7 +167,6 @@ public class NaryCollectionCompilationTests
         }
         Assert.That(set, Is.Empty);
     }
-
 
     [Test]
     public void ClearDogPlaceColorTupleCollectionRandomlyTest()
