@@ -133,10 +133,11 @@ internal static class DogPlaceColorGeneration
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         Func<HashTuple, uint> hashProj,
         Func<DogPlaceColorTuple, object> dataProj,
-        Func<DogPlaceColorTuple, (uint, uint, uint)>? hashTupleComputer = null)
+        Func<DogPlaceColorTuple, (uint, uint, uint)>? hashTupleComputer = null,
+        bool makeHashTableSmaller = true)
     {
         hashTupleComputer ??= DogPlaceColorProjector.GetHashTupleComputer();
-        int hashTableSize = data.Count * 4 / 5;
+        int hashTableSize = makeHashTableSmaller ? data.Count * 4 / 5 : data.Count;
         int dataTableSize = data.Count * 3 / 2;
         int hashEntryCount = 0;
         
@@ -148,6 +149,9 @@ internal static class DogPlaceColorGeneration
         int i = 0;
         foreach (var tuple in data)
         {
+            if (hashEntryCount == hashTable.Length)
+                throw new InvalidOperationException("Hash table is full");
+            
             var hashTuple = hashTupleComputer(tuple);
             
             MultiIndex multiIndex = new()

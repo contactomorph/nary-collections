@@ -243,7 +243,11 @@ public static class CompositeHandlerCompilation
         FieldBuilder hashTableField,
         FieldBuilder? countField)
     {
-        var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
+        bool allowsMultipleItems = dataTypeProjection.AllowsMultipleItems;
+        
+        var updateHandlingTypeDefinition = allowsMultipleItems ?
+            typeof(MultiUpdateHandling<,>) :
+            typeof(MonoUpdateHandling<,>);
         var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
@@ -255,7 +259,9 @@ public static class CompositeHandlerCompilation
                 [dataTypeProjection.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        var genericRemoveMethod = typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.Remove))!;
+        var genericRemoveMethod = allowsMultipleItems ?
+            typeof(MultiUpdateHandling<,>).GetMethod(nameof(MultiUpdateHandling.Remove))! :
+            typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.Remove))!;
         
         var removeMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveMethod);
         
@@ -263,6 +269,15 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ldarg_0);
         // ref this._hashTable
         il.Emit(OpCodes.Ldflda, hashTableField);
+        
+        if (allowsMultipleItems)
+        {
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // ref this._count
+            il.Emit(OpCodes.Ldflda, countField!);
+        }
+
         // currentDataCount
         il.Emit(OpCodes.Ldarg_3);
         // dataTable

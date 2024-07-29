@@ -193,7 +193,7 @@ public class CompositeHandlerCompilationTests
     }
     
     [Test]
-    public void RemoveTest()
+    public void RemoveForUniqueTest()
     {
         var ctor = CompositeHandlerCompilation.GenerateConstructor(
             _moduleBuilder, 
@@ -262,6 +262,91 @@ public class CompositeHandlerCompilationTests
                 dataTable,
                 dataCount,
                 DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
+        }
+    }
+    
+    [Test]
+    public void RemoveForNonUniqueTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder, 
+            typeof(DogPlaceColorTuple),
+            [0],
+            1,
+            [false, true]);
+        
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+        
+        var handler =
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
+            del.DynamicInvoke()!;
+        
+        var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
+
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_hashTable");
+        var countGetter = manipulator.CreateGetter<int>("_count");
+        
+        Assert.That(
+            hashTableGetter(handler).Length,
+            Is.EqualTo(HashEntry.TableMinimalLength));
+
+        var data = Dogs.KnownDogsWithHashCode
+            .Select(dh => (dh.Dog, "Berlin", Color.Yellow))
+            .ToList();
+
+        int dataCount = data.Count;
+        int hashEntryCount = DogPlaceColorGeneration.CreateTablesForNonUnique(
+            data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog,
+            DogPlaceColorProjector.GetHashTupleComputer(dogComparer),
+            makeHashTableSmaller: false);
+        
+        manipulator.SetFieldValue(handler, "_hashTable", hashTable);
+        manipulator.SetFieldValue(handler, "_count", hashEntryCount);
+
+        foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
+        {
+            var tuple = (dog, "Berlin", Color.Yellow);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
+
+            Assert.That(hashTuple.Item1, Is.EqualTo(hc));
+
+            hashTable = hashTableGetter(handler);
+            hashEntryCount = countGetter(handler);
+            
+            Assert.That(hashEntryCount, Is.GreaterThan(0));
+            
+            var successfulSearchResult =
+                MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>
+                    .Find(
+                        hashTable,
+                        dataTable,
+                        DogProjector.Instance,
+                        (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
+                        hc,
+                        dog);
+
+            Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
+
+            int dataIndex = successfulSearchResult.ForwardIndex;
+            
+            handler.Remove(dataTable, dataIndex, dataCount);
+
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTable,
+                dataIndex,
+                ref dataCount);
+
+            Consistency.CheckForNonUnique(
+                hashTableGetter(handler),
+                dataTable,
+                dataCount,
+                DogProjector.Instance,
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
     }
