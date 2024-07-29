@@ -6,6 +6,12 @@ using NotImplementedException = System.NotImplementedException;
 
 namespace NaryCollections.Implementation;
 
+public static class NaryCollectionBase
+{
+    public const string DataTableFieldName = "_dataTable";
+    public const string CountFieldName = "_count";
+}
+
 public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : INaryCollection<TSchema>, IConflictingSet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
@@ -21,8 +27,10 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once MemberCanBePrivate.Global
     protected DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected int _count;
     private TCompositeHandler _compositeHandler;
-    private int _count;
     private uint _version;
 
     public TSchema Schema { get; }
@@ -163,7 +171,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
             ref _count);
 
         handlerReference.Add(_dataTable, result, candidateDataIndex, newDataCount: _count);
-        AddToOtherComposites(otherResults, candidateDataIndex, newDataCount: _count);
+        AddToOtherComposites(otherResults, candidateDataIndex);
         
         return true;
     }
@@ -196,7 +204,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         int dataIndex = result.ForwardIndex;
         
         handlerReference.Remove(_dataTable, dataIndex, _count);
-        RemoveFromOtherComposites([], dataIndex);
+        RemoveFromOtherComposites(dataIndex);
 
         DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
             ref _dataTable,
@@ -272,12 +280,7 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         THashTuple hashTuple,
         out SearchResult[] otherResults);
 
-    protected abstract void AddToOtherComposites(
-        SearchResult[] otherResults,
-        int candidateDataIndex,
-        int newDataCount);
+    protected abstract void AddToOtherComposites(SearchResult[] otherResults, int candidateDataIndex);
     
-    protected abstract void RemoveFromOtherComposites(
-        SearchResult[] otherResults,
-        int newDataCount);
+    protected abstract void RemoveFromOtherComposites(int removedDataIndex);
 }

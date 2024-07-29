@@ -95,8 +95,8 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, compositeInfo);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseCollectionType);
         DefineFindInOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType, compositeInfo);
-        DefineAddToOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType);
-        DefineRemoveFromOtherComposites(typeBuilder, dataTypeDecomposition, baseCollectionType);
+        DefineAddToOtherComposites(typeBuilder, baseCollectionType, compositeInfo);
+        DefineRemoveFromOtherComposites(typeBuilder, baseCollectionType, compositeInfo);
 
         var type = typeBuilder.CreateType();
         
@@ -383,16 +383,56 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
     private static void DefineAddToOtherComposites(
         TypeBuilder typeBuilder,
-        DataTypeProjection dataTypeDecomposition,
-        Type baseCollectionType)
+        Type baseCollectionType,
+        IReadOnlyList<CompositeInfo> compositeInfo)
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 FakeNaryCollection.AddToOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
-                [typeof(SearchResult[]), typeof(int), typeof(int)]);
+                [typeof(SearchResult[]), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
+        
+        var dataTableField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            NaryCollectionBase.DataTableFieldName);
+        var countField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            NaryCollectionBase.CountFieldName);
+
+        int i = 0;
+        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        {
+            var addMethod = CommonCompilation.GetMethod(
+                handlerFieldBuilder.FieldType,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Add));
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // ref this._compositeHandler_⟨i⟩
+            il.Emit(OpCodes.Ldflda, handlerFieldBuilder);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._dataTable
+            il.Emit(OpCodes.Ldfld, dataTableField);
+            // otherResults
+            il.Emit(OpCodes.Ldarg_1);
+            // i
+            il.Emit(OpCodes.Ldc_I4, i);
+            // otherResults[i]
+            il.Emit(OpCodes.Ldelem, typeof(SearchResult));
+            // candidateDataIndex
+            il.Emit(OpCodes.Ldarg_2);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._count
+            il.Emit(OpCodes.Ldfld, countField);
+            // (ref this._compositeHandler_⟨i⟩).Add(this._dataTable, otherResults[i], candidateDataIndex, this._count)
+            il.Emit(OpCodes.Call, addMethod);
+
+            ++i;
+        }
         
         il.Emit(OpCodes.Ret);
 
@@ -401,16 +441,47 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
     
     private static void DefineRemoveFromOtherComposites(
         TypeBuilder typeBuilder,
-        DataTypeProjection dataTypeDecomposition,
-        Type baseCollectionType)
+        Type baseCollectionType,
+        IReadOnlyList<CompositeInfo> compositeInfo)
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
                 FakeNaryCollection.RemoveFromOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
-                [typeof(SearchResult[]), typeof(int)]);
+                [typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
+        
+        var dataTableField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            NaryCollectionBase.DataTableFieldName);
+        var countField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            NaryCollectionBase.CountFieldName);
+        
+        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        {
+            var removeMethod = CommonCompilation.GetMethod(
+                handlerFieldBuilder.FieldType,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove));
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // ref this._compositeHandler_⟨i⟩
+            il.Emit(OpCodes.Ldflda, handlerFieldBuilder);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._dataTable
+            il.Emit(OpCodes.Ldfld, dataTableField);
+            // removedDataIndex
+            il.Emit(OpCodes.Ldarg_1);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._count
+            il.Emit(OpCodes.Ldfld, countField);
+            // (ref this._compositeHandler_⟨i⟩).Remove(this._dataTable, removedDataIndex, this._count)
+            il.Emit(OpCodes.Call, removeMethod);
+        }
         
         il.Emit(OpCodes.Ret);
         

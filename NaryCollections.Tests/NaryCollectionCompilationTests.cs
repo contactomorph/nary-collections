@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -338,5 +338,98 @@ public class NaryCollectionCompilationTests
             Assert.That(searchResult.Case, Is.EqualTo(SearchCase.EmptyEntryFound));
             Assert.That(searchResult.DriftPlusOne, Is.EqualTo(HashEntry.Optimal));
         }
+    }
+
+    [Test]
+    public void AddDogPlaceColorTupleCollectionTest()
+    {
+        var (_, factory) = NaryCollectionCompilation<DogPlaceColor>.GenerateCollectionConstructor(_moduleBuilder);
+        
+        var collection = factory();
+
+        var set = collection.AsSet();
+
+        var dog1 = Dogs.AllDogs[0];
+        var dog2 = Dogs.AllDogs[1];
+        var places = new[] { "Paris", "Lyon", "Nantes", "Bordeaux", "Toulouse", "Marseilles" };
+
+        foreach (var place in places)
+        {
+            Assert.That(set.Add((dog1, place, Color.Aqua)), Is.True);
+        }
+        
+        foreach (var place in places)
+        {
+            Assert.That(set.Add((dog2, place, Color.Aqua)), Is.False);
+        }
+
+        var otherPlaces = new[] { "Київ", "Харків", "Одеса", "Дніпро", "Донецьк", "Запоріжжя", "Львів", "Кривий Ріг", "Миколаїв" };
+        var colors = new[] { Color.Bisque, Color.BlueViolet, Color.Brown, Color.BurlyWood, Color.CadetBlue };
+
+        int i = 0;
+        foreach (var place in otherPlaces)
+        {
+            var dog = Dogs.AllDogs[i % 4];
+            var color = colors[i % 5];
+            Assert.That(set.Add((dog, place, color)), Is.True);
+            ++i;
+        }
+
+        var manipulator = FieldManipulator.ForRealTypeOf(set);
+
+        manipulator.GetFieldValue(set, "_dataTable", out DogPlaceColorEntry[] dataTable);
+        manipulator.GetFieldValue(set, "_count", out int count);
+        manipulator.GetFieldValue(set, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry, int> h0);
+        manipulator.GetFieldValue(set, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h1);
+        manipulator.GetFieldValue(set, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h2);
+        manipulator.GetFieldValue(set, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry, int> h3);
+        manipulator.GetFieldValue(set, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h4);
+        manipulator.GetFieldValue(set, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h5);
+
+        Assert.That(count, Is.EqualTo(15));
+
+        var computer = DogPlaceColorProjector.GetHashTupleComputer();
+
+        var manipulator0 = FieldManipulator.ForRealTypeOf(h0);
+        manipulator0.GetFieldValue(h0, "_hashTable", out HashEntry[] hashTable0);
+
+        Consistency.CheckForUnique(hashTable0, dataTable, count, h0, computer);
+
+        var manipulator1 = FieldManipulator.ForRealTypeOf(h1);
+        manipulator1.GetFieldValue(h1, "_hashTable", out HashEntry[] hashTable1);
+        manipulator1.GetFieldValue(h1, "_count", out int count1);
+
+        Assert.That(count1, Is.EqualTo(4));
+
+        Consistency.CheckForNonUnique(hashTable1, dataTable, count, h1, computer);
+
+        var manipulator2 = FieldManipulator.ForRealTypeOf(h2);
+        manipulator2.GetFieldValue(h2, "_hashTable", out HashEntry[] hashTable2);
+        manipulator2.GetFieldValue(h2, "_count", out int count2);
+
+        Assert.That(count2, Is.EqualTo(6));
+
+        Consistency.CheckForNonUnique(hashTable2, dataTable, count, h2, computer);
+
+        var manipulator3 = FieldManipulator.ForRealTypeOf(h3);
+        manipulator3.GetFieldValue(h3, "_hashTable", out HashEntry[] hashTable3);
+
+        Consistency.CheckForUnique(hashTable3, dataTable, count, h3, computer);
+
+        var manipulator4 = FieldManipulator.ForRealTypeOf(h4);
+        manipulator4.GetFieldValue(h4, "_hashTable", out HashEntry[] hashTable4);
+        manipulator4.GetFieldValue(h4, "_count", out int count4);
+
+        Assert.That(count4, Is.EqualTo(10));
+
+        Consistency.CheckForNonUnique(hashTable4, dataTable, count, h4, computer);
+
+        var manipulator5 = FieldManipulator.ForRealTypeOf(h5);
+        manipulator5.GetFieldValue(h5, "_hashTable", out HashEntry[] hashTable5);
+        manipulator5.GetFieldValue(h5, "_count", out int count5);
+
+        Assert.That(count5, Is.EqualTo(15));
+
+        Consistency.CheckForNonUnique(hashTable5, dataTable, count, h5, computer);
     }
 }

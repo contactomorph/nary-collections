@@ -27,12 +27,12 @@ internal sealed class FakeNaryCollection :
         throw new NotImplementedException();
     }
 
-    protected override void AddToOtherComposites(SearchResult[] otherResults, int candidateDataIndex, int newDataCount)
+    protected override void AddToOtherComposites(SearchResult[] otherResults, int candidateDataIndex)
     {
         throw new NotImplementedException();
     }
 
-    protected override void RemoveFromOtherComposites(SearchResult[] otherResults, int newDataCount)
+    protected override void RemoveFromOtherComposites(int removedDataIndex)
     {
         throw new NotImplementedException();
     }
