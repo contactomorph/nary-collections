@@ -58,7 +58,7 @@ public class CompositeHandlerCompilationTests
     }
 
     [Test]
-    public void AddTest()
+    public void AddForUniqueTest()
     {
         var ctor = CompositeHandlerCompilation.GenerateConstructor(
             _moduleBuilder, 
@@ -115,6 +115,75 @@ public class CompositeHandlerCompilationTests
                 dataTable,
                 dataCount,
                 DogPlaceColorProjector.Instance,
+                DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
+        }
+
+        Assert.That(
+            hashTableGetter(handler).Length,
+            Is.EqualTo(HashEntry.IncreaseCapacity(HashEntry.TableMinimalLength)));
+    }
+    
+    [Test]
+    public void AddForNonUniqueTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder, 
+            typeof(DogPlaceColorTuple),
+            [0],
+            1,
+            [false, true]);
+        
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler =
+            (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
+            del.DynamicInvoke()!;
+
+        int dataCount = 0;
+        int hashCount = 0;
+        var dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[10];
+        
+        var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode);
+
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        var hashTableGetter = manipulator.CreateGetter<HashEntry[]>("_hashTable");
+        
+        Assert.That(
+            hashTableGetter(handler).Length,
+            Is.EqualTo(HashEntry.TableMinimalLength));
+        
+        foreach (var (dog, hc) in Dogs.KnownDogsWithHashCode)
+        {
+            var tuple = (dog, "Montevideo", Color.Thistle);
+            var hashTuple = DogPlaceColorProjector.GetHashTupleComputer(dogComparer)(tuple);
+        
+            Assert.That(hashTuple.Item1, Is.EqualTo(hc));
+
+            var lastSearchResult = MembershipHandling<DogPlaceColorEntry, ComparerTuple, Dog, DogProjector>.Find(
+                hashTableGetter(handler),
+                dataTable,
+                DogProjector.Instance,
+                (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default),
+                hc,
+                dog);
+
+            Assert.That(lastSearchResult.Case, Is.Not.EqualTo(SearchCase.ItemFound));
+        
+            var candidateDataIndex = DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.AddOnlyData(
+                ref dataTable,
+                tuple,
+                hashTuple,
+                ref dataCount);
+
+            ++hashCount;
+        
+            handler.Add(dataTable, lastSearchResult, candidateDataIndex, hashCount);
+
+            Consistency.CheckForNonUnique(
+                hashTableGetter(handler),
+                dataTable,
+                dataCount,
+                DogProjector.Instance,
                 DogPlaceColorProjector.GetHashTupleComputer(dogComparer));
         }
 

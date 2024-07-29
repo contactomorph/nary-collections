@@ -32,9 +32,9 @@ public static class CompositeHandlerCompilation
                 dataTypeProjection.BackIndexTupleType,
                 dataTypeProjection.ComparerTupleType,
                 itemType);
-
+        
         Type resizeHandlerInterfaceType = typeof(IResizeHandler<,>)
-            .MakeGenericType(dataTypeProjection.DataEntryType, typeof(int));
+            .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.BackIndexType);
         Type dataEquatorInterfaceType = typeof(IDataEquator<,,>)
             .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleType, itemType);
 
@@ -48,7 +48,12 @@ public static class CompositeHandlerCompilation
             typeBuilder,
             dataTypeProjection.AllowsMultipleItems);
         DefineFind(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
-        DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineAdd(
+            typeBuilder,
+            dataTypeProjection,
+            compositeHandlerInterfaceType,
+            fields.HashTableField,
+            fields.CountField);
         DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
         DefineClear(typeBuilder, compositeHandlerInterfaceType, fields.HashTableField);
 
@@ -156,7 +161,8 @@ public static class CompositeHandlerCompilation
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
         Type compositeHandlerInterfaceType,
-        FieldBuilder hashTableField)
+        FieldBuilder hashTableField,
+        FieldBuilder? countField)
     {
         Type[] parameterTypes = [
             dataTypeProjection.DataTableType,
@@ -165,7 +171,9 @@ public static class CompositeHandlerCompilation
             typeof(int),
         ];
 
-        var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
+        var updateHandlingTypeDefinition = dataTypeProjection.AllowsMultipleItems ?
+            typeof(MultiUpdateHandling<,>) :
+            typeof(MonoUpdateHandling<,>);
         var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
@@ -178,7 +186,56 @@ public static class CompositeHandlerCompilation
         ILGenerator il = methodBuilder.GetILGenerator();
         
         Label resizeLabel = il.DefineLabel();
+        Label addLabel = il.DefineLabel();
         Label endLabel = il.DefineLabel();
+        
+        var newCountLocal = il.DeclareLocal(typeof(int));
+
+        if (dataTypeProjection.AllowsMultipleItems)
+        {
+            // In case of multiplicity if the result is SearchCase.ItemFound we do not want to change the capacity as
+            // count is unchanged.
+            
+            // ref lastSearchResult
+            il.Emit(OpCodes.Ldarga, 2);
+            // (ref lastSearchResult).Case
+            il.Emit(OpCodes.Call, CommonCompilation.GetCaseMethod);
+            // SearchCase.ItemFound
+            il.Emit(OpCodes.Ldc_I4, (int)SearchCase.ItemFound);
+            // (ref lastSearchResult).Case == SearchCase.ItemFound
+            il.Emit(OpCodes.Ceq);
+            // (ref lastSearchResult).Case == SearchCase.ItemFound → addLabel
+            il.Emit(OpCodes.Brtrue, addLabel);
+            
+            // If the result is not SearchCase.ItemFound then count is incremented. This may cause a resize.
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // _count
+            il.Emit(OpCodes.Ldfld, countField!);
+            // 1
+            il.Emit(OpCodes.Ldc_I4_1);
+            // _count + 1
+            il.Emit(OpCodes.Add);
+            // newCount = _count + 1
+            il.Emit(OpCodes.Stloc, newCountLocal);
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // newCount
+            il.Emit(OpCodes.Ldloc, newCountLocal);
+            // _count = newCount
+            il.Emit(OpCodes.Stfld, countField!);
+        }
+        else
+        {
+            // newDataCount
+            il.Emit(OpCodes.Ldarg_S, (byte)4);
+            // newCount = newDataCount
+            il.Emit(OpCodes.Stloc, newCountLocal);
+        }
+        
+        // Check if a resize is needed.
         
         // this
         il.Emit(OpCodes.Ldarg_0);
@@ -186,17 +243,19 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Ldfld, hashTableField);
         // this._hashTable.Length
         il.Emit(OpCodes.Ldlen);
-        // newDataCount
-        il.Emit(OpCodes.Ldarg_S, (byte)4);
-        // HashEntry.IsFullEnough(this._hashTable.Length, newDataCount)
+        // newCount
+        il.Emit(OpCodes.Ldloc, newCountLocal);
+        // HashEntry.IsFullEnough(this._hashTable.Length, newCount)
         il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IsFullEnough))!);
-        // HashEntry.IsFullEnough(this._hashTable.Length, newDataCount) → resizeLabel
+        // HashEntry.IsFullEnough(this._hashTable.Length, newCount) → resizeLabel
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
 
         var genericAddMethod = updateHandlingTypeDefinition
             .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.Add))!;
         
         var addMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddMethod);
+        
+        il.MarkLabel(addLabel);
         
         // this
         il.Emit(OpCodes.Ldarg_0);
@@ -223,6 +282,25 @@ public static class CompositeHandlerCompilation
         var changeCapacityMethod = TypeBuilder.GetMethod(updateHandlingType, genericChangeCapacityMethod);
         
         il.MarkLabel(resizeLabel);
+
+        if (dataTypeProjection.AllowsMultipleItems)
+        {
+            var genericInitializeLastBackIndexMethod = typeof(MultiUpdateHandling<,>)
+                .GetMethod(nameof(MultiUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.InitialLastBackIndex))!;
+        
+            var initializeLastBackIndexMethod = TypeBuilder.GetMethod(updateHandlingType, genericInitializeLastBackIndexMethod);
+            
+            // dataTable
+            il.Emit(OpCodes.Ldarg_1);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // *this
+            il.Emit(OpCodes.Ldobj, typeBuilder);
+            // newDataCount
+            il.Emit(OpCodes.Ldarg_S, (byte)4);
+            // InitializeLastBackIndex(dataTable, *this, newDataCount)
+            il.Emit(OpCodes.Call, initializeLastBackIndexMethod);
+        }
         
         // this
         il.Emit(OpCodes.Ldarg_0);

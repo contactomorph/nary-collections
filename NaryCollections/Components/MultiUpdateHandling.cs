@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
@@ -6,13 +7,24 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
     where TResizeHandler : struct, IResizeHandler<TDataEntry, MultiIndex>
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Add(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
         SearchResult lastSearchResult,
+        int candidateDataIndex)
+    {
+        PrivateAdd(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex, MultiIndex.NoNext);
+    }
+
+    private static void PrivateAdd(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        SearchResult lastSearchResult,
         int candidateDataIndex,
-        int candidateDataNext = MultiIndex.NoNext)
+        int candidateDataNext)
     {
         uint candidateReducedHashCode = lastSearchResult.ReducedHashCode;
         uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
@@ -85,6 +97,21 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
+    public static void InitialLastBackIndex(
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int newDataCount)
+    {
+        int lastDataIndex = newDataCount - 1;
+        var multiIndex = new MultiIndex
+        {
+            IsSubsequent = false,
+            Next = MultiIndex.NoNext,
+            Previous = -1000, // will be reset by capacity change
+        };
+        handler.SetBackIndex(dataTable, lastDataIndex, multiIndex);
+    }
+
     public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -103,9 +130,9 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            Add(hashTable, dataTable, handler, searchResult, i, next);
+            PrivateAdd(hashTable, dataTable, handler, searchResult, i, next);
         }
-
+        
         return hashTable;
     }
 }

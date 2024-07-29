@@ -240,11 +240,11 @@ public class NaryCollectionCompilationTests
         var manipulator = FieldManipulator.ForRealTypeOf(collection);
 
         manipulator.GetFieldValue(collection, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry, int> h0);
-        manipulator.GetFieldValue(collection, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry, int> h1);
-        manipulator.GetFieldValue(collection, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry, int> h2);
+        manipulator.GetFieldValue(collection, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h1);
+        manipulator.GetFieldValue(collection, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h2);
         manipulator.GetFieldValue(collection, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry, int> h3);
-        manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, int> h4);
-        manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, int> h5);
+        manipulator.GetFieldValue(collection, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h4);
+        manipulator.GetFieldValue(collection, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h5);
         
         var manipulatorForH0 = FieldManipulator.ForRealTypeOf(h0);
         manipulatorForH0.GetFieldValue(h0, "_hashTable", out HashEntry[] hashTable0);

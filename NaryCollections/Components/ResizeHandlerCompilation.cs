@@ -5,13 +5,26 @@ namespace NaryCollections.Components;
 
 public static class ResizeHandlerCompilation
 {
-    public struct FakeResizeHandler : IResizeHandler<ValueTuple, int>
+    public struct FakeResizeHandler : IResizeHandler<ValueTuple, int>, IResizeHandler<ValueTuple, MultiIndex>
     {
         public uint GetHashCodeAt(ValueTuple[] dataTable, int index) => throw new NotImplementedException();
 
         public int GetBackIndex(ValueTuple[] dataTable, int index) => throw new NotImplementedException();
+        
+        MultiIndex IResizeHandler<ValueTuple, MultiIndex>.GetBackIndex(ValueTuple[] dataTable, int index)
+        {
+            throw new NotImplementedException();
+        }
 
-        public void SetBackIndex(ValueTuple[] dataTable, int index, int backIndex) => throw new NotImplementedException();
+        public void SetBackIndex(ValueTuple[] dataTable, int index, int backIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetBackIndex(ValueTuple[] dataTable, int index, MultiIndex backIndex)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal static void DefineGetHashCodeAt(
@@ -69,7 +82,7 @@ public static class ResizeHandlerCompilation
             .DefineMethod(
                 nameof(IResizeHandler<object, int>.GetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
-                typeof(int),
+                dataTypeDecomposition.BackIndexType,
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
@@ -103,7 +116,7 @@ public static class ResizeHandlerCompilation
                 nameof(IResizeHandler<object, int>.SetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
-                [dataTypeDecomposition.DataTableType, typeof(int), typeof(int)]);
+                [dataTypeDecomposition.DataTableType, typeof(int), dataTypeDecomposition.BackIndexType]);
         ILGenerator il = methodBuilder.GetILGenerator();
 
         var backIndexesTupleField = CommonCompilation.GetFieldInBase(
