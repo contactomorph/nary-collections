@@ -29,11 +29,22 @@ public static class IlDebugging
         il.Emit(OpCodes.Ldloc, local);
     }
 
-    private static readonly MethodInfo DisplayMethodDefinition = typeof(IlDebugging).GetMethod(nameof(Display))!;
+    public static void DisplayValues<T>(ILGenerator il, IEnumerable<T> values)
+    {
+        foreach (var value in values)
+        {
+            il.Emit(OpCodes.Ldstr, $"- {value}");
+            il.Emit(OpCodes.Call, DisplayTextMethod);
+        }
+        il.Emit(OpCodes.Ldstr, "");
+        il.Emit(OpCodes.Call, DisplayTextMethod);
+    }
+
+    private static readonly MethodInfo DisplayMethodDefinition = typeof(IlDebugging).GetMethod(nameof(_Display))!;
     
     private static readonly MethodInfo ToStringMethod = typeof(object).GetMethod(nameof(ToString))!;
 
-    public static void Display<T>(T value, string? dataName)
+    public static void _Display<T>(T value, string? dataName)
     {
         string? valueText = null;
         if (value is not null)
@@ -54,4 +65,8 @@ public static class IlDebugging
         Console.WriteLine($"- Value: « {valueText} »");
         Console.WriteLine();
     }
+    
+    private static readonly MethodInfo DisplayTextMethod = typeof(IlDebugging).GetMethod(nameof(_DisplayText))!;
+
+    public static void _DisplayText(string text) => Console.WriteLine(text);
 }
