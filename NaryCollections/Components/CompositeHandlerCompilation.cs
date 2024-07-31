@@ -7,6 +7,7 @@ namespace NaryCollections.Components;
 public static class CompositeHandlerCompilation
 {
     public const string HashTableFieldName = "_hashTable";
+    public const string CountFieldName = "_count";
     public static string GetCompositeHandlerFieldName(byte backIndexRank) => $"CompositeHandler_{backIndexRank}";
     
     public static ConstructorInfo GenerateConstructor(
@@ -43,11 +44,13 @@ public static class CompositeHandlerCompilation
             typeof(ValueType),
             [compositeHandlerInterfaceType, resizeHandlerInterfaceType, dataEquatorInterfaceType]);
         
-        var hashTableField = DefineConstructor(typeBuilder);
-        DefineFind(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
-        DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
-        DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, hashTableField);
-        DefineClear(typeBuilder, compositeHandlerInterfaceType, hashTableField);
+        var fields = DefineConstructor(
+            typeBuilder,
+            dataTypeProjection.AllowsMultipleItems);
+        DefineFind(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineAdd(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineClear(typeBuilder, compositeHandlerInterfaceType, fields.HashTableField);
 
         ResizeHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         ResizeHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
@@ -59,12 +62,23 @@ public static class CompositeHandlerCompilation
         return type.GetConstructor([typeof(bool)]) ?? throw new InvalidProgramException();
     }
 
-    private static FieldBuilder DefineConstructor(TypeBuilder typeBuilder)
+    private static (FieldBuilder HashTableField, FieldBuilder? CountField) DefineConstructor(
+        TypeBuilder typeBuilder,
+        bool allowsMultipleItems)
     {
         var hashTableField = typeBuilder.DefineField(
             HashTableFieldName,
             typeof(HashEntry[]),
             FieldAttributes.InitOnly | FieldAttributes.Private);
+
+        FieldBuilder? countField = null;
+        if (allowsMultipleItems)
+        {
+            countField = typeBuilder.DefineField(
+                CountFieldName,
+                typeof(int),
+                FieldAttributes.InitOnly | FieldAttributes.Private);
+        }
         
         var constructorBuilder = typeBuilder.DefineConstructor(
             MethodAttributes.Public,
@@ -83,7 +97,7 @@ public static class CompositeHandlerCompilation
         
         il.Emit(OpCodes.Ret);
 
-        return hashTableField;
+        return (hashTableField, countField);
     }
 
     private static void DefineFind(

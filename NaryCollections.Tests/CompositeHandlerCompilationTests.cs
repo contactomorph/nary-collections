@@ -255,4 +255,38 @@ public class CompositeHandlerCompilationTests
             Assert.That(unsuccessfulSearchResult.DriftPlusOne, Is.GreaterThanOrEqualTo(1));
         }
     }
+
+    [Test]
+    public void ContentTest()
+    {
+        for (byte i = 0; i <= 1; ++i)
+        {
+            var ctor = CompositeHandlerCompilation.GenerateConstructor(
+                _moduleBuilder,
+                typeof(DogPlaceColorTuple),
+                [0],
+                i,
+                [false, true]);
+
+            var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+            var handler =
+                (ICompositeHandler<DogPlaceColorTuple, HashTuple, IndexTuple, ComparerTuple, Dog>)
+                del.DynamicInvoke()!;
+
+            var fieldManipulator = FieldManipulator.ForRealTypeOf(handler);
+
+            var fieldType = fieldManipulator.VerifyFieldPresence(
+                handler,
+                CompositeHandlerCompilation.HashTableFieldName);
+
+            Assert.That(fieldType, Is.EqualTo(typeof(HashEntry[])));
+
+            fieldType = fieldManipulator.VerifyFieldPresence(
+                handler,
+                CompositeHandlerCompilation.CountFieldName);
+
+            Assert.That(fieldType, Is.EqualTo(i == 1 ? typeof(int) : null));
+        }
+    }
 }

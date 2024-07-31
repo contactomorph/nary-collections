@@ -51,7 +51,17 @@ public sealed class FieldManipulator<T> where T : notnull
         };
         field.SetValue(instance, newValue);
     }
-    
+
+    public Type? VerifyFieldPresence(T instance, string fieldName)
+    {
+        var fields = _fields.Where(f => f.Name == fieldName).Take(2).ToArray();
+        return fields.Length switch
+        {
+            1 => fields[0].GetValue(instance)!.GetType(),
+            _ => null
+        };
+    }
+
     public Func<T, TOutput> CreateGetter<TOutput>(string fieldName)
     {
         var fields = _fields.Where(f => f.Name == fieldName).Take(2).ToArray();

@@ -27,6 +27,7 @@ internal class DataTypeDecomposition
     // typeof(DataEntry<(TD1, …, TDn), (int, …, int), (uint, …, uint)>[])
     public Type DataTableType { get; }
     
+    // [m1, …, mk]
     public bool[] BackIndexMultiplicities { get; }
 
     public DataTypeDecomposition(Type dataTupleType, bool[] backIndexMultiplicities)

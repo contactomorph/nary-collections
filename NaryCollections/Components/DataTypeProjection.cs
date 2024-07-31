@@ -1,4 +1,5 @@
 using System.Reflection;
+using NaryCollections.Primitives;
 using NaryCollections.Tools;
 
 namespace NaryCollections.Components;
@@ -14,6 +15,12 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
     // typeof((int, …, int)).GetField($"Item⟨r⟩")
     public FieldInfo BackIndexProjectionField { get; }
     
+    // true | false
+    public bool AllowsMultipleItems { get; }
+    
+    // int | MultiIndex
+    public Type BackIndexType { get; }
+    
     public DataTypeProjection(
         Type dataTupleType,
         byte backIndexRank,
@@ -28,6 +35,8 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
         DataProjectionMapping = ValueTupleMapping.From(DataTupleType, projectionIndexes);
         HashProjectionMapping = ValueTupleMapping.From(HashTupleType, projectionIndexes);
         BackIndexProjectionField = BackIndexTupleType[backIndexRank];
+        AllowsMultipleItems = BackIndexMultiplicities[backIndexRank];
+        BackIndexType = AllowsMultipleItems ? typeof(MultiIndex) : typeof(int);
     }
 
     public DataTypeProjection ProjectAlong(byte backIndexRank, byte[] projectionIndexes)
