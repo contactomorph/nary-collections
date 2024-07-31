@@ -6,17 +6,6 @@ using NotImplementedException = System.NotImplementedException;
 
 namespace NaryCollections.Implementation;
 
-internal static class NaryCollectionBase
-{
-    public const string ComparerTupleFieldName = "_comparerTuple";
-    public const string DataTableFieldName = "_dataTable";
-    
-    public const string ComputeHashTupleMethodName = "ComputeHashTuple";
-    public const string FindInOtherCompositesMethodName = "FindInOtherComposites";
-    public const string AddToOtherCompositesMethodName = "AddToOtherComposites";
-    public const string RemoveFromOtherCompositesMethodName = "RemoveFromOtherComposites";
-}
-
 public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : INaryCollection<TSchema>, IConflictingSet<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable

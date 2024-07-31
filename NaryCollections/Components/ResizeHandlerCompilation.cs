@@ -5,28 +5,6 @@ namespace NaryCollections.Components;
 
 public static class ResizeHandlerCompilation
 {
-    public struct FakeResizeHandler : IResizeHandler<ValueTuple, int>, IResizeHandler<ValueTuple, MultiIndex>
-    {
-        public uint GetHashCodeAt(ValueTuple[] dataTable, int index) => throw new NotImplementedException();
-
-        public int GetBackIndex(ValueTuple[] dataTable, int index) => throw new NotImplementedException();
-        
-        MultiIndex IResizeHandler<ValueTuple, MultiIndex>.GetBackIndex(ValueTuple[] dataTable, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetBackIndex(ValueTuple[] dataTable, int index, int backIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetBackIndex(ValueTuple[] dataTable, int index, MultiIndex backIndex)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     internal static void DefineGetHashCodeAt(
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
@@ -34,7 +12,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object, int>.GetHashCodeAt),
+                nameof(IResizeHandler<object, bool>.GetHashCodeAt),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.DataTableType, typeof(int)]);
@@ -80,7 +58,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object, int>.GetBackIndex),
+                nameof(IResizeHandler<object, bool>.GetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 dataTypeDecomposition.BackIndexType,
                 [dataTypeDecomposition.DataTableType, typeof(int)]);
@@ -113,7 +91,7 @@ public static class ResizeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(IResizeHandler<object, int>.SetBackIndex),
+                nameof(IResizeHandler<object, bool>.SetBackIndex),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [dataTypeDecomposition.DataTableType, typeof(int), dataTypeDecomposition.BackIndexType]);

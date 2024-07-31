@@ -1,8 +1,14 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using NaryCollections.Fakes;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
+
+using MonoUpdateHandling = MonoUpdateHandling<ValueTuple, FakeResizeHandler>;
+using MultiUpdateHandling = MultiUpdateHandling<ValueTuple, FakeResizeHandler>;
+using MembershipHandling = MembershipHandling<ValueTuple, ValueTuple, object, FakeDataEquator>;
+using ICompositeHandler = ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>;
 
 public static class CompositeHandlerCompilation
 {
@@ -122,14 +128,13 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find),
+                nameof(ICompositeHandler.Find),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(SearchResult),
                 [dataTypeProjection.DataTableType, dataTypeProjection.ComparerTupleType, typeof(uint), itemType]);
         ILGenerator il = methodBuilder.GetILGenerator();
         
-        var genericFindMethod = typeof(MembershipHandling<,,,>)
-            .GetMethod(nameof(MembershipHandling<ValueTuple, ValueTuple, object, DataEquatorCompilation.FakeDataEquator>.Find))!;
+        var genericFindMethod = typeof(MembershipHandling<,,,>).GetMethod(nameof(MembershipHandling.Find))!;
         
         var findMethod = TypeBuilder.GetMethod(updateHandlingType, genericFindMethod);
 
@@ -179,7 +184,7 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Add),
+                nameof(ICompositeHandler.Add),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
@@ -251,7 +256,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
 
         var genericAddMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.Add))!;
+            .GetMethod(nameof(MonoUpdateHandling.Add))!;
         
         var addMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddMethod);
         
@@ -277,7 +282,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Br_S, endLabel);
         
         var genericChangeCapacityMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacity))!;
+            .GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
         
         var changeCapacityMethod = TypeBuilder.GetMethod(updateHandlingType, genericChangeCapacityMethod);
         
@@ -286,7 +291,7 @@ public static class CompositeHandlerCompilation
         if (dataTypeProjection.AllowsMultipleItems)
         {
             var genericInitializeLastBackIndexMethod = typeof(MultiUpdateHandling<,>)
-                .GetMethod(nameof(MultiUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.InitialLastBackIndex))!;
+                .GetMethod(nameof(MultiUpdateHandling.InitialLastBackIndex))!;
         
             var initializeLastBackIndexMethod = TypeBuilder.GetMethod(updateHandlingType, genericInitializeLastBackIndexMethod);
             
@@ -346,7 +351,7 @@ public static class CompositeHandlerCompilation
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove),
+                nameof(ICompositeHandler.Remove),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 parameterTypes);
@@ -369,7 +374,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
         var genericRemoveMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.Remove))!;
+            .GetMethod(nameof(MonoUpdateHandling.Remove))!;
         
         var removeMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveMethod);
         
@@ -393,7 +398,7 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Br_S, endLabel);
         
         var genericChangeCapacityMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling<ValueTuple, ResizeHandlerCompilation.FakeResizeHandler>.ChangeCapacity))!;
+            .GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
         
         var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
             updateHandlingType,
@@ -438,7 +443,7 @@ public static class CompositeHandlerCompilation
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Clear),
+                nameof(ICompositeHandler.Clear),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 []);

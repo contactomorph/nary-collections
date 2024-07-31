@@ -8,6 +8,7 @@ using NaryCollections.Tools;
 namespace NaryCollections.Implementation;
 
 using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo, bool MustBeUnique);
+using ICompositeHandler = ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>;
 
 internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema, new()
 {
@@ -184,7 +185,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                NaryCollectionBase.ComputeHashTupleMethodName,
+                FakeNaryCollection.ComputeHashTupleMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 dataTypeDecomposition.HashTupleType,
                 [dataTypeDecomposition.DataTupleType]);
@@ -192,7 +193,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         var comparerTupleField = CommonCompilation.GetFieldInBase(
             baseCollectionType,
-            NaryCollectionBase.ComparerTupleFieldName);
+            FakeNaryCollection.ComparerTupleFieldName);
         
         int i = 0;
         foreach (var dataField in dataTypeDecomposition.DataTupleType)
@@ -237,7 +238,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
         
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                NaryCollectionBase.FindInOtherCompositesMethodName,
+                FakeNaryCollection.FindInOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(bool),
                 paramTypes);
@@ -259,10 +260,10 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
         var dataTableField = CommonCompilation.GetFieldInBase(
             baseCollectionType,
-            NaryCollectionBase.DataTableFieldName);
+            FakeNaryCollection.DataTableFieldName);
         var comparerTupleField = CommonCompilation.GetFieldInBase(
             baseCollectionType,
-            NaryCollectionBase.ComparerTupleFieldName);
+            FakeNaryCollection.ComparerTupleFieldName);
 
         int i = 0;
         
@@ -324,7 +325,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
 
             var findMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
-                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Find));
+                nameof(ICompositeHandler.Find));
                 
             var resultLocal = il.DeclareLocal(typeof(SearchResult));
 
@@ -387,7 +388,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                NaryCollectionBase.AddToOtherCompositesMethodName,
+                FakeNaryCollection.AddToOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [typeof(SearchResult[]), typeof(int), typeof(int)]);
@@ -405,7 +406,7 @@ internal static class NaryCollectionCompilation<TSchema> where TSchema : Schema,
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                NaryCollectionBase.RemoveFromOtherCompositesMethodName,
+                FakeNaryCollection.RemoveFromOtherCompositesMethodName,
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
                 [typeof(SearchResult[]), typeof(int)]);

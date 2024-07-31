@@ -304,7 +304,7 @@ public class NaryCollectionCompilationTests
         var naryCollectionBaseType = collection.GetType().BaseType!;
         
         var method = naryCollectionBaseType.GetMethod(
-            NaryCollectionBase.FindInOtherCompositesMethodName,
+            FakeNaryCollection.FindInOtherCompositesMethodName,
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy)!;
 
         var dataTupleParameter = Expression.Parameter(typeof(DogPlaceColorTuple), "dataTuple");

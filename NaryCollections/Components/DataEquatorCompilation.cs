@@ -5,19 +5,6 @@ namespace NaryCollections.Components;
 
 internal static class DataEquatorCompilation
 {
-    public readonly struct FakeDataEquator : IDataEquator<ValueTuple, ValueTuple, object>
-    {
-        public bool AreDataEqualAt(
-            ValueTuple[] dataTable,
-            ValueTuple comparerTuple,
-            int index,
-            object item,
-            uint hashCode)
-        {
-            throw new NotImplementedException();
-        }
-    }
-    
     public static void DefineAreDataEqualAt(
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
