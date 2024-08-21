@@ -61,7 +61,7 @@ public class MonoUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -102,7 +102,7 @@ public class MonoUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -143,7 +143,7 @@ public class MonoUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
@@ -185,7 +185,7 @@ public class MonoUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,

@@ -8,14 +8,33 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
     where TResizeHandler : struct, IResizeHandler<TDataEntry, int>
 {
     public static void Add(
+        ref HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        SearchResult lastSearchResult,
+        int candidateDataIndex,
+        int newDataCount)
+    {
+        MustNotBeFound(lastSearchResult);
+        
+        if (HashEntry.IsFullEnough(hashTable.Length, newDataCount))
+        {
+            int newHashTableCapacity = HashEntry.IncreaseCapacity(hashTable.Length);
+            hashTable = ChangeCapacity(dataTable, handler, newHashTableCapacity, newDataCount);
+        }
+        else
+        {
+            AddStrictly(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex);
+        }
+    }
+    
+    public static void AddStrictly(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
         SearchResult lastSearchResult,
         int candidateDataIndex)
     {
-        MustNotBeFound(lastSearchResult);
-        
         uint candidateReducedHashCode = lastSearchResult.ReducedHashCode;
         uint candidateDriftPlusOne = lastSearchResult.DriftPlusOne;
 
@@ -121,7 +140,7 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            Add(hashTable, dataTable, handler, searchResult, i);
+            AddStrictly(hashTable, dataTable, handler, searchResult, i);
         }
 
         return hashTable;

@@ -76,12 +76,13 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc, 1)));
 
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
                 result,
-                candidateDataIndex);
+                candidateDataIndex,
+                MultiIndex.NoNext);
 
             Consistency.EqualsAt(4, hashTableCopy, 1, candidateDataIndex);
             Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 4);
@@ -117,12 +118,13 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForEmptyEntry(dogHc + 1, 2)));
 
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
                 result,
-                candidateDataIndex);
+                candidateDataIndex,
+                MultiIndex.NoNext);
 
             Consistency.EqualsAt(4, hashTableCopy, 2, candidateDataIndex);
             Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 4);
@@ -158,12 +160,13 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 2, 3)));
         
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
                 result,
-                candidateDataIndex);
+                candidateDataIndex,
+                MultiIndex.NoNext);
         
             Consistency.EqualsAt(3, hashTableCopy, 3, candidateDataIndex);
             Consistency.EqualsAt(4, hashTableCopy, 3, 5);
@@ -200,12 +203,13 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateWhenSearchStopped(dogHc + 3, 4)));
         
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
                 result,
-                candidateDataIndex);
+                candidateDataIndex,
+                MultiIndex.NoNext);
         
             Consistency.EqualsAt(8, hashTableCopy, 4, candidateDataIndex);
             Consistency.EqualsAt(9, hashTableCopy, 4, 13);
@@ -245,12 +249,13 @@ public class MultiUpdateHandlingTests
             
             Assert.That(result, Is.EqualTo(SearchResult.CreateForItemFound(dogHc + 1, 2, 9)));
             
-            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Add(
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.AddStrictly(
                 hashTableCopy,
                 dataTableCopy,
                 DogProjector.Instance,
                 result,
-                candidateDataIndex);
+                candidateDataIndex,
+                MultiIndex.NoNext);
             
             Consistency.EqualsAt(6, hashTableCopy, 2, candidateDataIndex);
             Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 6);

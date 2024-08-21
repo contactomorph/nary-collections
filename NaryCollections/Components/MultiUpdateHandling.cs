@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
@@ -7,18 +6,47 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
     where TDataEntry : struct
     where TResizeHandler : struct, IResizeHandler<TDataEntry, MultiIndex>
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Add(
-        HashEntry[] hashTable,
+        ref HashEntry[] hashTable,
+        ref int count,
         TDataEntry[] dataTable,
         TResizeHandler handler,
         SearchResult lastSearchResult,
-        int candidateDataIndex)
+        int candidateDataIndex,
+        int newDataCount)
     {
-        PrivateAdd(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex, MultiIndex.NoNext);
+        if (lastSearchResult.Case == SearchCase.ItemFound)
+        {
+            AddStrictly(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex, MultiIndex.NoNext);
+        }
+        else
+        {
+            ++count;
+        
+            if (HashEntry.IsFullEnough(hashTable.Length, count))
+            {
+                // Initialize multi-index for the last data entry before resizing hashTable
+                int lastDataIndex = newDataCount - 1;
+                var multiIndex = new MultiIndex
+                {
+                    IsSubsequent = false,
+                    Next = MultiIndex.NoNext,
+                    Previous = -1000, // will be reset by capacity change
+                };
+                handler.SetBackIndex(dataTable, lastDataIndex, multiIndex);
+                
+                int newHashTableCapacity = HashEntry.IncreaseCapacity(hashTable.Length);
+                
+                hashTable = ChangeCapacity(dataTable, handler, newHashTableCapacity, newDataCount);
+            }
+            else
+            {
+                AddStrictly(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex, MultiIndex.NoNext);
+            }
+        }
     }
 
-    private static void PrivateAdd(
+    public static void AddStrictly(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -97,21 +125,6 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
-    public static void InitialLastBackIndex(
-        TDataEntry[] dataTable,
-        TResizeHandler handler,
-        int newDataCount)
-    {
-        int lastDataIndex = newDataCount - 1;
-        var multiIndex = new MultiIndex
-        {
-            IsSubsequent = false,
-            Next = MultiIndex.NoNext,
-            Previous = -1000, // will be reset by capacity change
-        };
-        handler.SetBackIndex(dataTable, lastDataIndex, multiIndex);
-    }
-
     public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -130,7 +143,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
                 SearchResult.CreateForEmptyEntry(reducedHashCode, HashEntry.Optimal) :
                 SearchResult.CreateWhenSearchStopped(reducedHashCode, HashEntry.Optimal);
-            PrivateAdd(hashTable, dataTable, handler, searchResult, i, next);
+            AddStrictly(hashTable, dataTable, handler, searchResult, i, next);
         }
         
         return hashTable;
