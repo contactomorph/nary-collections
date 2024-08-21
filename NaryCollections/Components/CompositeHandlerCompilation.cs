@@ -176,9 +176,11 @@ public static class CompositeHandlerCompilation
             typeof(int),
         ];
 
-        var updateHandlingTypeDefinition = dataTypeProjection.AllowsMultipleItems ?
+        bool allowsMultipleItems = dataTypeProjection.AllowsMultipleItems;
+        var updateHandlingTypeDefinition = allowsMultipleItems ?
             typeof(MultiUpdateHandling<,>) :
             typeof(MonoUpdateHandling<,>);
+        
         var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
         
@@ -255,8 +257,9 @@ public static class CompositeHandlerCompilation
         // HashEntry.IsFullEnough(this._hashTable.Length, newCount) → resizeLabel
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
 
-        var genericAddMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling.Add))!;
+        var genericAddMethod = allowsMultipleItems ?
+            typeof(MultiUpdateHandling<,>).GetMethod(nameof(MultiUpdateHandling.Add))! :
+            typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.Add))!;
         
         var addMethod = TypeBuilder.GetMethod(updateHandlingType, genericAddMethod);
         
@@ -281,8 +284,9 @@ public static class CompositeHandlerCompilation
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
-        var genericChangeCapacityMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
+        var genericChangeCapacityMethod = allowsMultipleItems ?
+            typeof(MultiUpdateHandling<,>).GetMethod(nameof(MultiUpdateHandling.ChangeCapacity))! :
+            typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
         
         var changeCapacityMethod = TypeBuilder.GetMethod(updateHandlingType, genericChangeCapacityMethod);
         
@@ -344,7 +348,7 @@ public static class CompositeHandlerCompilation
         FieldBuilder hashTableField)
     {
         Type[] parameterTypes = [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)];
-        
+
         var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
         var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
@@ -373,8 +377,7 @@ public static class CompositeHandlerCompilation
         // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount) → resizeLabel
         il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
-        var genericRemoveMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling.Remove))!;
+        var genericRemoveMethod = typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.Remove))!;
         
         var removeMethod = TypeBuilder.GetMethod(updateHandlingType, genericRemoveMethod);
         
@@ -397,8 +400,8 @@ public static class CompositeHandlerCompilation
         // → endLabel
         il.Emit(OpCodes.Br_S, endLabel);
         
-        var genericChangeCapacityMethod = updateHandlingTypeDefinition
-            .GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
+        var genericChangeCapacityMethod =
+            typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
         
         var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
             updateHandlingType,
