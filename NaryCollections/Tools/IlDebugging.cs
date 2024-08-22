@@ -7,25 +7,40 @@ public static class IlDebugging
 {
     public static void DisplayAndPopLastValue(ILGenerator il, Type type, string? dataName = null)
     {
-        var method = DisplayMethodDefinition.MakeGenericMethod(type);
+        bool byRef = type.IsByRef;
+        if (byRef)
+        {
+            il.Emit(OpCodes.Ldind_Ref);
+            type = type.GetElementType()!;
+        }
+
+        il.Emit(byRef ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
         if (dataName is null)
             il.Emit(OpCodes.Ldnull);
         else
             il.Emit(OpCodes.Ldstr, dataName);
-        il.Emit(OpCodes.Call, method);
+        il.Emit(OpCodes.Call, DisplayMethodDefinition.MakeGenericMethod(type));
     }
     
     public static void DisplayLastValue(ILGenerator il, Type type, string? dataName = null)
     {
         var local = il.DeclareLocal(type);
+        
+        bool byRef = type.IsByRef;
+        
         il.Emit(OpCodes.Stloc, local);
-        var method = DisplayMethodDefinition.MakeGenericMethod(type);
         il.Emit(OpCodes.Ldloc, local);
+        if (byRef)
+        {
+            il.Emit(OpCodes.Ldind_Ref);
+            type = type.GetElementType()!;
+        }
+        il.Emit(byRef ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
         if (dataName is null)
             il.Emit(OpCodes.Ldnull);
         else
             il.Emit(OpCodes.Ldstr, dataName);
-        il.Emit(OpCodes.Call, method);
+        il.Emit(OpCodes.Call, DisplayMethodDefinition.MakeGenericMethod(type));
         il.Emit(OpCodes.Ldloc, local);
     }
 
@@ -44,7 +59,7 @@ public static class IlDebugging
     
     private static readonly MethodInfo ToStringMethod = typeof(object).GetMethod(nameof(ToString))!;
 
-    public static void _Display<T>(T value, string? dataName)
+    public static void _Display<T>(T value, bool byRef, string? dataName)
     {
         string? valueText = null;
         if (value is not null)
@@ -60,12 +75,14 @@ public static class IlDebugging
                 valueText = del.GetMethodInfo() != ToStringMethod ? value.ToString() : "non-specific";
             }
         }
+
+        string prefix = byRef ? "ref " : string.Empty;
         Console.WriteLine($"Display {dataName}");
-        Console.WriteLine($"- Type:  {typeof(T)}");
+        Console.WriteLine($"- Type:  {prefix}{typeof(T)}");
         Console.WriteLine($"- Value: « {valueText} »");
         Console.WriteLine();
     }
-    
+
     private static readonly MethodInfo DisplayTextMethod = typeof(IlDebugging).GetMethod(nameof(_DisplayText))!;
 
     public static void _DisplayText(string text) => Console.WriteLine(text);
