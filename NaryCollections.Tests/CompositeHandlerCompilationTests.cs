@@ -248,12 +248,14 @@ public class CompositeHandlerCompilationTests
 
             Assert.That(successfulSearchResult.Case, Is.EqualTo(SearchCase.ItemFound));
 
+            int dataIndex = successfulSearchResult.ForwardIndex;
+            
+            handler.Remove(dataTable, dataIndex, dataCount);
+
             DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
                 ref dataTable,
-                successfulSearchResult.ForwardIndex,
+                dataIndex,
                 ref dataCount);
-        
-            handler.Remove(dataTable, successfulSearchResult, dataCount);
 
             Consistency.CheckForUnique(
                 hashTableGetter(handler),

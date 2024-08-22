@@ -190,18 +190,18 @@ public abstract class NaryCollectionBase<TDataTuple, THashTuple, TIndexTuple, TC
         
         if (result.Case != SearchCase.ItemFound)
             return false;
-        
-        FindInOtherComposites(dataTuple, hashTuple, out var otherResults);
 
         ++_version;
         
+        int dataIndex = result.ForwardIndex;
+        
+        handlerReference.Remove(_dataTable, dataIndex, _count);
+        RemoveFromOtherComposites([], dataIndex);
+
         DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
             ref _dataTable,
-            result.ForwardIndex,
+            dataIndex,
             ref _count);
-        
-        handlerReference.Remove(_dataTable, result, newDataCount: _count);
-        RemoveFromOtherComposites(otherResults, newDataCount: _count);
         
         return true;
     }

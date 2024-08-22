@@ -59,7 +59,7 @@ internal sealed class FakeNaryCollection :
             throw new NotImplementedException();
         }
 
-        public void Remove(FakeDataEntry[] dataTable, SearchResult successfulSearchResult, int newDataCount)
+        public void Remove(FakeDataEntry[] dataTable, int removedDataIndex, int newDataCount)
         {
             throw new NotImplementedException();
         }

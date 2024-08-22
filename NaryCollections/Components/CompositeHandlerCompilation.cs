@@ -60,7 +60,12 @@ public static class CompositeHandlerCompilation
             compositeHandlerInterfaceType,
             fields.HashTableField,
             fields.CountField);
-        DefineRemove(typeBuilder, dataTypeProjection, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineRemove(
+            typeBuilder,
+            dataTypeProjection,
+            compositeHandlerInterfaceType,
+            fields.HashTableField,
+            fields.CountField);
         DefineClear(typeBuilder, compositeHandlerInterfaceType, fields.HashTableField);
 
         ResizeHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
@@ -235,10 +240,9 @@ public static class CompositeHandlerCompilation
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
         Type compositeHandlerInterfaceType,
-        FieldBuilder hashTableField)
+        FieldBuilder hashTableField,
+        FieldBuilder? countField)
     {
-        Type[] parameterTypes = [dataTypeProjection.DataTableType, typeof(SearchResult), typeof(int)];
-
         var updateHandlingTypeDefinition = typeof(MonoUpdateHandling<,>);
         var updateHandlingType = updateHandlingTypeDefinition
             .MakeGenericType(dataTypeProjection.DataEntryType, typeBuilder);
@@ -248,24 +252,8 @@ public static class CompositeHandlerCompilation
                 nameof(ICompositeHandler.Remove),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(void),
-                parameterTypes);
+                [dataTypeProjection.DataTableType, typeof(int), typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
-        
-        Label resizeLabel = il.DefineLabel();
-        Label endLabel = il.DefineLabel();
-        
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // this._hashTable
-        il.Emit(OpCodes.Ldfld, hashTableField);
-        // this._hashTable.Length
-        il.Emit(OpCodes.Ldlen);
-        // newDataCount
-        il.Emit(OpCodes.Ldarg_3);
-        // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount)
-        il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.IsSparseEnough))!);
-        // HashEntry.IsSparseEnough(this._hashTable.Length, newDataCount) → resizeLabel
-        il.Emit(OpCodes.Brtrue_S, resizeLabel);
         
         var genericRemoveMethod = typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.Remove))!;
         
@@ -273,56 +261,20 @@ public static class CompositeHandlerCompilation
         
         // this
         il.Emit(OpCodes.Ldarg_0);
-        // this._hashTable
-        il.Emit(OpCodes.Ldfld, hashTableField);
+        // ref this._hashTable
+        il.Emit(OpCodes.Ldflda, hashTableField);
+        // currentDataCount
+        il.Emit(OpCodes.Ldarg_3);
         // dataTable
         il.Emit(OpCodes.Ldarg_1);
         // this
         il.Emit(OpCodes.Ldarg_0);
         // *this
         il.Emit(OpCodes.Ldobj, typeBuilder);
-        // successfulSearchResult
+        // removedDataIndex
         il.Emit(OpCodes.Ldarg_2);
-        // newDataCount
-        il.Emit(OpCodes.Ldarg_3);
-        // Remove(this._hashTable, dataTable, *this, successfulSearchResult, newDataCount)
+        // Remove(ref this._hashTable, …, dataTable, *this, removedDataIndex)
         il.Emit(OpCodes.Call, removeMethod);
-        // → endLabel
-        il.Emit(OpCodes.Br_S, endLabel);
-        
-        var genericChangeCapacityMethod =
-            typeof(MonoUpdateHandling<,>).GetMethod(nameof(MonoUpdateHandling.ChangeCapacity))!;
-        
-        var changeCapacityForUniqueMethod = TypeBuilder.GetMethod(
-            updateHandlingType,
-            genericChangeCapacityMethod);
-        
-        il.MarkLabel(resizeLabel);
-        
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // dataTable
-        il.Emit(OpCodes.Ldarg_1);
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // *this
-        il.Emit(OpCodes.Ldobj, typeBuilder);
-        // this
-        il.Emit(OpCodes.Ldarg_0);
-        // this._hashTable
-        il.Emit(OpCodes.Ldfld, hashTableField);
-        // this._hashTable.Length
-        il.Emit(OpCodes.Ldlen);
-        // HashEntry.DecreaseCapacity(this._hashTable.Length)
-        il.Emit(OpCodes.Call, typeof(HashEntry).GetMethod(nameof(HashEntry.DecreaseCapacity))!);
-        // newDataCount
-        il.Emit(OpCodes.Ldarg_3);
-        // ChangeCapacity(dataTable, *this, HashEntry.DecreaseCapacity(_hashTable.Length), newDataCount)
-        il.Emit(OpCodes.Call, changeCapacityForUniqueMethod);
-        // this._hashTable = ChangeCapacity(…)
-        il.Emit(OpCodes.Stfld, hashTableField);
-        
-        il.MarkLabel(endLabel);
 
         il.Emit(OpCodes.Ret);
 

@@ -231,24 +231,20 @@ public class MonoUpdateHandlingTests
             int dataCount = data.Count;
             var hashTableCopy = hashTable.ToArray();
             var dataTableCopy = dataTable.ToArray();
-
-            int dataIndexToRemove = 2;
-            var successfulResult = SearchResult.CreateForItemFound(
-                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0,
-                dataIndexToRemove);
-
-            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
-                ref dataTableCopy,
-                dataIndexToRemove,
-                ref dataCount);
+    
+            int removedDataIndex = 2;
             
             MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
-                hashTableCopy,
+                ref hashTableCopy,
+                dataCount,
                 dataTableCopy,
                 DogProjector.Instance,
-                successfulResult, 
-                dataCount);
+                removedDataIndex);
+    
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
             
             Consistency.EqualsAt(3, hashTableCopy, HashEntry.DriftForUnused, 0);
             Consistency.EqualsAt(10, hashTableCopy, HashEntry.Optimal, 2);
@@ -265,24 +261,20 @@ public class MonoUpdateHandlingTests
             int dataCount = data.Count;
             var hashTableCopy = hashTable.ToArray();
             var dataTableCopy = dataTable.ToArray();
-
-            int dataIndexToRemove = 8;
-            var successfulResult = SearchResult.CreateForItemFound(
-                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0,
-                dataIndexToRemove);
-            
-            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
-                ref dataTableCopy,
-                dataIndexToRemove,
-                ref dataCount);
+    
+            int removedDataIndex = 8;
             
             MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
-                hashTableCopy,
+                ref hashTableCopy,
+                dataCount,
                 dataTableCopy,
                 DogProjector.Instance,
-                successfulResult,
-                newDataCount: dataCount);
+                removedDataIndex);
+    
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
             
             Consistency.EqualsAt(10, hashTableCopy, HashEntry.DriftForUnused, 0);
             Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource, 10);
@@ -298,24 +290,20 @@ public class MonoUpdateHandlingTests
             int dataCount = data.Count;
             var hashTableCopy = hashTable.ToArray();
             var dataTableCopy = dataTable.ToArray();
-
-            int dataIndexToRemove = 3;
-            var successfulResult = SearchResult.CreateForItemFound(
-                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0,
-                dataIndexToRemove);
-
-            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
-                ref dataTableCopy,
-                dataIndexToRemove,
-                ref dataCount);
+    
+            int removedDataIndex = 3;
             
             MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
-                hashTableCopy,
+                ref hashTableCopy,
+                dataCount,
                 dataTableCopy,
                 DogProjector.Instance,
-                successfulResult,
-                newDataCount: dataCount);
+                removedDataIndex);
+    
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
             
             Consistency.EqualsAt(5, hashTableCopy, HashEntry.Optimal, 4);
             Consistency.EqualsAt(6, hashTableCopy, 2, 5);
@@ -336,24 +324,20 @@ public class MonoUpdateHandlingTests
             int dataCount = data.Count;
             var hashTableCopy = hashTable.ToArray();
             var dataTableCopy = dataTable.ToArray();
-
-            int dataIndexToRemove = 5;
-            var successfulResult = SearchResult.CreateForItemFound(
-                (uint)dataTableCopy[dataIndexToRemove].BackIndexesTuple.Item1,
-                0,
-                dataIndexToRemove);
-
-            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
-                ref dataTableCopy,
-                dataIndexToRemove,
-                ref dataCount);
+    
+            int removedDataIndex = 5;
             
             MonoUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
-                hashTableCopy,
+                ref hashTableCopy,
+                dataCount,
                 dataTableCopy,
                 DogProjector.Instance,
-                successfulResult,
-                newDataCount: dataCount);
+                removedDataIndex);
+    
+            DataHandling<DogPlaceColorTuple, HashColorTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
             
             Consistency.EqualsAt(7, hashTableCopy, 2, 6);
             Consistency.EqualsAt(8, hashTableCopy, HashEntry.Optimal, 7);

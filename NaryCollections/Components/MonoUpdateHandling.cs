@@ -82,27 +82,47 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
     }
     
     public static void Remove(
+        ref HashEntry[] hashTable,
+        int currentDataCount,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int removedDataIndex)
+    {
+        // When this function is called, data has not been removed yet. This implies that
+        // line dataTable[removedDataIndex] still contains everything needed.
+        // We may update hashTable even if it gets resized after.
+        
+        MustBeStrictyPositive(currentDataCount);
+        MustBeSmallEnough(currentDataCount, hashTable.Length);
+        
+        int forgottenBackIndex = handler.GetBackIndex(dataTable, removedDataIndex);
+        
+        int newDataCount = currentDataCount - 1;
+        
+        if (HashEntry.IsSparseEnough(hashTable.Length, newDataCount))
+        {
+            int newHashTableCapacity = HashEntry.DecreaseCapacity(hashTable.Length);
+            hashTable = ChangeCapacity(
+                dataTable,
+                handler,
+                newHashTableCapacity,
+                currentDataCount,
+                except: removedDataIndex);
+        }
+        else
+        {
+            RemoveStrictly(hashTable, dataTable, handler, forgottenBackIndex);
+        }
+        Condense(hashTable, dataTable, handler, removedDataIndex, lastDataIndex: newDataCount);
+    }
+
+    public static void RemoveStrictly(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
-        SearchResult successfulSearchResult,
-        int newDataCount)
+        int dataIndex)
     {
-        MustBeFound(successfulSearchResult);
-        
-        uint reducedHashCode = successfulSearchResult.ReducedHashCode;
-        
-        // If the removed item was not the last item in dataTable,
-        // this last item has now been moved in dataTable from last position to dataIndex.
-        // We must look for this back index of this item, then find the corresponding entry in hashTable
-        // and finally update the HashEntry.ForwardIndex
-        var dataIndex = successfulSearchResult.ForwardIndex;
-        if (dataIndex != newDataCount)
-        {
-            var backIndex = handler.GetBackIndex(dataTable, dataIndex);
-            hashTable[backIndex].ForwardIndex = dataIndex;
-        }
-        
+        uint reducedHashCode = (uint)dataIndex;
         uint nextReducedHashCode = reducedHashCode;
         HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
 
@@ -125,16 +145,37 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
+    private static void Condense(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int removedDataIndex,
+        int lastDataIndex)
+    {
+        if (removedDataIndex == lastDataIndex) return;
+        
+        // If forgottenBackIndex is not the last item in dataTable,
+        // this last item will be moved in dataTable from last position to removedDataIndex.
+        // We must look for the back index of this last item, then find the corresponding entry in hashTable
+        // and finally update the HashEntry.ForwardIndex to removedDataIndex.
+        
+        var backIndex = handler.GetBackIndex(dataTable, lastDataIndex);
+        hashTable[backIndex].ForwardIndex = removedDataIndex;
+    }
+
     public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
-        int newDataCount)
+        int newDataCount,
+        int except = -1)
     {
         var hashTable = new HashEntry[newHashTableCapacity];
         
         for (int i = 0; i < newDataCount; i++)
         {
+            if (i == except)
+                continue;
             var hashCode = handler.GetHashCodeAt(dataTable, i);
             var reducedHashCode = HashCodeReduction.ComputeReducedHashCode(hashCode, newHashTableCapacity);
             var searchResult = hashTable[reducedHashCode].DriftPlusOne == HashEntry.DriftForUnused ?
@@ -147,14 +188,20 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
     }
     
     [Conditional("DEBUG")]
-    private static void MustBeFound(SearchResult result)
-    {
-        Debug.Assert(result.Case == SearchCase.ItemFound, "Item must have been found when removing it");
-    }
-    
-    [Conditional("DEBUG")]
     private static void MustNotBeFound(SearchResult result)
     {
         Debug.Assert(result.Case != SearchCase.ItemFound, "New item cannot have been found when adding it");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustBeSmallEnough(int count, int capacity)
+    {
+        Debug.Assert(count <= capacity, "Count be smaller than capacity");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustBeStrictyPositive(int count)
+    {
+        Debug.Assert(0 < count, "Count should be strictly positive");
     }
 }

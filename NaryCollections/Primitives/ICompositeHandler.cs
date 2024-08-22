@@ -23,8 +23,8 @@ public interface ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, in TComp
 
     void Remove(
         DataEntry<TDataTuple, THashTuple, TIndexTuple>[] dataTable,
-        SearchResult successfulSearchResult,
-        int newDataCount);
+        int removedDataIndex,
+        int currentDataCount);
 
     void Clear();
 }
