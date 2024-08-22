@@ -127,7 +127,7 @@ internal static class DogPlaceColorGeneration
         }
     }
 
-    public static void CreateTablesForNonUnique(
+    public static int CreateTablesForNonUnique(
         IReadOnlyCollection<DogPlaceColorTuple> data,
         out HashEntry[] hashTable,
         out DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
@@ -138,6 +138,7 @@ internal static class DogPlaceColorGeneration
         hashTupleComputer ??= DogPlaceColorProjector.GetHashTupleComputer();
         int hashTableSize = data.Count * 4 / 5;
         int dataTableSize = data.Count * 3 / 2;
+        int hashEntryCount = 0;
         
         hashTable = new HashEntry[hashTableSize];
         dataTable = new DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[dataTableSize];
@@ -176,18 +177,23 @@ internal static class DogPlaceColorGeneration
                        && existingItemProjectedValue.Equals(newItemProjectedValue);
             }
     
-            UpdateHashTable(
+            bool hashEntryAdded = UpdateHashTable(
                 hashTable,
                 dataTable,
                 newItemHashCode,
                 newItemDataIndex: i,
                 IsProjectionCorresponding);
+
+            if (hashEntryAdded)
+                ++hashEntryCount;
             
             ++i;
         }
+
+        return hashEntryCount;
     }
     
-    private static void UpdateHashTable(
+    private static bool UpdateHashTable(
         HashEntry[] hashTable,
         DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[] dataTable,
         uint newItemHashCode,
@@ -210,7 +216,7 @@ internal static class DogPlaceColorGeneration
                 };
                 dataTable[newItemDataIndex].BackIndexesTuple.Item2.Previous = (int)newItemReducedHashCode;
                 
-                break;
+                return true;
             }
     
             int dataIndex = hashTable[newItemReducedHashCode].ForwardIndex;
@@ -222,7 +228,8 @@ internal static class DogPlaceColorGeneration
                 dataTable[dataIndex].BackIndexesTuple.Item2.IsSubsequent = true;
                 dataTable[dataIndex].BackIndexesTuple.Item2.Previous = newItemDataIndex;
                 hashTable[newItemReducedHashCode].ForwardIndex = newItemDataIndex;
-                break;
+
+                return false;
             }
     
             if (driftPlusOne <= candidateDriftPlusOne)

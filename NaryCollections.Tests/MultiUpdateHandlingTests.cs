@@ -9,14 +9,14 @@ using NaryCollections.Tests.Resources.Types;
 namespace NaryCollections.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
+using HashTuple = (uint, uint, uint);
 using IndexTuple = (int, MultiIndex);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
 public class MultiUpdateHandlingTests
 {
-    [Test]
-    public void CheckItemAdditionForNonUniqueParticipantTest()
+    private static List<DogPlaceColorTuple> DuplicateSomeDogs(IEnumerable<Dog> dogs)
     {
         static IEnumerable<DogPlaceColorTuple> Multiply(Dog dog, int i)
         {
@@ -27,9 +27,15 @@ public class MultiUpdateHandlingTests
                 yield return (dog, "Paris", Color.Green);
         }
         
-        var data = Dogs.KnownDogsWithHashCode
-            .SelectMany((dh, i) => Multiply(dh.Dog, i))
+        return dogs
+            .SelectMany(Multiply)
             .ToList();
+    }
+    
+    [Test]
+    public void CheckItemAdditionForNonUniqueParticipantTest()
+    {
+        var data = DuplicateSomeDogs(Dogs.KnownDogsWithHashCode.Select(p => p.Dog));
         
         var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
         var comparerTuple = (dogComparer, EqualityComparer<string>.Default, EqualityComparer<Color>.Default);
@@ -259,6 +265,185 @@ public class MultiUpdateHandlingTests
             
             Consistency.EqualsAt(6, hashTableCopy, 2, candidateDataIndex);
             Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 6);
+            
+            Consistency.CheckForNonUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dataCount,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+    }
+    
+    [Test]
+    public void CheckItemRemovalForNonUniqueParticipantTest()
+    {
+        var data = DuplicateSomeDogs(Dogs.KnownDogsWithHashCode.Select(p => p.Dog));
+    
+        var dogComparer = new CustomDogEqualityComparer(Dogs.KnownDogsWithHashCode.Concat(Dogs.NewDogsWithHashCode));
+        var hashTupleComputer = DogPlaceColorProjector.GetHashTupleComputer(dogComparer);
+        
+        int hashEntryCount = DogPlaceColorGeneration.CreateTablesForNonUnique(
+            data,
+            out var hashTable,
+            out var dataTable,
+            hashTuple => hashTuple.Item1,
+            dataTuple => dataTuple.Dog,
+            hashTupleComputer);
+    
+        Assert.That(hashTable, Is.EqualTo(DogPlaceColorTuples.ExpectedHashTableSource2));
+        Assert.That(hashEntryCount, Is.EqualTo(9));
+    
+        {
+            int dataCount = data.Count;
+            var hashTableCopy = hashTable.ToArray();
+            var dataTableCopy = dataTable.ToArray();
+    
+            int removedDataIndex = 1;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+    
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            Consistency.EqualsAt(10, hashTableCopy, HashEntry.Optimal, removedDataIndex);
+            Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 10);
+            
+            Consistency.CheckForNonUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dataCount,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+        {
+            int dataCount = data.Count;
+            var hashTableCopy = hashTable.ToArray();
+            var dataTableCopy = dataTable.ToArray();
+        
+            int removedDataIndex = 16;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            removedDataIndex = 15;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            Consistency.EqualsAt(10, hashTableCopy, HashEntry.DriftForUnused, 0);
+            Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 10);
+            
+            Consistency.CheckForNonUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dataCount,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+        {
+            int dataCount = data.Count;
+            var hashTableCopy = hashTable.ToArray();
+            var dataTableCopy = dataTable.ToArray();
+        
+            int removedDataIndex = 7;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            removedDataIndex = 6;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            Consistency.EqualsAt(5, hashTableCopy, HashEntry.Optimal, 9);
+            Consistency.EqualsAt(6, hashTableCopy, 2, 10);
+            Consistency.EqualsAt(7, hashTableCopy, 2, 13);
+            Consistency.EqualsAt(8, hashTableCopy, HashEntry.Optimal, 14);
+            Consistency.EqualsAt(9, hashTableCopy, HashEntry.DriftForUnused, 0);
+            Consistency.EqualsAt(10, hashTableCopy, HashEntry.Optimal, 7);
+            Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 5, 6, 7, 8, 9, 10);
+            
+            Consistency.CheckForNonUnique(
+                hashTableCopy,
+                dataTableCopy,
+                dataCount,
+                DogProjector.Instance,
+                hashTupleComputer);
+        }
+        {
+            int dataCount = data.Count;
+            var hashTableCopy = hashTable.ToArray();
+            var dataTableCopy = dataTable.ToArray();
+        
+            int removedDataIndex = 10;
+            
+            MultiUpdateHandling<DogPlaceColorEntry, DogProjector>.Remove(
+                ref hashTableCopy,
+                ref hashEntryCount,
+                dataCount,
+                dataTableCopy,
+                DogProjector.Instance,
+                removedDataIndex);
+            
+            DataHandling<DogPlaceColorTuple, HashTuple, IndexTuple>.RemoveOnlyData(
+                ref dataTableCopy,
+                removedDataIndex,
+                ref dataCount);
+            
+            Consistency.EqualsAt(7, hashTableCopy, 2, 13);
+            Consistency.EqualsAt(8, hashTableCopy, HashEntry.Optimal, 14);
+            Consistency.EqualsAt(9, hashTableCopy, HashEntry.DriftForUnused, 0);
+            Consistency.EqualsAt(10, hashTableCopy, HashEntry.Optimal, 10);
+            Consistency.AreEqualExcept(hashTableCopy, DogPlaceColorTuples.ExpectedHashTableSource2, 7, 8, 9, 10);
             
             Consistency.CheckForNonUnique(
                 hashTableCopy,

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NaryCollections.Primitives;
 
 namespace NaryCollections.Components;
@@ -125,17 +126,155 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
+    public static void Remove(
+        ref HashEntry[] hashTable,
+        ref int count,
+        int currentDataCount,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int removedDataIndex)
+    {
+        // When this function is called, data has not been removed yet. This implies that
+        // line dataTable[removedDataIndex] still contains everything needed.
+        // We may update hashTable even if it gets resized after.
+        
+        MustBeStrictyPositive(count);
+        MustBeSmallEnough(count, hashTable.Length);
+        
+        MultiIndex forgottenBackIndex = handler.GetBackIndex(dataTable, removedDataIndex);
+
+        int newDataCount = currentDataCount - 1;
+
+        if (forgottenBackIndex is { IsSubsequent: false, Next: MultiIndex.NoNext })
+        {
+            int newCount = count - 1;
+        
+            if (HashEntry.IsSparseEnough(hashTable.Length, newCount))
+            {
+                int newHashTableCapacity = HashEntry.DecreaseCapacity(hashTable.Length);
+                hashTable = ChangeCapacity(dataTable, handler, newHashTableCapacity, count, except: removedDataIndex);
+            }
+            else
+            {
+                RemoveStrictly(hashTable, dataTable, handler, forgottenBackIndex.Previous);
+            }
+
+            count = newCount;
+        }
+        else
+        {
+            Forget(hashTable, dataTable, handler, forgottenBackIndex);
+        }
+
+        Condense(hashTable, dataTable, handler, removedDataIndex, lastDataIndex: newDataCount);
+    }
+
+    private static void Condense(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int removedDataIndex,
+        int lastDataIndex)
+    {
+        if (removedDataIndex == lastDataIndex) return;
+        
+        // If forgottenBackIndex is not the last item in dataTable,
+        // this last item will be moved in dataTable from last position to removedDataIndex.
+        // We must look for the back index of this last item, then find the corresponding entry in hashTable
+        // and finally update all related indexes.
+        
+        var multiIndex = handler.GetBackIndex(dataTable, lastDataIndex);
+
+        if (multiIndex.IsSubsequent)
+        {
+            var previous = handler.GetBackIndex(dataTable, multiIndex.Previous) with
+                { Next = removedDataIndex };
+            handler.SetBackIndex(dataTable, multiIndex.Previous, previous);
+        }
+        else
+        {
+            hashTable[multiIndex.Previous].ForwardIndex = removedDataIndex;
+        }
+
+        if (multiIndex.Next != MultiIndex.NoNext)
+        {
+            var next = handler.GetBackIndex(dataTable, multiIndex.Next) with { Previous = removedDataIndex };
+            handler.SetBackIndex(dataTable, multiIndex.Next, next);
+        }
+    }
+
+    public static void RemoveStrictly(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        int dataIndex)
+    {
+        uint reducedHashCode = (uint)dataIndex;
+        uint nextReducedHashCode = reducedHashCode;
+        HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
+            
+        while (true)
+        {
+            if (hashTable[nextReducedHashCode].DriftPlusOne <= HashEntry.Optimal)
+            {
+                hashTable[reducedHashCode] = default;
+                break;
+            }
+        
+            hashTable[reducedHashCode] = hashTable[nextReducedHashCode];
+            hashTable[reducedHashCode].DriftPlusOne--;
+        
+            int forwardIndex = hashTable[reducedHashCode].ForwardIndex;
+            var multiIndex = handler.GetBackIndex(dataTable, forwardIndex) with { Previous = (int)reducedHashCode };
+            handler.SetBackIndex(dataTable, forwardIndex, multiIndex);
+        
+            reducedHashCode = nextReducedHashCode;
+            HashCodeReduction.MoveReducedHashCode(ref nextReducedHashCode, hashTable.Length);
+        }
+    }
+
+    public static void Forget(
+        HashEntry[] hashTable,
+        TDataEntry[] dataTable,
+        TResizeHandler handler,
+        MultiIndex forgottenBackIndex)
+    {
+        if (forgottenBackIndex.IsSubsequent)
+        {
+            var previous = handler.GetBackIndex(dataTable, forgottenBackIndex.Previous) with
+                { Next = forgottenBackIndex.Next };
+            handler.SetBackIndex(dataTable, forgottenBackIndex.Previous, previous);
+            
+            if (forgottenBackIndex.Next != MultiIndex.NoNext)
+            {
+                var next = handler.GetBackIndex(dataTable, forgottenBackIndex.Next) with
+                    { Previous = forgottenBackIndex.Previous };
+                handler.SetBackIndex(dataTable, forgottenBackIndex.Next, next);
+            }
+        }
+        else
+        {
+            MustNotBeLast(forgottenBackIndex);
+            
+            var next = handler.GetBackIndex(dataTable, forgottenBackIndex.Next) with
+                { Previous = forgottenBackIndex.Previous, IsSubsequent = false };
+            handler.SetBackIndex(dataTable, forgottenBackIndex.Next, next);
+            hashTable[forgottenBackIndex.Previous].ForwardIndex = forgottenBackIndex.Next;
+        }
+    }
+
     public static HashEntry[] ChangeCapacity(
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
-        int newDataCount)
+        int newDataCount,
+        int except = -1)
     {
         var hashTable = new HashEntry[newHashTableCapacity];
         
         for (int i = 0; i < newDataCount; i++)
         {
-            if (handler.GetBackIndex(dataTable, i).IsSubsequent)
+            if (i == except || handler.GetBackIndex(dataTable, i).IsSubsequent)
                 continue;
             var hashCode = handler.GetHashCodeAt(dataTable, i);
             var reducedHashCode = HashCodeReduction.ComputeReducedHashCode(hashCode, newHashTableCapacity);
@@ -147,5 +286,23 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
         
         return hashTable;
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustNotBeLast(MultiIndex multiIndex)
+    {
+        Debug.Assert(multiIndex.Next != MultiIndex.NoNext, "Provided multiIndex should not be the last one");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustBeSmallEnough(int count, int capacity)
+    {
+        Debug.Assert(count <= capacity, "Count be smaller than capacity");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustBeStrictyPositive(int count)
+    {
+        Debug.Assert(0 < count, "Count should be strictly positive");
     }
 }
