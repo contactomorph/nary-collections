@@ -431,6 +431,103 @@ public class NaryMapCompilationTests
         }
     }
 
+    [Test]
+    public void UseDogPlaceColorSetOperationsTest()
+    {
+        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+
+        var set = factory().AsSet();
+        
+        Color[] colors = [
+            Color.AliceBlue,
+            Color.AntiqueWhite,
+            Color.Aqua,
+            Color.Aquamarine,
+            Color.Azure,
+            Color.CadetBlue,
+            Color.IndianRed,
+            Color.SaddleBrown,
+            Color.Salmon,
+            Color.SandyBrown 
+        ];
+        
+        List<DogPlaceColorTuple> tuples = new();
+
+        for (int i = 0; i < 13 * 10 * 2; i++)
+        {
+            var dog = Dogs.AllDogs[i % 13];
+            var place = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            var color = colors[i % 10];
+
+            var tuple = (dog, place, color);
+            tuples.Add(tuple);
+            if (i < 130)
+            {
+                Assert.That(set.Add(tuple), Is.True);
+            }
+        }
+        
+        Assert.That(set.IsSubsetOf(tuples));
+        Assert.That(set.IsSubsetOf(tuples.Take(131)));
+        Assert.That(set.IsSubsetOf(tuples.Take(130)));
+        Assert.That(!set.IsSubsetOf(tuples.Take(129)));
+        Assert.That(!set.IsSubsetOf(Array.Empty<DogPlaceColorTuple>()));
+        
+        Assert.That(set.IsProperSubsetOf(tuples));
+        Assert.That(set.IsProperSubsetOf(tuples.Take(131)));
+        Assert.That(!set.IsProperSubsetOf(tuples.Take(130)));
+        Assert.That(!set.IsProperSubsetOf(tuples.Take(129)));
+        Assert.That(!set.IsProperSubsetOf(Array.Empty<DogPlaceColorTuple>()));
+        
+        Assert.That(!set.IsSupersetOf(tuples));
+        Assert.That(!set.IsSupersetOf(tuples.Take(131)));
+        Assert.That(set.IsSupersetOf(tuples.Take(130)));
+        Assert.That(set.IsSupersetOf(tuples.Take(129)));
+        Assert.That(set.IsSupersetOf(Array.Empty<DogPlaceColorTuple>()));
+        
+        Assert.That(!set.IsProperSupersetOf(tuples));
+        Assert.That(!set.IsProperSupersetOf(tuples.Take(131)));
+        Assert.That(!set.IsProperSupersetOf(tuples.Take(130)));
+        Assert.That(set.IsProperSupersetOf(tuples.Take(129)));
+        Assert.That(set.IsProperSupersetOf(Array.Empty<DogPlaceColorTuple>()));
+        
+        Assert.That(!set.SetEquals(tuples));
+        Assert.That(!set.SetEquals(tuples.Take(131)));
+        Assert.That(set.SetEquals(tuples.Take(130)));
+        Assert.That(!set.SetEquals(tuples.Take(129)));
+        Assert.That(!set.SetEquals(Array.Empty<DogPlaceColorTuple>()));
+        
+        Assert.That(set.Overlaps(tuples));
+        Assert.That(set.Overlaps(tuples.Skip(129)));
+        Assert.That(!set.Overlaps(tuples.Skip(130)));
+        Assert.That(!set.Overlaps(tuples.Skip(131)));
+        Assert.That(!set.Overlaps(Array.Empty<DogPlaceColorTuple>()));
+        
+        set.UnionWith(tuples.Skip(120).Take(20));
+        Assert.That(set.SetEquals(tuples.Take(140)));
+        set.UnionWith(Array.Empty<DogPlaceColorTuple>());
+        Assert.That(set.SetEquals(tuples.Take(140)));
+        
+        set.IntersectWith(tuples.Skip(50));
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(90)));
+        set.IntersectWith(tuples);
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(90)));
+        
+        set.ExceptWith(tuples.Skip(110));
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(60)));
+        set.ExceptWith(tuples.Skip(200));
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(60)));
+        set.ExceptWith(Array.Empty<DogPlaceColorTuple>());
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(60)));
+        
+        set.SymmetricExceptWith(tuples.Skip(100));
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(50).Concat(tuples.Skip(110))));
+        set.SymmetricExceptWith(Array.Empty<DogPlaceColorTuple>());
+        Assert.That(set.SetEquals(tuples.Skip(50).Take(50).Concat(tuples.Skip(110))));
+        set.SymmetricExceptWith(tuples);
+        Assert.That(set.SetEquals(tuples.Take(50).Concat(tuples.Skip(100).Take(10))));
+    }
+
     private static void AssertCounts(
         INaryMap<DogPlaceColor> map,
         int expectedCount0,

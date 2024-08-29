@@ -89,17 +89,38 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
 
     public bool IsProperSubsetOf(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        var providedItems = other.ToHashSet(comparer: this);
+        foreach (var dataTuple in this)
+        {
+            if (!providedItems.Remove(dataTuple))
+                return false;
+        }
+
+        return 0 < providedItems.Count;
     }
 
     public bool IsProperSupersetOf(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        var commonItems = new HashSet<TDataTuple>(comparer: this);
+        foreach (var dataTuple in other)
+        {
+            if (!Contains(dataTuple))
+                return false;
+            commonItems.Add(dataTuple);
+        }
+        return commonItems.Count < this.Count;
     }
 
     public bool IsSubsetOf(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        var providedItems = other.ToHashSet(comparer: this);
+        foreach (var dataTuple in this)
+            if (!providedItems.Remove(dataTuple))
+                return false;
+        return true;
     }
 
     public bool IsSupersetOf(IEnumerable<TDataTuple> other)
@@ -113,17 +134,30 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
 
     public bool Overlaps(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        foreach (var dataTuple in other)
+            if (Contains(dataTuple))
+                return true;
+        return false;
     }
 
     public bool SetEquals(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
-    }
+        var commonItems = new HashSet<TDataTuple>(comparer: this);
+        foreach (var dataTuple in other)
+        {
+            if (Contains(dataTuple))
+                commonItems.Add(dataTuple);
+            else
+                return false;
+        }
 
-    public void SymmetricExceptWith(IEnumerable<TDataTuple> other)
-    {
-        throw new NotImplementedException();
+        foreach (var dataTuple in this)
+        {
+            if (!commonItems.Contains(dataTuple))
+                return false;
+        }
+        return true;
     }
 
     public bool Contains(TDataTuple dataTuple)
@@ -225,19 +259,59 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     
     public void ExceptWith(IEnumerable<TDataTuple> other)
     {
-        throw new NotImplementedException();
-    }
-
-    public void IntersectWith(IEnumerable<TDataTuple> other)
-    {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        if (other is null) throw new ArgumentNullException(nameof(other));
         foreach (var tuple in other)
             Remove(tuple);
     }
 
+    public void IntersectWith(IEnumerable<TDataTuple> other)
+    {
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        var commonItems = new HashSet<TDataTuple>(comparer: this);
+        foreach (var dataTuple in other)
+        {
+            if (Contains(dataTuple))
+                commonItems.Add(dataTuple);
+        }
+
+        var list = this.ToList();
+        foreach (var dataTuple in list)
+        {
+            if (!commonItems.Contains(dataTuple))
+                Remove(dataTuple);
+        }
+    }
+
+    /// <summary>Modifies the current set so that it contains only elements that are present either in the current set or in the specified collection, but not both.</summary>
+    /// <param name="other">The collection to compare to the current set.</param>
+    /// <exception cref="T:System.ArgumentNullException">
+    /// <paramref name="other" /> is <see langword="null" />.</exception>
+    public void SymmetricExceptWith(IEnumerable<TDataTuple> other)
+    {
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        var commonItems = new HashSet<TDataTuple>(comparer: this);
+        var onlyOther = new List<TDataTuple>();
+        foreach (var dataTuple in other)
+        {
+            if (Contains(dataTuple))
+                commonItems.Add(dataTuple);
+            else
+                onlyOther.Add(dataTuple);
+        }
+
+        var list = this.ToList();
+        foreach (var dataTuple in list)
+        {
+            if (commonItems.Contains(dataTuple))
+                Remove(dataTuple);
+        }
+
+        foreach (var dataTuple in onlyOther) Add(dataTuple);
+    }
+
     public void UnionWith(IEnumerable<TDataTuple> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        if (other is null) throw new ArgumentNullException(nameof(other));
         foreach (var tuple in other)
             Add(tuple);
     }
