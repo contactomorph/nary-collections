@@ -385,6 +385,52 @@ public class NaryMapCompilationTests
             expectedCount5: 15);
     }
 
+    [Test]
+    public void AsDogPlaceColorComparerTest()
+    {
+        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        
+        var comparer = (IEqualityComparer<DogPlaceColorTuple>)factory();
+        
+        var d0 = Dogs.KnownDogs[0];
+        var d1 = Dogs.KnownDogs[1];
+
+        DogPlaceColorTuple[] tuples = [
+            (d0, "Paris", Color.Yellow),
+            (d0, "Paris", Color.Red),
+            (d0, "Lyon", Color.Yellow),
+            (d0, "Lyon", Color.Red),
+            (d1, "Paris", Color.Yellow),
+            (d1, "Paris", Color.Red),
+            (d1, "Lyon", Color.Yellow),
+            (d1, "Lyon", Color.Red),
+        ];
+
+        var dogComparer = EqualityComparer<Dog>.Default;
+        var stringComparer = EqualityComparer<string>.Default;
+        var colorComparer = EqualityComparer<Color>.Default;
+
+        for(int i = 0; i < tuples.Length; i++)
+        {
+            var hi = comparer.GetHashCode(tuples[i]);
+            
+            for (int j = 0; j < tuples.Length; j++)
+            {
+                var expected = i == j;
+                var actual = comparer.Equals(tuples[i], tuples[j]);
+                Assert.That(actual, Is.EqualTo(expected));
+                var hj = comparer.GetHashCode(tuples[j]);
+                Assert.That(hi == hj, Is.EqualTo(expected));
+            }
+
+            var hd = dogComparer.GetHashCode(tuples[i].Dog);
+            var hp = stringComparer.GetHashCode(tuples[i].Place);
+            var hc = colorComparer.GetHashCode(tuples[i].Color);
+            
+            Assert.That(hi, Is.EqualTo((hd, hp, hc).GetHashCode()));
+        }
+    }
+
     private static void AssertCounts(
         INaryMap<DogPlaceColor> map,
         int expectedCount0,

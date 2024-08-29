@@ -13,7 +13,7 @@ public static class NaryMapBase
 }
 
 public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
-    : INaryMap<TSchema>, IConflictingSet<TDataTuple>
+    : INaryMap<TSchema>, IConflictingSet<TDataTuple>, IEqualityComparer<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
@@ -54,8 +54,16 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         _version = 0;
     }
 
-    #region Implements IEnumerable<TDataTuple>
+    #region Implements IEqualityComparer<TDataTuple>
+
+    public abstract bool Equals(TDataTuple x, TDataTuple y);
+
+    public int GetHashCode(TDataTuple obj) => ComputeHashTuple(obj).GetHashCode();
     
+    #endregion
+
+    #region Implements IEnumerable<TDataTuple>
+
     public IEnumerator<TDataTuple> GetEnumerator()
     {
         int i = 0;

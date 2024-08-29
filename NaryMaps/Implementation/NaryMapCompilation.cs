@@ -93,6 +93,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         }
         
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, compositeInfo);
+        DefineEquals(typeBuilder, dataTypeDecomposition, baseMapType);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseMapType);
         DefineFindInOtherComposites(typeBuilder, dataTypeDecomposition, baseMapType, compositeInfo);
         DefineAddToOtherComposites(typeBuilder, baseMapType, compositeInfo);
@@ -177,6 +178,68 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         }
         
         il.Emit(OpCodes.Ret);
+    }
+
+    private static void DefineEquals(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeDecomposition,
+        Type baseCollectionType)
+    {
+        Type[] inputTypes = [dataTypeDecomposition.DataTupleType, dataTypeDecomposition.DataTupleType];
+
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                FakeNaryMap.EqualsMethodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(bool),
+                inputTypes);
+        ILGenerator il = methodBuilder.GetILGenerator();
+
+        var falseLabel = il.DefineLabel();
+        var endLabel = il.DefineLabel();
+
+        var comparerTupleField = CommonCompilation.GetFieldInBase(
+            baseCollectionType,
+            FakeNaryMap.ComparerTupleFieldName);
+
+        int i = 0;
+        foreach (var dataField in dataTypeDecomposition.DataTupleType)
+        {
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._comparerTuple
+            il.Emit(OpCodes.Ldfld, comparerTupleField);
+            // this._comparerTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, dataTypeDecomposition.ComparerTupleType[i]);
+            // x
+            il.Emit(OpCodes.Ldarg_1);
+            // x.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, dataField);
+            // y
+            il.Emit(OpCodes.Ldarg_2);
+            // y.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, dataField);
+            // EqualityComparerHandling.ComputeEquals(this._comparerTuple.Item⟨i⟩, x.Item⟨i⟩, y.Item⟨i⟩)
+            il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(dataField.FieldType));
+            // !EqualityComparerHandling.ComputeEquals(…) → falseLabel
+            il.Emit(OpCodes.Brfalse, falseLabel);
+
+            ++i;
+        }
+
+        // true
+        il.Emit(OpCodes.Ldc_I4_1);
+        // → endLabel
+        il.Emit(OpCodes.Br_S, endLabel);
+
+        il.MarkLabel(falseLabel);
+        // false
+        il.Emit(OpCodes.Ldc_I4_0);
+
+        il.MarkLabel(endLabel);
+        il.Emit(OpCodes.Ret);
+
+        CommonCompilation.OverrideMethod(typeBuilder, baseCollectionType, methodBuilder, inputTypes);
     }
 
     private static void DefineComputeHashTuple(

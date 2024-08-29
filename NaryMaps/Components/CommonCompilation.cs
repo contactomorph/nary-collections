@@ -21,11 +21,14 @@ internal static class CommonCompilation
         return dataMappingOutput.Count == 1 ? dataMappingOutput[0].FieldType : dataMappingOutput;
     }
 
-    public static void OverrideMethod(TypeBuilder typeBuilder, Type upperType, MethodBuilder methodBuilder)
+    public static void OverrideMethod(TypeBuilder typeBuilder, Type upperType, MethodBuilder methodBuilder, Type[]? inputTypes = null)
     {
-        var method = upperType.GetMethod(methodBuilder.Name, BaseFlags) ??
-                     throw new MissingMethodException();
-        
+        var method = inputTypes is not null ?
+            upperType.GetMethod(methodBuilder.Name, BaseFlags, inputTypes) :
+            upperType.GetMethod(methodBuilder.Name, BaseFlags);
+
+        method = method ?? throw new MissingMethodException();
+
         typeBuilder.DefineMethodOverride(methodBuilder, method);
     }
 

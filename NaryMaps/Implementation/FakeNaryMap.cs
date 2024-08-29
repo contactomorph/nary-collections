@@ -11,12 +11,15 @@ internal sealed class FakeNaryMap :
     public const string ComparerTupleFieldName = nameof(_comparerTuple);
     public const string DataTableFieldName = nameof(_dataTable);
     public const string ComputeHashTupleMethodName = nameof(ComputeHashTuple);
+    public const string EqualsMethodName = nameof(Equals);
     public const string FindInOtherCompositesMethodName = nameof(FindInOtherComposites);
     public const string AddToOtherCompositesMethodName = nameof(AddToOtherComposites);
     public const string RemoveFromOtherCompositesMethodName = nameof(RemoveFromOtherComposites);
     public const string ClearOtherCompositesMethodName = nameof(ClearOtherComposites);
 
     private FakeNaryMap() : base(new(), new (), new ()) { }
+
+    public override bool Equals(ValueTuple x, ValueTuple y) => throw new NotImplementedException();
 
     protected override ValueTuple ComputeHashTuple(ValueTuple dataTuple) => throw new NotImplementedException();
 
