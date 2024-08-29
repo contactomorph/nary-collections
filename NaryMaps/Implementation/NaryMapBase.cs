@@ -185,6 +185,7 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
         ref TCompositeHandler handlerReference = ref _compositeHandler;
         handlerReference.Clear();
+        ClearOtherComposites();
     }
 
     public bool Remove(TDataTuple dataTuple)
@@ -283,4 +284,6 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     protected abstract void AddToOtherComposites(SearchResult[] otherResults, int candidateDataIndex);
     
     protected abstract void RemoveFromOtherComposites(int removedDataIndex);
+
+    protected abstract void ClearOtherComposites();
 }

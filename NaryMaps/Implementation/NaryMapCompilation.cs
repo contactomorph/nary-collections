@@ -97,6 +97,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         DefineFindInOtherComposites(typeBuilder, dataTypeDecomposition, baseMapType, compositeInfo);
         DefineAddToOtherComposites(typeBuilder, baseMapType, compositeInfo);
         DefineRemoveFromOtherComposites(typeBuilder, baseMapType, compositeInfo);
+        DefineClearOtherComposites(typeBuilder, baseMapType, compositeInfo);
 
         var type = typeBuilder.CreateType();
         
@@ -483,6 +484,38 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             il.Emit(OpCodes.Call, removeMethod);
         }
         
+        il.Emit(OpCodes.Ret);
+
+        CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);
+    }
+
+    private static void DefineClearOtherComposites(
+        TypeBuilder typeBuilder,
+        Type baseMapType,
+        IReadOnlyList<CompositeInfo> compositeInfo)
+    {
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                FakeNaryMap.ClearOtherCompositesMethodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(void),
+                []);
+        ILGenerator il = methodBuilder.GetILGenerator();
+
+        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        {
+            var clearMethod = CommonCompilation.GetMethod(
+                handlerFieldBuilder.FieldType,
+                nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Clear));
+
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // ref this._compositeHandler_⟨i⟩
+            il.Emit(OpCodes.Ldflda, handlerFieldBuilder);
+            // (ref this._compositeHandler_⟨i⟩).Clear()
+            il.Emit(OpCodes.Call, clearMethod);
+        }
+
         il.Emit(OpCodes.Ret);
         
         CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);

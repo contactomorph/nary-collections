@@ -66,7 +66,7 @@ public static class CompositeHandlerCompilation
             compositeHandlerInterfaceType,
             fields.HashTableField,
             fields.CountField);
-        DefineClear(typeBuilder, compositeHandlerInterfaceType, fields.HashTableField);
+        DefineClear(typeBuilder, compositeHandlerInterfaceType, fields.HashTableField, fields.CountField);
 
         ResizeHandlerCompilation.DefineGetHashCodeAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         ResizeHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
@@ -299,7 +299,8 @@ public static class CompositeHandlerCompilation
     private static void DefineClear(
         TypeBuilder typeBuilder,
         Type compositeHandlerInterfaceType,
-        FieldBuilder hashTableField)
+        FieldBuilder hashTableField,
+        FieldBuilder? countField)
     {
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
@@ -317,6 +318,16 @@ public static class CompositeHandlerCompilation
         il.Emit(OpCodes.Newarr, typeof(HashEntry));
         // this._hashTable = new HashEntry[HashEntry.TableMinimalLength]
         il.Emit(OpCodes.Stfld, hashTableField);
+        
+        if (countField is not null)
+        {
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // false
+            il.Emit(OpCodes.Ldc_I4_0);
+            // this._count = false
+            il.Emit(OpCodes.Stfld, countField);
+        }
 
         il.Emit(OpCodes.Ret);
 
