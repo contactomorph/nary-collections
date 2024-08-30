@@ -33,4 +33,35 @@ public class NaryMapTests
         
         Assert.That(swappedItem, Is.EqualTo((Dogs.KnownDogs[1], "Bordeaux")));
     }
+
+    [Test]
+    public void ProjectingMap()
+    {
+        var map = NaryMap.New<DogPlaceColor>();
+
+        map.AsSet().UnionWith(DogPlaceColorTuples.Data);
+
+        var nameSet = map.AsReadOnlySet(s => s.Name);
+
+        Assert.That(nameSet.Count, Is.EqualTo(map.AsReadOnlySet().Count));
+
+        Assert.That(nameSet.ToList(), 
+            Is.EquivalentTo(new[] { "Lyon", "Paris", "Bordeaux" }));
+
+        var dogToTuple = map.With(s => s.Dog).AsReadOnlyMultiDictionary();
+
+        var expectedDogDictionary = map.AsSet()
+            .GroupBy(t => t.Dog)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        Assert.That(dogToTuple.Count, Is.EqualTo(expectedDogDictionary.Count));
+        Assert.That(dogToTuple.ToList(), Is.EquivalentTo(expectedDogDictionary));
+
+        var nameToTuple = map.With(s => s.Name).AsReadOnlyDictionary();
+
+        var expectedNameDictionary = map.AsSet().ToDictionary(t => t.Place);
+
+        Assert.That(nameToTuple.Count, Is.EqualTo(expectedNameDictionary.Count));
+        Assert.That(nameToTuple.ToList(), Is.EquivalentTo(expectedNameDictionary));
+    }
 }

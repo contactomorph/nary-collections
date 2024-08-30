@@ -324,9 +324,13 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
-        throw new NotImplementedException();
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var participant = selector(Schema);
+        if (participant is null) throw new ArgumentException(nameof(selector));
+        if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (IReadOnlySet<T>)CreateSelection(participant.Rank);
     }
-    
+
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
@@ -336,7 +340,11 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
         where TK : CompositeKind.Basic
     {
-        throw new NotImplementedException();
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var participant = selector(Schema);
+        if (participant is null) throw new ArgumentException(nameof(selector));
+        if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (ISelection<TSchema, TK, T>)CreateSelection(participant.Rank);
     }
     
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
@@ -359,4 +367,6 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     protected abstract void RemoveFromOtherComposites(int removedDataIndex);
 
     protected abstract void ClearOtherComposites();
+
+    protected abstract object CreateSelection(byte rank);
 }

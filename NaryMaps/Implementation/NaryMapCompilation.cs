@@ -8,7 +8,7 @@ using NaryMaps.Tools;
 
 namespace NaryMaps.Implementation;
 
-using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo, bool MustBeUnique);
+using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo, bool MustBeUnique, byte Rank);
 using ICompositeHandler = ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>;
 
 internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
@@ -64,33 +64,8 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             TypeAttributes.Class | TypeAttributes.Sealed,
             baseMapType);
 
-        var positionPerParticipants = schema
-            .GetSignature()
-            .Participants
-            .ToDictionary(p => p.Participant, p => p.Position);
-        
-        List<CompositeInfo> compositeInfo = new();
-        foreach (var composite in composites)
-        {
-            var indexes = composite.Participants.Select(p => positionPerParticipants[p]).ToArray();
-            var rank = (byte)(composite.Rank + 1);
-            
-            var otherHandlerCtor = CompositeHandlerCompilation.GenerateConstructor(
-                moduleBuilder,
-                dataTupleType,
-                indexes,
-                rank, 
-                backIndexMultiplicities);
-            
-            var fieldBuilder = typeBuilder.DefineField(
-                "_compositeHandler_" + rank,
-                otherHandlerCtor.DeclaringType!,
-                FieldAttributes.Private);
+        var compositeInfo = DeclareFields(moduleBuilder, typeBuilder, schema, dataTypeDecomposition);
 
-            var otherDataTypeProjection = dataTypeDecomposition.ProjectAlong(rank, indexes);
-            compositeInfo.Add((otherDataTypeProjection, fieldBuilder, otherHandlerCtor, composite.Unique));
-        }
-        
         DefineConstructor(typeBuilder, schemaType, compositeHandlerType, comparerTupleType, compositeInfo);
         DefineEquals(typeBuilder, dataTypeDecomposition, baseMapType);
         DefineComputeHashTuple(typeBuilder, dataTypeDecomposition, baseMapType);
@@ -98,6 +73,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         DefineAddToOtherComposites(typeBuilder, baseMapType, compositeInfo);
         DefineRemoveFromOtherComposites(typeBuilder, baseMapType, compositeInfo);
         DefineClearOtherComposites(typeBuilder, baseMapType, compositeInfo);
+        DefineCreateSelection(moduleBuilder, typeBuilder, baseMapType, compositeInfo);
 
         var type = typeBuilder.CreateType();
         
@@ -117,11 +93,47 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         return _factory;
     }
 
+    private static IReadOnlyList<CompositeInfo> DeclareFields(
+        ModuleBuilder moduleBuilder,
+        TypeBuilder typeBuilder,
+        TSchema schema,
+        DataTypeProjection dataTypeDecomposition)
+    {
+        var positionPerParticipants = schema
+            .GetSignature()
+            .Participants
+            .ToDictionary(p => p.Participant, p => p.Position);
+        
+        List<CompositeInfo> compositeInfo = new();
+        foreach (var composite in schema.GetComposites())
+        {
+            var indexes = composite.Participants.Select(p => positionPerParticipants[p]).ToArray();
+            byte backIndexRank = (byte)(composite.Rank + 1);
+            
+            var otherHandlerCtor = CompositeHandlerCompilation.GenerateConstructor(
+                moduleBuilder,
+                dataTypeDecomposition.DataTupleType,
+                indexes,
+                backIndexRank, 
+                dataTypeDecomposition.BackIndexMultiplicities);
+            
+            var fieldBuilder = typeBuilder.DefineField(
+                "_compositeHandler_" + backIndexRank,
+                otherHandlerCtor.DeclaringType!,
+                FieldAttributes.Public);
+
+            var otherDataTypeProjection = dataTypeDecomposition.ProjectAlong(backIndexRank, indexes);
+            compositeInfo.Add((otherDataTypeProjection, fieldBuilder, otherHandlerCtor, composite.Unique, composite.Rank));
+        }
+
+        return compositeInfo;
+    }
+
     private static string CreateName()
     {
         var sb = new StringBuilder("NaryMap_");
         Plug(sb, typeof(TSchema));
-        return sb.ToString();
+        return sb.Append($"_{Guid.NewGuid():N}").ToString();
     }
 
     private static void Plug(StringBuilder sb, Type type)
@@ -186,7 +198,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         // base(schema, completeProjector, comparerTuple)
         il.Emit(OpCodes.Call, baseCtor);
 
-        foreach (var (_, fieldBuilder, ctor, _) in compositeInfo)
+        foreach (var (_, fieldBuilder, ctor, _, _) in compositeInfo)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);
@@ -350,9 +362,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             baseMapType,
             FakeNaryMap.ComparerTupleFieldName);
 
-        int i = 0;
-        
-        foreach (var (dataTypeProjection, handlerFieldBuilder, _, mustBeUnique) in compositeInfo)
+        foreach (var (dataTypeProjection, handlerFieldBuilder, _, mustBeUnique, rank) in compositeInfo)
         {
             // this
             il.Emit(OpCodes.Ldarg_0);
@@ -424,7 +434,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             // *searchResults
             il.Emit(OpCodes.Ldind_Ref);
             // i
-            il.Emit(OpCodes.Ldc_I4, i);
+            il.Emit(OpCodes.Ldc_I4, (int)rank);
             // result
             il.Emit(OpCodes.Ldloc, resultLocal);
             // (*searchResults)[i] = result
@@ -447,8 +457,6 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
                 // equal → alreadyInsideLabel
                 il.Emit(OpCodes.Brtrue, alreadyInsideLabel);
             }
-
-            ++i;
         }
 
         // false
@@ -487,7 +495,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             NaryMapBase.CountFieldName);
 
         int i = 0;
-        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        foreach (var (_, handlerFieldBuilder, _, _, _) in compositeInfo)
         {
             var addMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
@@ -544,7 +552,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             baseMapType,
             NaryMapBase.CountFieldName);
         
-        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        foreach (var (_, handlerFieldBuilder, _, _, _) in compositeInfo)
         {
             var removeMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
@@ -586,7 +594,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
                 []);
         ILGenerator il = methodBuilder.GetILGenerator();
 
-        foreach (var (_, handlerFieldBuilder, _, _) in compositeInfo)
+        foreach (var (_, handlerFieldBuilder, _, _, _) in compositeInfo)
         {
             var clearMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
@@ -599,6 +607,82 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             // (ref this._compositeHandler_⟨i⟩).Clear()
             il.Emit(OpCodes.Call, clearMethod);
         }
+
+        il.Emit(OpCodes.Ret);
+        
+        CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);
+    }
+    
+    private static void DefineCreateSelection(
+        ModuleBuilder moduleBuilder,
+        TypeBuilder typeBuilder,
+        Type baseMapType,
+        IReadOnlyList<CompositeInfo> compositeInfo)
+    {
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                FakeNaryMap.CreateSelectionMethodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(object),
+                [typeof(byte)]);
+        ILGenerator il = methodBuilder.GetILGenerator();
+
+        Label endLabel = il.DefineLabel();
+
+        var labelAndRanks = compositeInfo
+            .Select(info => (Label: il.DefineLabel(), Rank: info.Rank))
+            .ToArray();
+
+        foreach (var (label, rank) in labelAndRanks)
+        {
+            // rank
+            il.Emit(OpCodes.Ldarg_1);
+            // ⟨rank⟩
+            il.Emit(OpCodes.Ldc_I4_S, rank);
+            // rank == ⟨rank⟩ → label
+            il.Emit(OpCodes.Beq, label);
+        }
+
+        // new InvalidOperationException()
+        il.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(Type.EmptyTypes)!);
+        // throw new InvalidOperationException()
+        il.Emit(OpCodes.Throw);
+
+        foreach (var (proj, handlerField, _, isUnique, rank) in compositeInfo)
+        {
+            il.MarkLabel(labelAndRanks[rank].Label);
+
+            var itemType = CommonCompilation.GetItemType(proj);
+
+            var selectionBaseTypeDefinition = isUnique ?
+                typeof(UniqueSearchableSelection<,,,,,>) :
+                typeof(NonUniqueSearchableSelection<,,,,,>);
+
+            var selectionBaseType = selectionBaseTypeDefinition.MakeGenericType(
+                proj.DataTupleType,
+                proj.DataEntryType,
+                proj.ComparerTupleType,
+                handlerField.FieldType,
+                typeof(TSchema),
+                itemType);
+
+            var selectionConstructor = SelectionCompilation.GenerateConstructor(
+                moduleBuilder,
+                proj,
+                selectionBaseType,
+                handlerField);
+
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // new ⟨XXX⟩Selection(this)
+            il.Emit(OpCodes.Newobj, selectionConstructor);
+
+            // → endLabel
+            il.Emit(OpCodes.Br_S, endLabel);
+        }
+
+
+        il.MarkLabel(endLabel);
 
         il.Emit(OpCodes.Ret);
         

@@ -16,6 +16,7 @@ internal sealed class FakeNaryMap :
     public const string AddToOtherCompositesMethodName = nameof(AddToOtherComposites);
     public const string RemoveFromOtherCompositesMethodName = nameof(RemoveFromOtherComposites);
     public const string ClearOtherCompositesMethodName = nameof(ClearOtherComposites);
+    public const string CreateSelectionMethodName = nameof(CreateSelection);
 
     private FakeNaryMap() : base(new(), new (), new ()) { }
 
@@ -42,6 +43,8 @@ internal sealed class FakeNaryMap :
     }
 
     protected override void ClearOtherComposites() => throw new NotImplementedException();
+    
+    protected override object CreateSelection(byte rank) => throw new NotImplementedException();
 
     public readonly struct FakeCompositeHandler :
         ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, ValueTuple>

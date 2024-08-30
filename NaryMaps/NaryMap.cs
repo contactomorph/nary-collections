@@ -29,13 +29,15 @@ public static class NaryMap
         this INaryMap<Schema<TDataTuple>> map)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        return (IConflictingSet<TDataTuple>)map;
+        if (map is IConflictingSet<TDataTuple> set) return set;
+        throw new InvalidOperationException("Unexpected map type.");
     }
     
     public static IReadOnlyConflictingSet<TDataTuple> AsReadOnlySet<TDataTuple>(
         this IReadOnlyNaryMap<Schema<TDataTuple>> map)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        return (IReadOnlyConflictingSet<TDataTuple>)map;
+        if (map is IReadOnlyConflictingSet<TDataTuple> set) return set;
+        throw new InvalidOperationException("Unexpected map type.");
     }
 }
