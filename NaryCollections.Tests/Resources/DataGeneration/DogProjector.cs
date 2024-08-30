@@ -10,8 +10,7 @@ using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint
 internal readonly struct DogProjector :
     IDataEquator<DogPlaceColorEntry, ComparerTuple, Dog>,
     IResizeHandler<DogPlaceColorEntry, int>,
-    IResizeHandler<DogPlaceColorEntry, MultiIndex>,
-    IItemHasher<ComparerTuple, Dog>
+    IResizeHandler<DogPlaceColorEntry, MultiIndex>
 {
     public static readonly DogProjector Instance = new();
 
@@ -44,6 +43,4 @@ internal readonly struct DogProjector :
     {
         dataTable[index].BackIndexesTuple.Item2 = backIndex;
     }
-
-    public uint ComputeHashCode(ComparerTuple comparerTuple, Dog item) => (uint)comparerTuple.Item1.GetHashCode(item);
 }
