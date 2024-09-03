@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
 using NaryMaps.Tools;
@@ -12,15 +13,13 @@ using ICompositeHandler = ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, 
 
 internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
 {
-    private static Builder? _builder;
-
-    public sealed record Builder(ConstructorInfo Ctor, Func<INaryMap<TSchema>> Factory);
+    private static Func<INaryMap<TSchema>>? _factory;
     
-    public static Builder GenerateMapConstructor(ModuleBuilder moduleBuilder)
+    public static Func<INaryMap<TSchema>> GenerateMapConstructor(ModuleBuilder moduleBuilder)
     {
         var schemaType = typeof(TSchema);
-        if (_builder is not null)
-            return _builder;
+        if (_factory is not null)
+            return _factory;
 
         var schema = new TSchema();
 
@@ -61,7 +60,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             ]);
         
         var typeBuilder = moduleBuilder.DefineType(
-            "NaryMap",
+            CreateName(),
             TypeAttributes.Class | TypeAttributes.Sealed,
             baseMapType);
 
@@ -112,10 +111,32 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
 
         var factoryExpression = Expression.Lambda<Func<INaryMap<TSchema>>>(Expression.New(ctor, ctorParameters));
 
-        var builder = new Builder(ctor, factoryExpression.Compile());
+        var factory = factoryExpression.Compile();
 
-        Interlocked.CompareExchange(ref _builder, builder, null);
-        return _builder;
+        Interlocked.CompareExchange(ref _factory, factory, null);
+        return _factory;
+    }
+
+    private static string CreateName()
+    {
+        var sb = new StringBuilder("NaryMap_");
+        Plug(sb, typeof(TSchema));
+        return sb.ToString();
+    }
+
+    private static void Plug(StringBuilder sb, Type type)
+    {
+        if (type.IsConstructedGenericType)
+        {
+            int n = type.Name.IndexOf('`');
+            sb.Append(type.Name[..n]).Append('_');
+            foreach (var typeArgument in type.GenericTypeArguments)
+                Plug(sb, typeArgument);
+        }
+        else
+        {
+            sb.Append(type.Name);
+        }
     }
 
     private static object[] GetEqualityComparers(ValueTupleType dataTupleType)

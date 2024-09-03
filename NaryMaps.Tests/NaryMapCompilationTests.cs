@@ -41,7 +41,7 @@ public class NaryMapCompilationTests
     [Test]
     public void CompileNakedDogPlaceColorTupleMapTest()
     {
-        var (_, factory) = NaryMapCompilation<NakedDogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<NakedDogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
 
         var map = factory();
         
@@ -95,7 +95,7 @@ public class NaryMapCompilationTests
     [Test]
     public void FillNakedDogPlaceColorTupleMapRandomlyTest()
     {
-        var (_, factory) = NaryMapCompilation<NakedDogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<NakedDogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
 
         var map = factory();
         
@@ -171,7 +171,7 @@ public class NaryMapCompilationTests
     [Test]
     public void ClearDogPlaceColorTupleMapRandomlyTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
 
         var map = factory();
 
@@ -238,7 +238,7 @@ public class NaryMapCompilationTests
     [Test]
     public void InspectDogPlaceColorTupleMapTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
 
         var map = factory();
         
@@ -302,7 +302,7 @@ public class NaryMapCompilationTests
     [Test]
     public void FindInOtherCompositeTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
         
         var map = factory();
         
@@ -344,7 +344,7 @@ public class NaryMapCompilationTests
     [Test]
     public void AddDogPlaceColorTupleMapTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
         
         var map = factory();
 
@@ -388,7 +388,7 @@ public class NaryMapCompilationTests
     [Test]
     public void AsDogPlaceColorComparerTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
         
         var comparer = (IEqualityComparer<DogPlaceColorTuple>)factory();
         
@@ -434,7 +434,7 @@ public class NaryMapCompilationTests
     [Test]
     public void UseDogPlaceColorSetOperationsTest()
     {
-        var (_, factory) = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
+        var factory = NaryMapCompilation<DogPlaceColor>.GenerateMapConstructor(_moduleBuilder);
 
         var set = factory().AsSet();
         
