@@ -305,20 +305,6 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
 
     #endregion
     
-    #region Implements IConflictingSet<TDataTuple>
-
-    public bool IsConflictingWith(TDataTuple item)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool ForceAdd(TDataTuple item)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
-    
     #region Implements INaryMap<TSchema>
     
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)

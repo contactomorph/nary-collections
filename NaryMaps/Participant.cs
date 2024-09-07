@@ -58,13 +58,3 @@ public class UniqueSearchableParticipant<T> : ParticipantBase<CompositeKind.Uniq
 {
     internal UniqueSearchableParticipant(object schema, byte rank) : base(schema, rank) {}
 }
-
-public sealed class OrderedParticipant<T> : ParticipantBase<CompositeKind.Ordered, T>
-{
-    internal OrderedParticipant(object schema, byte rank) : base(schema, rank) {}
-}
-
-public sealed class UniqueOrderedParticipant<T> : ParticipantBase<CompositeKind.UniqueOrdered, T>
-{
-    internal UniqueOrderedParticipant(object schema, byte rank) : base(schema, rank) { }
-}

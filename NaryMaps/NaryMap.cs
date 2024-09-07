@@ -25,19 +25,19 @@ public static class NaryMap
         return factory();
     }
 
-    public static IConflictingSet<TDataTuple> AsSet<TDataTuple>(
+    public static ISet<TDataTuple> AsSet<TDataTuple>(
         this INaryMap<Schema<TDataTuple>> map)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        if (map is IConflictingSet<TDataTuple> set) return set;
+        if (map is ISet<TDataTuple> set) return set;
         throw new InvalidOperationException("Unexpected map type.");
     }
     
-    public static IReadOnlyConflictingSet<TDataTuple> AsReadOnlySet<TDataTuple>(
+    public static IReadOnlySet<TDataTuple> AsReadOnlySet<TDataTuple>(
         this IReadOnlyNaryMap<Schema<TDataTuple>> map)
         where TDataTuple : struct, ITuple, IStructuralEquatable
     {
-        if (map is IReadOnlyConflictingSet<TDataTuple> set) return set;
+        if (map is IReadOnlySet<TDataTuple> set) return set;
         throw new InvalidOperationException("Unexpected map type.");
     }
 }

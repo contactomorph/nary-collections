@@ -10,7 +10,7 @@ public sealed class DogPlaceColor : Schema<(Dog Dog, string Place, Color Color)>
         Color = DeclareSearchableParticipant<Color>();
         Name = DeclareUniqueSearchableParticipant<string>();
         DogColor = DeclareComposite(Dog, Color);
-        NameColor = DeclareOrderedComposite(Name, Color);
+        NameColor = DeclareComposite(Name, Color);
         Sign = Conclude(Dog, Name, Color);
     }
 
@@ -21,6 +21,6 @@ public sealed class DogPlaceColor : Schema<(Dog Dog, string Place, Color Color)>
 
     public Composite<(Dog, Color)> DogColor { get; }
 
-    public OrderedComposite<(string, Color)> NameColor { get; }
+    public Composite<(string, Color)> NameColor { get; }
     protected override Signature Sign { get; }
 }

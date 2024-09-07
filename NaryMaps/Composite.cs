@@ -23,13 +23,3 @@ public sealed class UniqueComposite<TDataTuple> : CompositeBase<CompositeKind.Un
 {
     internal UniqueComposite(byte rank, ImmutableArray<IParticipant> participants) : base(rank, participants) { }
 }
-
-public sealed class OrderedComposite<TCompositeTuple> : CompositeBase<CompositeKind.Ordered, TCompositeTuple>
-{
-    internal OrderedComposite(byte rank, ImmutableArray<IParticipant> participants) : base(rank, participants) { }
-}
-
-public sealed class UniqueOrderedComposite<TCompositeTuple> : CompositeBase<CompositeKind.UniqueOrdered, TCompositeTuple>
-{
-    internal UniqueOrderedComposite(byte rank, ImmutableArray<IParticipant> participants) : base(rank, participants) { }
-}

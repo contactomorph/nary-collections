@@ -1,9 +1,7 @@
 namespace NaryMaps;
 
-public interface IConflictingSet<T> : IReadOnlyConflictingSet<T>, ISet<T>
+public interface IConflictingSet<T> : IReadOnlySet<T>, ISet<T>
 {
-    bool ForceAdd(T item);
-    
     new int Count { get; }
     
     new bool Contains(T item);
