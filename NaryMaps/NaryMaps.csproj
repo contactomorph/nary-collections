@@ -4,5 +4,28 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
+        <Title>Map types generalising dictionaries</Title>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl></PackageProjectUrl>
+        <RepositoryUrl>https://github.com/contactomorph/nary-collections</RepositoryUrl>
+        <PackageTags>map, dictionary, multidictionary, bidictionary, set</PackageTags>
+        <Description>A generic collection type generalising dictionaries, multidictionaries, bidictionaries, dictionaries with multiple keys</Description>
+        <PackageIcon>logo_narymap.png</PackageIcon>
+        <Version>0.1.0</Version>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
+    <ItemGroup>
+      <None Include="../README.md" Pack="true" PackagePath="">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="..\LICENSE.txt">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="Logo/logo_narymap.png" Pack="true" PackagePath="">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>
