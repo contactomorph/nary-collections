@@ -2,7 +2,6 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
-using NotImplementedException = System.NotImplementedException;
 
 namespace NaryMaps.Implementation;
 
@@ -313,14 +312,18 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         if (selector is null) throw new ArgumentNullException(nameof(selector));
         var participant = selector(Schema);
         if (participant is null) throw new ArgumentException(nameof(selector));
-        if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
+        if (!ReferenceEquals(participant.Schema, Schema)) throw new ArgumentException(nameof(selector));
         return (IReadOnlySet<T>)CreateSelection(participant.Rank);
     }
 
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
-        throw new NotImplementedException();
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var composite = selector(Schema);
+        if (composite is null) throw new ArgumentException(nameof(selector));
+        if (!ReferenceEquals(composite.Schema, Schema)) throw new ArgumentException(nameof(selector));
+        return (IReadOnlySet<T>)CreateSelection(composite.Rank);
     }
 
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
@@ -336,7 +339,11 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
-        throw new NotImplementedException();
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var composite = selector(Schema);
+        if (composite is null) throw new ArgumentException(nameof(selector));
+        if (composite.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (ISelection<TSchema, TK, T>)CreateSelection(composite.Rank);
     }
     
     #endregion

@@ -17,7 +17,7 @@ public static class Selection
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (selection is IReadOnlyDictionary<T, IEnumerable<TDataTuple>> dictionary)
             return dictionary;
-        throw new ArgumentException("Unexpected selection");
+        throw new InvalidOperationException("Unexpected selection type.");
     }
     
     [Pure]
@@ -29,7 +29,7 @@ public static class Selection
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (selection is IReadOnlyDictionary<T, TDataTuple> dictionary)
             return dictionary;
-        throw new ArgumentException("Unexpected selection");
+        throw new InvalidOperationException("Unexpected selection type.");
     }
     
     [Pure]

@@ -66,7 +66,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2))
             throw exception;
-        Composite<(T1, T2)> c =  new(_rank++, [p1, p2]);
+        Composite<(T1, T2)> c =  new(this, _rank++, [p1, p2]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
@@ -78,7 +78,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3))
             throw exception;
-        Composite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
+        Composite<(T1, T2, T3)> c = new(this, _rank++, [p1, p2, p3]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
@@ -91,7 +91,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4))
             throw exception;
-        Composite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
+        Composite<(T1, T2, T3, T4)> c = new(this, _rank++, [p1, p2, p3, p4]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
@@ -105,7 +105,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
             throw exception;
-        Composite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
+        Composite<(T1, T2, T3, T4, T5)> c = new(this, _rank++, [p1, p2, p3, p4, p5]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
@@ -120,7 +120,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
             throw exception;
-        Composite<(T1, T2, T3, T4, T5, T6) > c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        Composite<(T1, T2, T3, T4, T5, T6) > c = new(this, _rank++, [p1, p2, p3, p4, p5, p6]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
@@ -131,7 +131,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2))
             throw exception;
-        UniqueComposite<(T1, T2)> c = new(_rank++, [p1, p2]);
+        UniqueComposite<(T1, T2)> c = new(this, _rank++, [p1, p2]);
         Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
@@ -143,7 +143,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3))
             throw exception;
-        UniqueComposite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
+        UniqueComposite<(T1, T2, T3)> c = new(this, _rank++, [p1, p2, p3]);
         Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
@@ -156,7 +156,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4))
             throw exception;
-        UniqueComposite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
+        UniqueComposite<(T1, T2, T3, T4)> c = new(this, _rank++, [p1, p2, p3, p4]);
         Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
@@ -170,7 +170,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
             throw exception;
-        UniqueComposite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
+        UniqueComposite<(T1, T2, T3, T4, T5)> c = new(this, _rank++, [p1, p2, p3, p4, p5]);
         Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
@@ -185,7 +185,7 @@ public abstract class Schema
     {
         if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
             throw exception;
-        UniqueComposite<(T1, T2, T3, T4, T5, T6)> c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        UniqueComposite<(T1, T2, T3, T4, T5, T6)> c = new(this, _rank++, [p1, p2, p3, p4, p5, p6]);
         Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
