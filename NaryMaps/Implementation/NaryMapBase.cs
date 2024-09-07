@@ -13,7 +13,10 @@ public static class NaryMapBase
 }
 
 public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
-    : INaryMap<TSchema>, IConflictingSet<TDataTuple>, IEqualityComparer<TDataTuple>
+    : NaryMapCore<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple>,
+        INaryMap<TSchema>,
+        IConflictingSet<TDataTuple>,
+        IEqualityComparer<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
     where TIndexTuple: struct, ITuple, IStructuralEquatable
@@ -21,17 +24,7 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     where TCompositeHandler : struct, ICompositeHandler<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TDataTuple>
     where TSchema : Schema<TDataTuple>, new()
 {
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once MemberCanBePrivate.Global
-    protected readonly TComparerTuple _comparerTuple;
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once MemberCanBePrivate.Global
-    protected DataEntry<TDataTuple, THashTuple, TIndexTuple>[] _dataTable;
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once MemberCanBePrivate.Global
-    protected int _count;
     private TCompositeHandler _compositeHandler;
-    private uint _version;
 
     public TSchema Schema { get; }
 
@@ -41,17 +34,11 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     public bool IsReadOnly => false;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    protected NaryMapBase(
-        TSchema schema,
-        TCompositeHandler compositeHandler,
-        TComparerTuple comparerTuple)
+    protected NaryMapBase(TSchema schema, TCompositeHandler compositeHandler, TComparerTuple comparerTuple) :
+        base(comparerTuple)
     {
         Schema = schema;
         _compositeHandler = compositeHandler;
-        _comparerTuple = comparerTuple;
-        _dataTable = new DataEntry<TDataTuple, THashTuple, TIndexTuple>[DataEntry.TableMinimalLength];
-        _count = 0;
-        _version = 0;
     }
 
     #region Implements IEqualityComparer<TDataTuple>
