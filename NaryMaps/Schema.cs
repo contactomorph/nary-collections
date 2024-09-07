@@ -39,106 +39,324 @@ public abstract class Schema
         return p;
     }
 
-    protected SearchableParticipant<T> AddSearchableParticipant<T>(
-        IEqualityComparer<T>? comparer = null,
-        bool unique = false)
+    protected SearchableParticipant<T> DeclareSearchableParticipant<T>(IEqualityComparer<T>? comparer = null)
     {
         if (Locked)
             throw GenerateLockException();
-        SearchableParticipant<T> p = new(this, _rank++, unique);
+        SearchableParticipant<T> p = new(this, _rank++);
         Participants.Add(p);
-        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
+        return p;
+    }
+
+    protected UniqueSearchableParticipant<T> DeclareUniqueSearchableParticipant<T>(
+        IEqualityComparer<T>? comparer = null)
+    {
+        if (Locked)
+            throw GenerateLockException();
+        UniqueSearchableParticipant<T> p = new(this, _rank++);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
         return p;
     }
     
-    protected OrderedParticipant<T> AddOrderedParticipant<T>(IComparer<T> comparer, bool unique = false)
+    protected OrderedParticipant<T> DeclareOrderedParticipant<T>(IComparer<T> comparer)
     {
         if (Locked)
             throw GenerateLockException();
-        OrderedParticipant<T> p = new(this, _rank++, unique);
+        OrderedParticipant<T> p = new(this, _rank++);
         Participants.Add(p);
-        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
         return p;
     }
     
-    protected OrderedParticipant<T> AddOrderedParticipant<T>(bool unique = false) where T : IComparable<T>
+    protected OrderedParticipant<T> DeclareOrderedParticipant<T>() where T : IComparable<T>
     {
         if (Locked)
             throw GenerateLockException();
-        OrderedParticipant<T> p = new(this, _rank++, unique);
+        OrderedParticipant<T> p = new(this, _rank++);
         Participants.Add(p);
-        Composites.Add(new Composite(p.Unique, p.Rank, [p]));
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
         return p;
     }
 
-    protected SearchableComposite<(T1, T2)> AddSearchableComposite<T1, T2>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2)
+    
+    protected UniqueOrderedParticipant<T> DeclareUniqueOrderedParticipant<T>(IComparer<T> comparer)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2))
+        if (Locked)
+            throw GenerateLockException();
+        UniqueOrderedParticipant<T> p = new(this, _rank++);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
+        return p;
+    }
+    
+    protected UniqueOrderedParticipant<T> DeclareUniqueOrderedParticipant<T>() where T : IComparable<T>
+    {
+        if (Locked)
+            throw GenerateLockException();
+        UniqueOrderedParticipant<T> p = new(this, _rank++);
+        Participants.Add(p);
+        Composites.Add(new Composite(p.IsUnique, p.Rank, [p]));
+        return p;
+    }
+    
+    protected Composite<(T1, T2)> DeclareComposite<T1, T2>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2)
+    {
+        if (IsInvalid(out var exception, p1, p2))
             throw exception;
-        SearchableComposite<(T1, T2)> c =  new(_rank++, [indexable1, indexable2]);
+        Composite<(T1, T2)> c =  new(_rank++, [p1, p2]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
 
-    protected SearchableComposite<(T1, T2, T3)> AddSearchableInput<T1, T2, T3>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2,
-        Participant<T3> indexable3)
+    protected Composite<(T1, T2, T3)> DeclareComposite<T1, T2, T3>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2, indexable3))
+        if (IsInvalid(out var exception, p1, p2, p3))
             throw exception;
-        SearchableComposite<(T1, T2, T3)> c = new(_rank++, [indexable1, indexable2, indexable3]);
+        Composite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
 
-    protected SearchableComposite<(T1, T2, T3, T4)> AddSearchableInput<T1, T2, T3, T4>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2,
-        Participant<T3> indexable3,
-        Participant<T4> indexable4)
+    protected Composite<(T1, T2, T3, T4)> DeclareComposite<T1, T2, T3, T4>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2, indexable3, indexable4))
+        if (IsInvalid(out var exception, p1, p2, p3, p4))
             throw exception;
-        SearchableComposite<(T1, T2, T3, T4)> c = new(_rank++, [indexable1, indexable2, indexable3, indexable4]);
+        Composite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
 
-    protected OrderedComposite<(T1, T2)> AddOrderedComposite<T1, T2>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2)
+    protected Composite<(T1, T2, T3, T4, T5)> DeclareComposite<T1, T2, T3, T4, T5>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2))
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
             throw exception;
-        OrderedComposite<(T1, T2)> c = new(_rank++, [indexable1, indexable2]);
+        Composite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
 
-    protected OrderedComposite<(T1, T2, T3)> AddOrderedComposite<T1, T2, T3>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2,
-        Participant<T3> indexable3)
+    protected Composite<(T1, T2, T3, T4, T5, T6)> DeclareComposite<T1, T2, T3, T4, T5, T6>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5,
+        ParticipantBase<T6> p6)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2, indexable3))
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
             throw exception;
-        OrderedComposite<(T1, T2, T3)> c = new(_rank++, [indexable1, indexable2, indexable3]);
+        Composite<(T1, T2, T3, T4, T5, T6) > c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
         return c;
     }
 
-    protected OrderedComposite<(T1, T2, T3, T4)> AddOrderedComposite<T1, T2, T3, T4>(
-        Participant<T1> indexable1,
-        Participant<T2> indexable2,
-        Participant<T3> indexable3,
-        Participant<T4> indexable4)
+    protected UniqueComposite<(T1, T2)> DeclareUniqueComposite<T1, T2>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2)
     {
-        if (IsInvalid(out var exception, indexable1, indexable2, indexable3, indexable4))
+        if (IsInvalid(out var exception, p1, p2))
             throw exception;
-        OrderedComposite<(T1, T2, T3, T4)> c = new(_rank++, [indexable1, indexable2, indexable3, indexable4]);
+        UniqueComposite<(T1, T2)> c = new(_rank++, [p1, p2]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueComposite<(T1, T2, T3)> DeclareUniqueComposite<T1, T2, T3>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3))
+            throw exception;
+        UniqueComposite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueComposite<(T1, T2, T3, T4)> DeclareUniqueComposite<T1, T2, T3, T4>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4))
+            throw exception;
+        UniqueComposite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueComposite<(T1, T2, T3, T4, T5)> DeclareUniqueComposite<T1, T2, T3, T4, T5>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
+            throw exception;
+        UniqueComposite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueComposite<(T1, T2, T3, T4, T5, T6)> DeclareUniqueComposite<T1, T2, T3, T4, T5, T6>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5,
+        ParticipantBase<T6> p6)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
+            throw exception;
+        UniqueComposite<(T1, T2, T3, T4, T5, T6)> c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2)> DeclareOrderedComposite<T1, T2>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2)
+    {
+        if (IsInvalid(out var exception, p1, p2))
+            throw exception;
+        OrderedComposite<(T1, T2)> c = new(_rank++, [p1, p2]);
         Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2, T3)> DeclareOrderedComposite<T1, T2, T3>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3))
+            throw exception;
+        OrderedComposite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2, T3, T4)> DeclareOrderedComposite<T1, T2, T3, T4>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4))
+            throw exception;
+        OrderedComposite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2, T3, T4, T5)> DeclareOrderedComposite<T1, T2, T3, T4, T5>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
+            throw exception;
+        OrderedComposite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected OrderedComposite<(T1, T2, T3, T4, T5, T6)> DeclareOrderedComposite<T1, T2, T3, T4, T5, T6>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5,
+        ParticipantBase<T6> p6)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
+            throw exception;
+        OrderedComposite<(T1, T2, T3, T4, T5, T6)> c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        Composites.Add(new Composite(false, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueOrderedComposite<(T1, T2)> DeclareUniqueOrderedComposite<T1, T2>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2)
+    {
+        if (IsInvalid(out var exception, p1, p2))
+            throw exception;
+        UniqueOrderedComposite<(T1, T2)> c = new(_rank++, [p1, p2]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueOrderedComposite<(T1, T2, T3)> DeclareUniqueOrderedComposite<T1, T2, T3>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3))
+            throw exception;
+        UniqueOrderedComposite<(T1, T2, T3)> c = new(_rank++, [p1, p2, p3]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueOrderedComposite<(T1, T2, T3, T4)> DeclareUniqueOrderedComposite<T1, T2, T3, T4>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4))
+            throw exception;
+        UniqueOrderedComposite<(T1, T2, T3, T4)> c = new(_rank++, [p1, p2, p3, p4]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueOrderedComposite<(T1, T2, T3, T4, T5)> DeclareUniqueOrderedComposite<T1, T2, T3, T4, T5>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5))
+            throw exception;
+        UniqueOrderedComposite<(T1, T2, T3, T4, T5)> c = new(_rank++, [p1, p2, p3, p4, p5]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
+        return c;
+    }
+
+    protected UniqueOrderedComposite<(T1, T2, T3, T4, T5, T6)> DeclareUniqueOrderedComposite<T1, T2, T3, T4, T5, T6>(
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5,
+        ParticipantBase<T6> p6)
+    {
+        if (IsInvalid(out var exception, p1, p2, p3, p4, p5, p6))
+            throw exception;
+        UniqueOrderedComposite<(T1, T2, T3, T4, T5, T6)> c = new(_rank++, [p1, p2, p3, p4, p5, p6]);
+        Composites.Add(new Composite(true, c.Rank, c.Participants));
         return c;
     }
 
@@ -243,18 +461,7 @@ public abstract class Schema<TDataTuple> : Schema
 
     internal override ISignature GetSignature() => Sign;
 
-    protected Schema<ValueTuple<T>>.Signature Conclude<T>(Participant<T> p)
-    {
-        if (Locked)
-            throw GenerateLockException();
-        if (typeof(ValueTuple<T>) != typeof(TDataTuple))
-            throw new InvalidOperationException();
-        Locked = true;
-        var participants = FreezeSchema(p);
-        return new Schema<ValueTuple<T>>.Signature(participants);
-    }
-
-    protected Schema<(T1, T2)>.Signature Conclude<T1, T2>(Participant<T1> p1, Participant<T2> p2)
+    protected Schema<(T1, T2)>.Signature Conclude<T1, T2>(ParticipantBase<T1> p1, ParticipantBase<T2> p2)
     {
         if (Locked)
             throw GenerateLockException();
@@ -266,9 +473,9 @@ public abstract class Schema<TDataTuple> : Schema
     }
 
     protected Schema<(T1, T2, T3)>.Signature Conclude<T1, T2, T3>(
-        Participant<T1> p1,
-        Participant<T2> p2,
-        Participant<T3> p3)
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3)
     {
         if (Locked)
             throw GenerateLockException();
@@ -280,10 +487,10 @@ public abstract class Schema<TDataTuple> : Schema
     }
 
     protected Schema<(T1, T2, T3, T4)>.Signature Conclude<T1, T2, T3, T4>(
-        Participant<T1> p1,
-        Participant<T2> p2,
-        Participant<T3> p3,
-        Participant<T4> p4)
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4)
     {
         if (Locked)
             throw GenerateLockException();
@@ -295,11 +502,11 @@ public abstract class Schema<TDataTuple> : Schema
     }
 
     protected Schema<(T1, T2, T3, T4, T5)>.Signature Conclude<T1, T2, T3, T4, T5>(
-        Participant<T1> p1,
-        Participant<T2> p2,
-        Participant<T3> p3,
-        Participant<T4> p4,
-        Participant<T5> p5)
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5)
     {
         if (Locked)
             throw GenerateLockException();
@@ -311,12 +518,12 @@ public abstract class Schema<TDataTuple> : Schema
     }
 
     protected Schema<(T1, T2, T3, T4, T5, T6)>.Signature Conclude<T1, T2, T3, T4, T5, T6>(
-        Participant<T1> p1,
-        Participant<T2> p2,
-        Participant<T3> p3,
-        Participant<T4> p4,
-        Participant<T5> p5,
-        Participant<T6> p6)
+        ParticipantBase<T1> p1,
+        ParticipantBase<T2> p2,
+        ParticipantBase<T3> p3,
+        ParticipantBase<T4> p4,
+        ParticipantBase<T5> p5,
+        ParticipantBase<T6> p6)
     {
         if (Locked)
             throw GenerateLockException();

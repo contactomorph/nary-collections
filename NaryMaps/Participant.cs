@@ -3,45 +3,68 @@ namespace NaryMaps;
 public interface IParticipant
 {
     object Schema { get; }
-    bool Unique { get; }
     Type ItemType { get; }
+    byte Rank { get; }
+    bool IsUnique { get; }
+    bool IsSearchable { get; }
+    bool IsOrdered { get; }
 }
 
-public class Participant<T> : IParticipant
+public abstract class ParticipantBase<T> : IParticipant
 {
     public object Schema { get; }
-
-    public bool Unique { get; }
-    public Type ItemType => typeof(T);
-
-    protected Participant(object schema, bool unique)
-    {
-        Schema = schema;
-        Unique = unique;
-    }
+    public Type ItemType { get; }
     
-    internal Participant(object schema)
-    {
-        Schema = schema;
-        Unique = false;
-    }
-}
-
-#pragma warning disable CS0660, CS0661
-public class SearchableParticipant<T> : Participant<T>
-#pragma warning restore CS0660, CS0661
-{
     public byte Rank { get; }
     
-    internal SearchableParticipant(object schema, byte rank, bool unique) : base(schema, unique)
+    public abstract bool IsUnique { get; }
+    public abstract bool IsSearchable { get; }
+    public abstract bool IsOrdered { get; }
+
+    private protected ParticipantBase(object schema, byte rank)
     {
+        Schema = schema;
+        ItemType = typeof(T);
         Rank = rank;
     }
 }
 
-public sealed class OrderedParticipant<T> : SearchableParticipant<T>
+public abstract class ParticipantBase<TK, T> : ParticipantBase<T> where TK : CompositeKind.Basic
 {
-    internal OrderedParticipant(object schema, byte rank, bool unique) : base(schema, rank, unique)
+    public override bool IsUnique { get; }
+    public override bool IsSearchable { get; }
+    public override bool IsOrdered { get; }
+
+    private protected ParticipantBase(object schema, byte rank) : base(schema, rank)
     {
+        var kind = typeof(TK);
+        IsUnique = kind == typeof(CompositeKind.UniqueSearchable) || kind == typeof(CompositeKind.UniqueOrdered);
+        IsOrdered = kind == typeof(CompositeKind.Ordered) || kind == typeof(CompositeKind.UniqueOrdered);
+        IsSearchable = kind != typeof(CompositeKind.Basic);
     }
+}
+
+public sealed class Participant<T> : ParticipantBase<CompositeKind.Basic, T>
+{
+    internal Participant(object schema) : base(schema, byte.MaxValue) { }
+}
+
+public class SearchableParticipant<T> : ParticipantBase<CompositeKind.Searchable, T>
+{
+    internal SearchableParticipant(object schema, byte rank) : base(schema, rank) { }
+}
+
+public class UniqueSearchableParticipant<T> : ParticipantBase<CompositeKind.UniqueSearchable, T>
+{
+    internal UniqueSearchableParticipant(object schema, byte rank) : base(schema, rank) {}
+}
+
+public sealed class OrderedParticipant<T> : ParticipantBase<CompositeKind.Ordered, T>
+{
+    internal OrderedParticipant(object schema, byte rank) : base(schema, rank) {}
+}
+
+public sealed class UniqueOrderedParticipant<T> : ParticipantBase<CompositeKind.UniqueOrdered, T>
+{
+    internal UniqueOrderedParticipant(object schema, byte rank) : base(schema, rank) { }
 }

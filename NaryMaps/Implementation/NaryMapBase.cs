@@ -334,22 +334,26 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     
     #region Implements INaryMap<TSchema>
     
-    public IRelationSelection<TSchema, T> With<T>(Func<TSchema, SearchableComposite<T>> selector)
+    public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable
+    {
+        throw new NotImplementedException();
+    }
+    
+    public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
         throw new NotImplementedException();
     }
 
-    public IRelationSelection<TSchema, T> With<T>(Func<TSchema, SearchableParticipant<T>> selector)
+    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
+        where TK : CompositeKind.Basic
     {
         throw new NotImplementedException();
     }
-
-    public IOrderedRelationSelection<TSchema, T> With<T>(Func<TSchema, OrderedComposite<T>> selector)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IOrderedRelationSelection<TSchema, T> With<T>(Func<TSchema, OrderedParticipant<T>> selector)
+    
+    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable
     {
         throw new NotImplementedException();
     }

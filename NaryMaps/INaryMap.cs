@@ -4,13 +4,17 @@ public interface IReadOnlyNaryMap<out TSchema> where TSchema : Schema
 {
     public TSchema Schema { get; }
     
-    public abstract IRelationSelection<TSchema, T> With<T>(Func<TSchema, SearchableComposite<T>> selector);
+    public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable;
+    
+    public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable;
 
-    public abstract IRelationSelection<TSchema, T> With<T>(Func<TSchema, SearchableParticipant<T>> selector);
-
-    public abstract IOrderedRelationSelection<TSchema, T> With<T>(Func<TSchema, OrderedComposite<T>> selector);
-
-    public abstract IOrderedRelationSelection<TSchema, T> With<T>(Func<TSchema, OrderedParticipant<T>> selector);
+    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
+        where TK : CompositeKind.Basic;
+    
+    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable;
 }
 
 public interface INaryMap<out TSchema> : IReadOnlyNaryMap<TSchema> where TSchema : Schema

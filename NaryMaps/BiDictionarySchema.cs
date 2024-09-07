@@ -1,17 +1,15 @@
-using System.Diagnostics.Contracts;
-
 namespace NaryMaps;
 
 public sealed class BiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TInverse)>
 {
-    public SearchableParticipant<TInverse> Inverse { get;  }
+    public UniqueSearchableParticipant<TInverse> Inverse { get;  }
 
-    public SearchableParticipant<TDirect> Direct { get; }
+    public UniqueSearchableParticipant<TDirect> Direct { get; }
     
     public BiDictionarySchema()
     {
-        Direct = AddSearchableParticipant<TDirect>(unique: true);
-        Inverse = AddSearchableParticipant<TInverse>(unique: true);
+        Direct = DeclareUniqueSearchableParticipant<TDirect>();
+        Inverse = DeclareUniqueSearchableParticipant<TInverse>();
         Sign = Conclude(Direct, Inverse);
     }
 
@@ -20,14 +18,14 @@ public sealed class BiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TIn
 
 public sealed class BiMultiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TInverse)>
 {
-    public SearchableParticipant<TInverse> Inverse { get;  }
+    public UniqueSearchableParticipant<TInverse> Inverse { get;  }
 
-    public SearchableParticipant<TDirect> Direct { get; }
+    public UniqueSearchableParticipant<TDirect> Direct { get; }
     
     public BiMultiDictionarySchema()
     {
-        Direct = AddSearchableParticipant<TDirect>(unique: false);
-        Inverse = AddSearchableParticipant<TInverse>(unique: false);
+        Direct = DeclareUniqueSearchableParticipant<TDirect>();
+        Inverse = DeclareUniqueSearchableParticipant<TInverse>();
         Sign = Conclude(Direct, Inverse);
     }
 
