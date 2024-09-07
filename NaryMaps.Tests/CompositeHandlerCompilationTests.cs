@@ -445,4 +445,46 @@ public class CompositeHandlerCompilationTests
             Assert.That(fieldType, Is.EqualTo(i == 1 ? typeof(int) : null));
         }
     }
+
+    [Test]
+    public void ProvideHashTableForNonUniqueTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0],
+            1,
+            [false, true]);
+
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler = (IHashTableProvider)del.DynamicInvoke()!;
+
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        manipulator.GetFieldValue(handler, "_hashTable", out HashEntry[] hashTable);
+
+        Assert.That(handler.GetHashTable(), Is.EqualTo(hashTable));
+        Assert.That(handler.GetHashEntryCount(), Is.EqualTo(0));
+    }
+
+    [Test]
+    public void ProvideHashTableForUniqueTest()
+    {
+        var ctor = CompositeHandlerCompilation.GenerateConstructor(
+            _moduleBuilder,
+            typeof(DogPlaceColorTuple),
+            [0],
+            0,
+            [false, true]);
+
+        var del = Expression.Lambda(Expression.New(ctor, Expression.Constant(true))).Compile();
+
+        var handler = (IHashTableProvider)del.DynamicInvoke()!;
+
+        var manipulator = FieldManipulator.ForRealTypeOf(handler);
+        manipulator.GetFieldValue(handler, "_hashTable", out HashEntry[] hashTable);
+
+        Assert.That(handler.GetHashTable(), Is.EqualTo(hashTable));
+        Assert.That(handler.GetHashEntryCount(), Is.EqualTo(-1));
+    }
 }

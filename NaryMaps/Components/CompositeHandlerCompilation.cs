@@ -38,17 +38,26 @@ public static class CompositeHandlerCompilation
                 dataTypeProjection.BackIndexTupleType,
                 dataTypeProjection.ComparerTupleType,
                 itemType);
+        Type hashTableProviderInterfaceType = typeof(IHashTableProvider);
         
         Type resizeHandlerInterfaceType = typeof(IResizeHandler<,>)
             .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.BackIndexType);
         Type dataEquatorInterfaceType = typeof(IDataEquator<,,>)
             .MakeGenericType(dataTypeProjection.DataEntryType, dataTypeProjection.ComparerTupleType, itemType);
 
+        Type[] interfaces =
+        [
+            compositeHandlerInterfaceType,
+            hashTableProviderInterfaceType,
+            resizeHandlerInterfaceType,
+            dataEquatorInterfaceType,
+        ];
+        
         var typeBuilder = moduleBuilder.DefineType(
             GetCompositeHandlerFieldName(backIndexRank),
             TypeAttributes.Class | TypeAttributes.Sealed,
             typeof(ValueType),
-            [compositeHandlerInterfaceType, resizeHandlerInterfaceType, dataEquatorInterfaceType]);
+            interfaces);
         
         var fields = DefineConstructor(
             typeBuilder,
@@ -72,6 +81,8 @@ public static class CompositeHandlerCompilation
         ResizeHandlerCompilation.DefineGetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         ResizeHandlerCompilation.DefineSetBackIndexAt(typeBuilder, dataTypeProjection, resizeHandlerInterfaceType);
         DataEquatorCompilation.DefineAreDataEqualAt(typeBuilder, dataTypeProjection, dataEquatorInterfaceType);
+        HashTableProviderCompilation.DefineGetHashTable(typeBuilder, fields.HashTableField);
+        HashTableProviderCompilation.DefineGetHashEntryCount(typeBuilder, fields.CountField);
 
         var type = typeBuilder.CreateType();
 
