@@ -21,6 +21,8 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
     // int | MultiIndex
     public Type BackIndexType { get; }
     
+    public byte BackIndexRank { get; }
+    
     public DataTypeProjection(
         Type dataTupleType,
         byte backIndexRank,
@@ -34,6 +36,7 @@ internal sealed class DataTypeProjection : DataTypeDecomposition
             throw new ArgumentException();
         DataProjectionMapping = ValueTupleMapping.From(DataTupleType, projectionIndexes);
         HashProjectionMapping = ValueTupleMapping.From(HashTupleType, projectionIndexes);
+        BackIndexRank = backIndexRank;
         BackIndexProjectionField = BackIndexTupleType[backIndexRank];
         AllowsMultipleItems = BackIndexMultiplicities[backIndexRank];
         BackIndexType = AllowsMultipleItems ? typeof(MultiIndex) : typeof(int);
