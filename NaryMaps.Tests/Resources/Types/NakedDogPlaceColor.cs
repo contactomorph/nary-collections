@@ -6,9 +6,9 @@ public sealed class NakedDogPlaceColor : Schema<(Dog Dog, string Place, Color Co
 {
     public NakedDogPlaceColor()
     {
-        Dog = AddParticipant<Dog>();
-        Color = AddParticipant<Color>();
-        Name = AddParticipant<string>();
+        Dog = DeclareParticipant<Dog>();
+        Color = DeclareParticipant<Color>();
+        Name = DeclareParticipant<string>();
         Sign = Conclude(Dog, Name, Color);
     }
 

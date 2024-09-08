@@ -30,7 +30,7 @@ public abstract class Schema
 
     internal abstract ISignature GetSignature();
     
-    protected Participant<T> AddParticipant<T>()
+    protected Participant<T> DeclareParticipant<T>()
     {
         if (Locked)
             throw GenerateLockException();
