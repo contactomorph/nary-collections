@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Drawing;
 using NaryMaps.Implementation;
 using NaryMaps.Primitives;
@@ -31,7 +32,19 @@ public sealed class NaryMapCore(ComparerTuple comparerTuple)
 }
 
 public abstract class ColorDogSelection(NaryMapCore<DogPlaceColorEntry, ComparerTuple> map) :
-    SelectionBase<DataTuple, DogPlaceColorEntry, ComparerTuple, CompositeHandlerA, (Color, Dog)>(map);
+    SelectionBase<DataTuple, DogPlaceColorEntry, ComparerTuple, CompositeHandlerA, (Color, Dog)>(map)
+{
+    protected override IEnumerator<(Color, Dog)> GetKeyEnumerator() => Enumerable.Empty<(Color, Dog)>().GetEnumerator();
+    protected override IEnumerator GetPairEnumerator() => Enumerable.Empty<ValueTuple>().GetEnumerator();
+    protected override int GetKeyCount() => int.MaxValue;
+    protected override bool ContainsAsKey((Color, Dog) item) => false;
+}
 
 public abstract class PlaceSelection(NaryMapCore<DogPlaceColorEntry, ComparerTuple> map) :
-    SelectionBase<DataTuple, DogPlaceColorEntry, ComparerTuple, CompositeHandlerB, string>(map);
+    SelectionBase<DataTuple, DogPlaceColorEntry, ComparerTuple, CompositeHandlerB, string>(map)
+{
+    protected override IEnumerator<string> GetKeyEnumerator() => Enumerable.Empty<string>().GetEnumerator();
+    protected override IEnumerator GetPairEnumerator() => Enumerable.Empty<ValueTuple>().GetEnumerator();
+    protected override int GetKeyCount() => int.MaxValue;
+    protected override bool ContainsAsKey(string item) => false;
+}

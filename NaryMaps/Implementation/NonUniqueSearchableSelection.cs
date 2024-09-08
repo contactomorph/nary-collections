@@ -19,52 +19,6 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NonUniqueSearchableSelection(NaryMapCore<TDataEntry, TComparerTuple> map) : base(map) { }
 
-    #region Implement IReadOnlyCollection<T>
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => Keys.GetEnumerator();
-
-    public int Count => GetHandler().GetHashEntryCount();
-
-    #endregion
-
-    #region Implement IReadOnlySet<T>
-
-    public bool Contains(T item) => ContainsKey(item);
-
-    public bool IsProperSubsetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsProperSupersetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsSubsetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsSupersetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool Overlaps(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool SetEquals(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
-
     #region Implement IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
 
     public IEnumerator<KeyValuePair<T, IEnumerable<TDataTuple>>> GetEnumerator()
@@ -116,7 +70,8 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
     {
         get
         {
-            foreach (var pair in this)
+            IReadOnlyDictionary<T, IEnumerable<TDataTuple>> that = this;
+            foreach (var pair in that)
                 yield return pair.Value;
         }
     }
@@ -176,7 +131,16 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
     }
 
     #endregion
-
+    
+    protected sealed override IEnumerator<T> GetKeyEnumerator() => Keys.GetEnumerator();
+    protected sealed override IEnumerator GetPairEnumerator()
+    {
+        IReadOnlyDictionary<T, IEnumerable<TDataTuple>> that = this;
+        return that.GetEnumerator();
+    }
+    protected sealed override int GetKeyCount() => GetHandler().GetHashEntryCount();
+    protected sealed override bool ContainsAsKey(T item) => ContainsKey(item);
+    
     private IEnumerable<TDataTuple> GetRelatedDataTuples(
         THandler handler,
         TDataEntry[] dataTable,

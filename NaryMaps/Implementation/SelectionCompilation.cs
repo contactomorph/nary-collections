@@ -48,6 +48,7 @@ public static class SelectionCompilation
         DefineGetItem(typeBuilder, dataTypeProjection, selectionBaseType);
         DefineGetDataTuple(typeBuilder, dataTypeProjection, selectionBaseType);
         DefineComputeHashCode(typeBuilder, dataTypeProjection, selectionBaseType);
+        DefineEqualsUsing(typeBuilder, dataTypeProjection, selectionBaseType);
 
         var type = typeBuilder.CreateType();
 
@@ -232,6 +233,83 @@ public static class SelectionCompilation
             il.Emit(OpCodes.Newobj, itemHashTupleType.GetConstructor());
             // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
             il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(itemHashTupleType));
+        }
+        
+        il.Emit(OpCodes.Ret);
+
+        CommonCompilation.OverrideMethod(typeBuilder, selectionBaseType, methodBuilder);
+    }
+
+    private static void DefineEqualsUsing(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeProjection,
+        Type selectionBaseType)
+    {
+        var itemType = CommonCompilation.GetItemType(dataTypeProjection);
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                nameof(Selection.EqualsUsing),
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(bool),
+                [dataTypeProjection.ComparerTupleType, itemType, itemType]);
+        ILGenerator il = methodBuilder.GetILGenerator();
+        
+        var dataMapping = dataTypeProjection.DataProjectionMapping;
+        if (dataMapping.Count == 1)
+        {
+            var equals = EqualityComparerHandling.GetEqualsMethod(itemType);
+
+            byte b = dataMapping[0].InputIndex;
+            var comparerField = dataTypeProjection.ComparerTupleType[b];
+            
+            // comparerTuple
+            il.Emit(OpCodes.Ldarg_1);
+            // comparerTuple.Item⟨i⟩
+            il.Emit(OpCodes.Ldfld, comparerField);
+            // x
+            il.Emit(OpCodes.Ldarg_2);
+            // y
+            il.Emit(OpCodes.Ldarg_3);
+            // EqualityComparerHandling.ComputeEquals(comparerTuple.Item⟨i⟩, x, y)
+            il.Emit(OpCodes.Call, equals);
+        }
+        else
+        {
+            var falseLabel = il.DefineLabel();
+            var endLabel = il.DefineLabel();
+            
+            foreach (var (type, _, outputField, b, _) in dataMapping)
+            {
+                var comparerField = dataTypeProjection.ComparerTupleType[b];
+            
+                // comparerTuple
+                il.Emit(OpCodes.Ldarg_1);
+                // comparerTuple.Item⟨b⟩
+                il.Emit(OpCodes.Ldfld, comparerField);
+                // x
+                il.Emit(OpCodes.Ldarg_2);
+                // x.Item⟨j⟩
+                il.Emit(OpCodes.Ldfld, outputField);
+                // y
+                il.Emit(OpCodes.Ldarg_3);
+                // y.Item⟨j⟩
+                il.Emit(OpCodes.Ldfld, outputField);
+                // EqualityComparerHandling.ComputeEquals(comparerTuple.Item⟨b⟩, x.Item⟨j⟩, y.Item⟨j⟩)
+                il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(type));
+                // !EqualityComparerHandling.ComputeEquals(comparerTuple.Item⟨b⟩, x.Item⟨j⟩, y.Item⟨j⟩) → falseLabel
+                il.Emit(OpCodes.Brfalse_S, falseLabel);
+            }
+            
+            // true
+            il.Emit(OpCodes.Ldc_I4_1);
+            // → endLabel
+            il.Emit(OpCodes.Br_S, endLabel);
+
+            il.MarkLabel(falseLabel);
+            // false
+            il.Emit(OpCodes.Ldc_I4_0);
+
+            il.MarkLabel(endLabel);
         }
         
         il.Emit(OpCodes.Ret);

@@ -18,6 +18,19 @@ public static class DogPlaceColorTuples
         (Dogs.KnownDogs[0], "Bordeaux", Color.CadetBlue),
     ];
     
+    public static readonly IReadOnlyList<(Dog Dog, string Place, Color Color)> DataWithUniquePlace =
+    [
+        (Dogs.KnownDogs[0], "Київ", Color.Beige),
+        (Dogs.KnownDogs[1], "Харків", Color.CadetBlue),
+        (Dogs.KnownDogs[2], "Одеса", Color.Beige),
+        (Dogs.KnownDogs[2], "Дніпро", Color.Plum),
+        (Dogs.KnownDogs[1], "Донецьк", Color.Orange),
+        (Dogs.KnownDogs[1], "Запоріжжя", Color.CadetBlue),
+        (Dogs.KnownDogs[0], "Львів", Color.Beige),
+        (Dogs.KnownDogs[0], "Кривий Ріг", Color.CadetBlue),
+        (Dogs.UnknownDogs[0], "Миколаїв", Color.Plum),
+    ];
+    
     public static readonly IReadOnlyList<(Dog Dog, string Place, Color Color)> DataWithUniqueDogs =
     [
         (Dogs.KnownDogs[0], "Lyon", Color.Beige),

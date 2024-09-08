@@ -20,52 +20,6 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
     // ReSharper disable once ConvertToPrimaryConstructor
     protected UniqueSearchableSelection(NaryMapCore<TDataEntry, TComparerTuple> map) : base(map) { }
 
-    #region Implement IReadOnlyCollection<T>
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => Keys.GetEnumerator();
-
-    public int Count => _map._count;
-
-    #endregion
-
-    #region Implement IReadOnlySet<T>
-
-    public bool Contains(T item) => ContainsKey(item);
-
-    public bool IsProperSubsetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsProperSupersetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsSubsetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsSupersetOf(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool Overlaps(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool SetEquals(IEnumerable<T> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
-
     #region Implement IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
     
     IEnumerator<KeyValuePair<T, IEnumerable<TDataTuple>>>
@@ -100,7 +54,8 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
     {
         get
         {
-            foreach (var pair in this)
+            IReadOnlyDictionary<T, TDataTuple> that = this;
+            foreach (var pair in that)
                 yield return [pair.Value];
         }
     }
@@ -165,7 +120,8 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
     {
         get
         {
-            foreach (var pair in this)
+            IReadOnlyDictionary<T, TDataTuple> that = this;
+            foreach (var pair in that)
                 yield return pair.Value;
         }
     }
@@ -205,4 +161,13 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
     }
 
     #endregion
+    
+    protected sealed override IEnumerator<T> GetKeyEnumerator() => Keys.GetEnumerator();
+    protected sealed override IEnumerator GetPairEnumerator()
+    {
+        IReadOnlyDictionary<T, TDataTuple> that = this;
+        return that.GetEnumerator();
+    }
+    protected sealed override int GetKeyCount() => _map._count;
+    protected sealed override bool ContainsAsKey(T item) => ContainsKey(item);
 }

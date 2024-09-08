@@ -94,4 +94,96 @@ public class NaryMapTests
             }
         }
     }
+
+    [Test]
+    public void SetOperationForProjectionsTest()
+    {
+        var map = NaryMap.New<DogPlaceColor>();
+
+        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+
+        {
+            // Color
+            Color[] colors = [Color.CadetBlue, Color.Beige, Color.Plum, Color.Orange, Color.Black, Color.BurlyWood, ];
+            
+            var colorSet = map.AsReadOnlySet(s => s.Color);
+            
+            Assert.That(colorSet.IsSubsetOf(Array.Empty<Color>()), Is.False);
+            Assert.That(colorSet.IsSubsetOf(colors.Take(3)), Is.False);
+            Assert.That(colorSet.IsSubsetOf(colors.Take(4)), Is.True);
+            Assert.That(colorSet.IsSubsetOf(colors.Take(5)), Is.True);
+            Assert.That(colorSet.IsSubsetOf(colors), Is.True);
+            Assert.That(colorSet.IsProperSubsetOf(Array.Empty<Color>()), Is.False);
+            Assert.That(colorSet.IsProperSubsetOf(colors.Take(3)), Is.False);
+            Assert.That(colorSet.IsProperSubsetOf(colors.Take(4)), Is.False);
+            Assert.That(colorSet.IsProperSubsetOf(colors.Take(5)), Is.True);
+            Assert.That(colorSet.IsProperSubsetOf(colors), Is.True);
+            Assert.That(colorSet.IsSupersetOf(Array.Empty<Color>()), Is.True);
+            Assert.That(colorSet.IsSupersetOf(colors.Take(3)), Is.True);
+            Assert.That(colorSet.IsSupersetOf(colors.Take(4)), Is.True);
+            Assert.That(colorSet.IsSupersetOf(colors.Take(5)), Is.False);
+            Assert.That(colorSet.IsSupersetOf(colors), Is.False);
+            Assert.That(colorSet.IsProperSupersetOf(Array.Empty<Color>()), Is.True);
+            Assert.That(colorSet.IsProperSupersetOf(colors.Take(3)), Is.True);
+            Assert.That(colorSet.IsProperSupersetOf(colors.Take(4)), Is.False);
+            Assert.That(colorSet.IsProperSupersetOf(colors.Take(5)), Is.False);
+            Assert.That(colorSet.IsProperSupersetOf(colors), Is.False);
+            Assert.That(colorSet.Overlaps(Array.Empty<Color>()), Is.False);
+            Assert.That(colorSet.Overlaps(colors.Take(1)), Is.True);
+            Assert.That(colorSet.Overlaps(colors.Skip(4)), Is.False);
+            Assert.That(colorSet.Overlaps(colors), Is.True);
+            Assert.That(colorSet.SetEquals(Array.Empty<Color>()), Is.False);
+            Assert.That(colorSet.SetEquals(colors.Take(3)), Is.False);
+            Assert.That(colorSet.SetEquals(colors.Take(4)), Is.True);
+            Assert.That(colorSet.SetEquals(colors.Take(5)), Is.False);
+            Assert.That(colorSet.SetEquals(colors), Is.False);
+        }
+
+        {
+            // Dog Color
+            (Dog, Color)[] dogColors = [
+                (Dogs.KnownDogs[0], Color.Beige),
+                (Dogs.KnownDogs[1], Color.CadetBlue),
+                (Dogs.KnownDogs[2], Color.Beige),
+                (Dogs.KnownDogs[2], Color.Plum),
+                (Dogs.KnownDogs[1], Color.Orange),
+                (Dogs.KnownDogs[0], Color.CadetBlue),
+                (Dogs.UnknownDogs[0], Color.Plum),
+                (Dogs.KnownDogs[0], Color.Black),
+                (Dogs.KnownDogs[0], Color.BurlyWood),
+            ];
+
+            var dogColorSet = map.AsReadOnlySet(s => s.DogColor);
+            
+            Assert.That(dogColorSet.IsSubsetOf(Array.Empty<(Dog, Color)>()), Is.False);
+            Assert.That(dogColorSet.IsSubsetOf(dogColors.Take(6)), Is.False);
+            Assert.That(dogColorSet.IsSubsetOf(dogColors.Take(7)), Is.True);
+            Assert.That(dogColorSet.IsSubsetOf(dogColors.Take(8)), Is.True);
+            Assert.That(dogColorSet.IsSubsetOf(dogColors), Is.True);
+            Assert.That(dogColorSet.IsProperSubsetOf(Array.Empty<(Dog, Color)>()), Is.False);
+            Assert.That(dogColorSet.IsProperSubsetOf(dogColors.Take(6)), Is.False);
+            Assert.That(dogColorSet.IsProperSubsetOf(dogColors.Take(7)), Is.False);
+            Assert.That(dogColorSet.IsProperSubsetOf(dogColors.Take(8)), Is.True);
+            Assert.That(dogColorSet.IsProperSubsetOf(dogColors), Is.True);
+            Assert.That(dogColorSet.IsSupersetOf(Array.Empty<(Dog, Color)>()), Is.True);
+            Assert.That(dogColorSet.IsSupersetOf(dogColors.Take(6)), Is.True);
+            Assert.That(dogColorSet.IsSupersetOf(dogColors.Take(7)), Is.True);
+            Assert.That(dogColorSet.IsSupersetOf(dogColors.Take(8)), Is.False);
+            Assert.That(dogColorSet.IsSupersetOf(dogColors), Is.False);
+            Assert.That(dogColorSet.IsProperSupersetOf(Array.Empty<(Dog, Color)>()), Is.True);
+            Assert.That(dogColorSet.IsProperSupersetOf(dogColors.Take(6)), Is.True);
+            Assert.That(dogColorSet.IsProperSupersetOf(dogColors.Take(7)), Is.False);
+            Assert.That(dogColorSet.IsProperSupersetOf(dogColors.Take(8)), Is.False);
+            Assert.That(dogColorSet.IsProperSupersetOf(dogColors), Is.False);
+            Assert.That(dogColorSet.Overlaps(Array.Empty<(Dog, Color)>()), Is.False);
+            Assert.That(dogColorSet.Overlaps(dogColors.Take(1)), Is.True);
+            Assert.That(dogColorSet.Overlaps(dogColors.Skip(7)), Is.False);
+            Assert.That(dogColorSet.Overlaps(dogColors), Is.True);
+            Assert.That(dogColorSet.SetEquals(Array.Empty<(Dog, Color)>()), Is.False);
+            Assert.That(dogColorSet.SetEquals(dogColors.Take(6)), Is.False);
+            Assert.That(dogColorSet.SetEquals(dogColors.Take(7)), Is.True);
+            Assert.That(dogColorSet.SetEquals(dogColors.Take(8)), Is.False);
+            Assert.That(dogColorSet.SetEquals(dogColors), Is.False);
+        }
+    }
 }
