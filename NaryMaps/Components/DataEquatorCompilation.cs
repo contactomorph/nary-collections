@@ -98,12 +98,12 @@ internal static class DataEquatorCompilation
             // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, dataTable[index].DataTuple.Item⟨i⟩, ⟨itemComponent⟩)
             il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(type));
             // EqualityComparerHandling.ComputeEquals(⟨comparer⟩, ⟨dataComponent⟩, ⟨itemComponent⟩) → falseLabel
-            il.Emit(OpCodes.Brfalse_S, falseLabel);
+            il.Emit(OpCodes.Brfalse, falseLabel);
         }
         // true
         il.Emit(OpCodes.Ldc_I4_1);
         // → endLabel
-        il.Emit(OpCodes.Br_S, endLabel);
+        il.Emit(OpCodes.Br, endLabel);
         
         il.MarkLabel(falseLabel);
         // false

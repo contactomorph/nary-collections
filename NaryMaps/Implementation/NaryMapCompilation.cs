@@ -263,7 +263,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         // true
         il.Emit(OpCodes.Ldc_I4_1);
         // → endLabel
-        il.Emit(OpCodes.Br_S, endLabel);
+        il.Emit(OpCodes.Br, endLabel);
 
         il.MarkLabel(falseLabel);
         // false
@@ -462,7 +462,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         // false
         il.Emit(OpCodes.Ldc_I4_0);
         // → endLabel
-        il.Emit(OpCodes.Br_S, endLabel);
+        il.Emit(OpCodes.Br, endLabel);
         
         il.MarkLabel(alreadyInsideLabel);
         // true
@@ -678,7 +678,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             il.Emit(OpCodes.Newobj, selectionConstructor);
 
             // → endLabel
-            il.Emit(OpCodes.Br_S, endLabel);
+            il.Emit(OpCodes.Br, endLabel);
         }
 
 

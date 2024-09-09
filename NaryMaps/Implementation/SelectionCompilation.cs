@@ -297,13 +297,13 @@ public static class SelectionCompilation
                 // EqualityComparerHandling.ComputeEquals(comparerTuple.Item⟨b⟩, x.Item⟨j⟩, y.Item⟨j⟩)
                 il.Emit(OpCodes.Call, EqualityComparerHandling.GetEqualsMethod(type));
                 // !EqualityComparerHandling.ComputeEquals(comparerTuple.Item⟨b⟩, x.Item⟨j⟩, y.Item⟨j⟩) → falseLabel
-                il.Emit(OpCodes.Brfalse_S, falseLabel);
+                il.Emit(OpCodes.Brfalse, falseLabel);
             }
             
             // true
             il.Emit(OpCodes.Ldc_I4_1);
             // → endLabel
-            il.Emit(OpCodes.Br_S, endLabel);
+            il.Emit(OpCodes.Br, endLabel);
 
             il.MarkLabel(falseLabel);
             // false
