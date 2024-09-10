@@ -5,9 +5,15 @@ public interface IReadOnlyNaryMap<out TSchema> where TSchema : Schema
     public TSchema Schema { get; }
     
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
+#if !NET6_0_OR_GREATER
+        where T : notnull
+#endif
         where TK : CompositeKind.Basic, CompositeKind.ISearchable;
     
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+#if !NET6_0_OR_GREATER
+        where T : notnull
+#endif
         where TK : CompositeKind.Basic, CompositeKind.ISearchable;
 
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)

@@ -7,8 +7,7 @@ namespace NaryMaps.Implementation;
 
 public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComparerTuple, THandler, TSchema, T> :
     SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T>,
-    ISelection<TSchema, CompositeKind.Searchable, T>,
-    IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
+    ISelection<TSchema, CompositeKind.Searchable, T>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where TDataEntry : struct
     where TComparerTuple : struct, ITuple, IStructuralEquatable
@@ -21,9 +20,65 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NonUniqueSearchableSelection(NaryMapCore<TDataEntry, TComparerTuple> map) : base(map) { }
 
-    #region Implement IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
+    public sealed override int GetKeyCount() => GetHandler().GetHashEntryCount();
+    
+    public sealed override TDataTuple? GetFirstDataTupleFor(T item)
+    {
+        THandler handler = GetHandler();
+        HashEntry[] hashTable = handler.GetHashTable();
+        
+        uint hc = GetHashCodeUsing(_map._comparerTuple, item);
+        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
+            hashTable,
+            _map._dataTable,
+            handler,
+            _map._comparerTuple,
+            hc,
+            item);
+        
+        if (result.Case == SearchCase.ItemFound)
+            return GetDataTuple(_map._dataTable[result.ForwardIndex]);
+        
+        return default!;
+    }
+    
+    public sealed override IEnumerable<TDataTuple>? GetDataTuplesFor(T item)
+    {
+        THandler handler = GetHandler();
+        HashEntry[] hashTable = handler.GetHashTable();
+        
+        uint hc = GetHashCodeUsing(_map._comparerTuple, item);
+        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
+            hashTable,
+            _map._dataTable,
+            handler,
+            _map._comparerTuple,
+            hc,
+            item);
+        
+        if (result.Case == SearchCase.ItemFound)
+            return GetRelatedDataTuples(handler, _map._dataTable, _map._version, result.ForwardIndex);
+        
+        return default!;
+    }
+    
+    public sealed override IEnumerable<T> GetItemEnumerable()
+    {
+        HashEntry[] hashTable = GetHandler().GetHashTable();
+        uint expectedVersion = _map._version;
+        var dataTable = _map._dataTable;
+        foreach (var entry in hashTable)
+        {
+            if (entry.DriftPlusOne == HashEntry.DriftForUnused)
+                continue;
+            yield return GetItem(dataTable[entry.ForwardIndex]);
+            
+            if (expectedVersion != _map._version)
+                throw new InvalidOperationException("The map was modified after the enumerator was created.");
+        }
+    }
 
-    public IEnumerator<KeyValuePair<T, IEnumerable<TDataTuple>>> GetEnumerator()
+    public sealed override IEnumerable<KeyValuePair<T, IEnumerable<TDataTuple>>> GetItemAndDataTuplesEnumerable()
     {
         THandler handler = GetHandler();
         HashEntry[] hashTable = handler.GetHashTable();
@@ -34,7 +89,7 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
         {
             if (entry.DriftPlusOne == HashEntry.DriftForUnused)
                 continue;
-            T item = GetItem(dataTable[entry.ForwardIndex]);
+            T key = GetItem(dataTable[entry.ForwardIndex]);
 
             IEnumerable<TDataTuple> dataTuples = GetRelatedDataTuples(
                 handler,
@@ -42,106 +97,12 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
                 expectedVersion,
                 entry.ForwardIndex);
 
-            yield return new(item, dataTuples);
+            yield return new(key, dataTuples);
 
             if (expectedVersion != _map._version)
                 throw new InvalidOperationException("The map was modified after the enumerator was created.");
         }
     }
-
-    public IEnumerable<T> Keys
-    {
-        get
-        {
-            HashEntry[] hashTable = GetHandler().GetHashTable();
-            uint expectedVersion = _map._version;
-            var dataTable = _map._dataTable;
-            foreach (var entry in hashTable)
-            {
-                if (entry.DriftPlusOne == HashEntry.DriftForUnused)
-                    continue;
-                yield return GetItem(dataTable[entry.ForwardIndex]);
-            
-                if (expectedVersion != _map._version)
-                    throw new InvalidOperationException("The map was modified after the enumerator was created.");
-            }
-        }
-    }
-
-    public IEnumerable<IEnumerable<TDataTuple>> Values
-    {
-        get
-        {
-            IReadOnlyDictionary<T, IEnumerable<TDataTuple>> that = this;
-            foreach (var pair in that)
-                yield return pair.Value;
-        }
-    }
-    
-    public bool ContainsKey(T key)
-    {
-        THandler handler = GetHandler();
-        HashEntry[] hashTable = handler.GetHashTable();
-        
-        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
-        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
-            hashTable,
-            _map._dataTable,
-            handler,
-            _map._comparerTuple,
-            hc,
-            key);
-        return result.Case == SearchCase.ItemFound;
-    }
-
-    public IEnumerable<TDataTuple> this[T key]
-    {
-        get
-        {
-            if (TryGetValue(key, out var values))
-                return values;
-            throw new KeyNotFoundException();
-        }
-    }
-    
-    public bool TryGetValue(T key, out IEnumerable<TDataTuple> value)
-    {
-        THandler handler = GetHandler();
-        HashEntry[] hashTable = handler.GetHashTable();
-        
-        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
-        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
-            hashTable,
-            _map._dataTable,
-            handler,
-            _map._comparerTuple,
-            hc,
-            key);
-        
-        if (result.Case == SearchCase.ItemFound)
-        {
-            value = GetRelatedDataTuples(
-                handler,
-                _map._dataTable,
-                _map._version,
-                result.ForwardIndex);
-            return true;
-        }
-
-        value = null!;
-        return false;
-    }
-
-    #endregion
-    
-    public sealed override IEnumerator<T> GetKeyEnumerator() => Keys.GetEnumerator();
-    public sealed override IEnumerator GetPairEnumerator()
-    {
-        IReadOnlyDictionary<T, IEnumerable<TDataTuple>> that = this;
-        return that.GetEnumerator();
-    }
-    public sealed override int GetKeyCount() => GetHandler().GetHashEntryCount();
-    public sealed override bool ContainsAsKey(T item) => ContainsKey(item);
     
     private IEnumerable<TDataTuple> GetRelatedDataTuples(
         THandler handler,

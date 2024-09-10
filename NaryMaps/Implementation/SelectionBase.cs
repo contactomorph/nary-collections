@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
+using NaryMaps.Components;
 using NaryMaps.Primitives;
 
 namespace NaryMaps.Implementation;
@@ -10,18 +11,22 @@ public abstract class SelectionBase<TDataTuple, T> : IEqualityComparer<T>
     public abstract bool Equals(T? x, T? y);
     public abstract int GetHashCode(T item);
     
-    public abstract IEnumerator GetPairEnumerator();
-    public abstract IEnumerator<T> GetKeyEnumerator();
+    public abstract int GetDataTupleCount();
+    public abstract bool ContainsItem(T item);
+    public abstract IEnumerable<T> GetItemEnumerable();
+    
     public abstract int GetKeyCount();
-    public abstract bool ContainsAsKey(T item);
+    public abstract TDataTuple? GetFirstDataTupleFor(T item);
+    public abstract IEnumerable<TDataTuple>? GetDataTuplesFor(T item);
+    public abstract IEnumerable<KeyValuePair<T, IEnumerable<TDataTuple>>> GetItemAndDataTuplesEnumerable();
 }
 
 public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T> :
-    SelectionBase<TDataTuple, T>, IReadOnlySet<T>
+    SelectionBase<TDataTuple, T>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where TDataEntry : struct
     where TComparerTuple : struct, ITuple, IStructuralEquatable
-    where THandler : struct, IHashTableProvider
+    where THandler : struct, IHashTableProvider, IDataEquator<TDataEntry, TComparerTuple, T>
 {
     // ReSharper disable once InconsistentNaming
     protected readonly NaryMapCore<TDataEntry, TComparerTuple> _map;
@@ -30,100 +35,27 @@ public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THan
     protected SelectionBase(NaryMapCore<TDataEntry, TComparerTuple> map) => _map = map;
     
     #region Implement IEqualityComparer<T>
-    
     public sealed override bool Equals(T? x, T? y) => EqualsUsing(_map._comparerTuple, x, y);
-
-    public sealed override int GetHashCode(T obj) => (int)GetHashCodeUsing(_map._comparerTuple, obj);
-
+    public sealed override int GetHashCode(T item) => (int)GetHashCodeUsing(_map._comparerTuple, item);
     #endregion
 
-    #region Implement IReadOnlyCollection<T>
-    
-    IEnumerator IEnumerable.GetEnumerator() => GetPairEnumerator();
-    
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetKeyEnumerator();
-    
-    public int Count => GetKeyCount();
-
-    #endregion
-    
-    #region Implement IReadOnlySet<T>
-
-    public bool Contains(T item) => ContainsAsKey(item);
-
-    public bool IsProperSubsetOf(IEnumerable<T> other)
+    #region Implement SelectionBase<TDataTuple, TKey>
+    public sealed override int GetDataTupleCount() => _map._count;
+    public sealed override bool ContainsItem(T key)
     {
-        if (other is null) throw new ArgumentNullException(nameof(other));
-        var providedItems = other.ToHashSet(comparer: this);
-        foreach (var dataTuple in this)
-        {
-            if (!providedItems.Remove(dataTuple))
-                return false;
-        }
+        THandler handler = GetHandler();
+        HashEntry[] hashTable = handler.GetHashTable();
 
-        return 0 < providedItems.Count;
+        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
+        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
+            hashTable,
+            _map._dataTable,
+            handler,
+            _map._comparerTuple,
+            hc,
+            key);
+        return result.Case == SearchCase.ItemFound;
     }
-
-    public bool IsProperSupersetOf(IEnumerable<T> other)
-    {
-        if (other is null) throw new ArgumentNullException(nameof(other));
-        var commonItems = new HashSet<T>(comparer: this);
-        foreach (var dataTuple in other)
-        {
-            if (!Contains(dataTuple))
-                return false;
-            commonItems.Add(dataTuple);
-        }
-        return commonItems.Count < this.Count;
-    }
-
-    public bool IsSubsetOf(IEnumerable<T> other)
-    {
-        if (other is null) throw new ArgumentNullException(nameof(other));
-        var providedItems = other.ToHashSet(comparer: this);
-        foreach (var dataTuple in this)
-            if (!providedItems.Remove(dataTuple))
-                return false;
-        return true;
-    }
-
-    public bool IsSupersetOf(IEnumerable<T> other)
-    {
-        if (other is null) throw new ArgumentNullException(nameof(other));
-        foreach (var dataTuple in other)
-            if (!Contains(dataTuple))
-                return false;
-        return true;
-    }
-
-    public bool Overlaps(IEnumerable<T> other)
-    {
-        if (other is null) throw new ArgumentNullException(nameof(other));
-        foreach (var dataTuple in other)
-            if (Contains(dataTuple))
-                return true;
-        return false;
-    }
-
-    public bool SetEquals(IEnumerable<T> other)
-    {
-        var commonItems = new HashSet<T>(comparer: this);
-        foreach (var dataTuple in other)
-        {
-            if (Contains(dataTuple))
-                commonItems.Add(dataTuple);
-            else
-                return false;
-        }
-
-        foreach (var dataTuple in this)
-        {
-            if (!commonItems.Contains(dataTuple))
-                return false;
-        }
-        return true;
-    }
-
     #endregion
     
     #region Defined in derived classes as generated il

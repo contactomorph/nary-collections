@@ -308,22 +308,30 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
+#if !NET6_0_OR_GREATER
+        where T : notnull
+#endif
     {
         if (selector is null) throw new ArgumentNullException(nameof(selector));
         var participant = selector(Schema);
         if (participant is null) throw new ArgumentException(nameof(selector));
         if (!ReferenceEquals(participant.Schema, Schema)) throw new ArgumentException(nameof(selector));
-        return (IReadOnlySet<T>)CreateSelection(participant.Rank);
+        var selection = (ISelection<TSchema, TK, T>)CreateSelection(participant.Rank);
+        return selection.AsReadOnlySet();
     }
 
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
+#if !NET6_0_OR_GREATER
+        where T : notnull
+#endif
     {
         if (selector is null) throw new ArgumentNullException(nameof(selector));
         var composite = selector(Schema);
         if (composite is null) throw new ArgumentException(nameof(selector));
         if (!ReferenceEquals(composite.Schema, Schema)) throw new ArgumentException(nameof(selector));
-        return (IReadOnlySet<T>)CreateSelection(composite.Rank);
+        var selection = (ISelection<TSchema, TK, T>)CreateSelection(composite.Rank);
+        return selection.AsReadOnlySet();
     }
 
     public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
