@@ -86,7 +86,7 @@ public static class CompositeHandlerCompilation
 
         var type = typeBuilder.CreateType();
 
-        return type.GetConstructor([typeof(bool)]) ?? throw new InvalidProgramException();
+        return type?.GetConstructor([typeof(bool)]) ?? throw new InvalidProgramException();
     }
 
     private static (FieldBuilder HashTableField, FieldBuilder? CountField) DefineConstructor(

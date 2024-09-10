@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Drawing;
 using NaryMaps.Tests.Resources.Types;
 
@@ -16,11 +17,11 @@ public class SchemaTests
         
         Assert.That(composites, Is.EquivalentTo(new Schema.Composite[]
         {
-            new (false, 0, [schema.Dog]),
-            new (false, 1, [schema.Color]),
-            new (true, 2, [schema.Name]),
-            new (false, 3, [schema.Dog, schema.Color]),
-            new (false, 4, [schema.Name, schema.Color]),
+            new (false, 0, ImmutableArray.Create<IParticipant>(schema.Dog)),
+            new (false, 1, ImmutableArray.Create<IParticipant>(schema.Color)),
+            new (true, 2, ImmutableArray.Create<IParticipant>(schema.Name)),
+            new (false, 3, ImmutableArray.Create<IParticipant>(schema.Dog, schema.Color)),
+            new (false, 4, ImmutableArray.Create<IParticipant>(schema.Name, schema.Color)),
         }));
     }
 }

@@ -52,7 +52,7 @@ public static class SelectionCompilation
 
         var type = typeBuilder.CreateType();
 
-        return type.GetConstructors().Single();
+        return type?.GetConstructors().Single() ?? throw new NullReferenceException();
     }
     
     private static void DefineConstructor(

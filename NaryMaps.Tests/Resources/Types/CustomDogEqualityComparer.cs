@@ -8,12 +8,12 @@ public sealed class CustomDogEqualityComparer : IEqualityComparer<Dog>, IEnumera
     
     public CustomDogEqualityComparer(params (Dog Dog, uint HashCode)[] dogsWithHashCodes)
     {
-        _dogToHashCode = dogsWithHashCodes.Select(p => (p.Dog, p.HashCode)).ToDictionary();
+        _dogToHashCode = dogsWithHashCodes.ToDictionary(p => p.Dog, p => p.HashCode);
     }
 
     public CustomDogEqualityComparer(IEnumerable<(Dog Dog, uint HashCode)> dogsWithHashCodes)
     {
-        _dogToHashCode = dogsWithHashCodes.Select(p => (p.Dog, p.HashCode)).ToDictionary();
+        _dogToHashCode = dogsWithHashCodes.ToDictionary(p => p.Dog, p => p.HashCode);
     }
 
     public bool Equals(Dog? x, Dog? y) => x?.Equals(y) ?? y is null;

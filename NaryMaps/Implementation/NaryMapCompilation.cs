@@ -77,7 +77,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
 
         var type = typeBuilder.CreateType();
         
-        var ctor = type.GetConstructors().Single();
+        var ctor = type?.GetConstructors().Single() ?? throw new NullReferenceException();
 
         Expression[] ctorParameters = [
             Expression.Constant(schema),
