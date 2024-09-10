@@ -5,7 +5,7 @@ namespace NaryMaps.Tests.Resources.Tools;
 
 public sealed class FieldManipulator<T> where T : notnull
 {
-    private readonly IReadOnlySet<FieldInfo> _fields;
+    private readonly HashSet<FieldInfo> _fields;
     
     public FieldManipulator(T instance)
     {

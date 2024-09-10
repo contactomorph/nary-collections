@@ -115,7 +115,10 @@ public class NaryMapCompilationTests
         var set = map.AsSet();
         var referenceSet = new HashSet<DogPlaceColorTuple>();
         var random = new Random(4223023);
-        var someColors = Enum.GetValues<KnownColor>().Take(10).Select(Color.FromKnownColor).ToArray();
+        var someColors = ((KnownColor[])Enum.GetValues(typeof(KnownColor)))
+            .Take(10)
+            .Select(Color.FromKnownColor)
+            .ToArray();
         
         for(int i = 0; i < 10000; ++i)
         {
@@ -178,7 +181,10 @@ public class NaryMapCompilationTests
         var set = map.AsSet();
         
         var random = new Random(4223023);
-        var someColors = Enum.GetValues<KnownColor>().Take(10).Select(Color.FromKnownColor).ToArray();
+        var someColors = ((KnownColor[])Enum.GetValues(typeof(KnownColor)))
+            .Take(10)
+            .Select(Color.FromKnownColor)
+            .ToArray();
         
         for(int i = 0; i < 1000; ++i)
         {

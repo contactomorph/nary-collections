@@ -6,7 +6,7 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
-        <TargetFrameworks>net8.0;net8.0-windows;net6.0;net6.0-windows</TargetFrameworks>
+        <TargetFrameworks>net6.0;net6.0-windows;net8.0;net8.0-windows;netstandard2.1;netcoreapp3.1</TargetFrameworks>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.0"/>

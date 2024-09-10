@@ -1,3 +1,7 @@
+#if NETSTANDARD2_1 || NETCOREAPP3_1
+using NaryMaps.Tools;
+#endif
+
 namespace NaryMaps;
 
 public interface IReadOnlyNaryMap<out TSchema> where TSchema : Schema

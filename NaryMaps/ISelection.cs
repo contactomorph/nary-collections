@@ -13,6 +13,9 @@ public static class Selection
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
+#if NETCOREAPP3_1
+        where T : notnull
+#endif
     {
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (selection is IReadOnlyDictionary<T, IEnumerable<TDataTuple>> dictionary)
@@ -25,6 +28,9 @@ public static class Selection
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable, CompositeKind.IUnique
+#if NETCOREAPP3_1
+        where T : notnull
+#endif
     {
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (selection is IReadOnlyDictionary<T, TDataTuple> dictionary)

@@ -24,7 +24,7 @@ internal static class CommonCompilation
     public static void OverrideMethod(TypeBuilder typeBuilder, Type upperType, MethodBuilder methodBuilder, Type[]? inputTypes = null)
     {
         var method = inputTypes is not null ?
-            upperType.GetMethod(methodBuilder.Name, BaseFlags, inputTypes) :
+            upperType.GetMethod(methodBuilder.Name, BaseFlags, null, inputTypes, null) :
             upperType.GetMethod(methodBuilder.Name, BaseFlags);
 
         method = method ?? throw new MissingMethodException();

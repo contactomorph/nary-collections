@@ -2,6 +2,9 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
+#if NETSTANDARD2_1 || NETCOREAPP3_1
+using NaryMaps.Tools;
+#endif
 
 namespace NaryMaps.Implementation;
 

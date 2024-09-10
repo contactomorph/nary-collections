@@ -2,6 +2,9 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
+#if NETSTANDARD2_1 || NETCOREAPP3_1
+using NaryMaps.Tools;
+#endif
 
 namespace NaryMaps.Implementation;
 
@@ -15,6 +18,9 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
     where TComparerTuple : struct, ITuple, IStructuralEquatable
     where THandler : struct, IHashTableProvider, IDataEquator<TDataEntry, TComparerTuple, T>, IResizeHandler<TDataEntry, MultiIndex>
     where TSchema : Schema<TDataTuple>, new()
+#if NETCOREAPP3_1
+    where T : notnull
+#endif
 {
     // ReSharper disable once ConvertToPrimaryConstructor
     protected NonUniqueSearchableSelection(NaryMapCore<TDataEntry, TComparerTuple> map) : base(map) { }

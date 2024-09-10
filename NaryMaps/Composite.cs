@@ -1,4 +1,8 @@
+#if NETSTANDARD2_1 || NETCOREAPP3_1
+using NaryMaps.Tools;
+#else
 using System.Collections.Immutable;
+#endif
 
 namespace NaryMaps;
 
