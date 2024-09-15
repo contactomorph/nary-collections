@@ -10,7 +10,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl></PackageProjectUrl>
         <RepositoryUrl>https://github.com/contactomorph/nary-collections</RepositoryUrl>
-        <PackageTags>map, dictionary, multidictionary, bidictionary, set</PackageTags>
+        <PackageTags>map, dictionary, DictionaryOfEnumerable, bidictionary, set</PackageTags>
         <Description>A generic collection type generalising dictionaries, multidictionaries, bidictionaries, dictionaries with multiple keys</Description>
         <PackageIcon>logo_narymap.png</PackageIcon>
         <Version>0.1.0</Version>

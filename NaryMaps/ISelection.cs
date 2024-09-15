@@ -9,7 +9,7 @@ public interface ISelection<out TSchema, TK, in T> where TK : CompositeKind.Basi
 public static class Selection
 {
     [Pure]
-    public static IReadOnlyDictionary<T, IEnumerable<TDataTuple>> AsReadOnlyMultiDictionary<TDataTuple, TK, T>(
+    public static IReadOnlyDictionary<T, IEnumerable<TDataTuple>> AsReadOnlyDictionaryOfEnumerable<TDataTuple, TK, T>(
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable

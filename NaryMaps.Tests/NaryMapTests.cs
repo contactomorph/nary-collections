@@ -66,7 +66,7 @@ public class NaryMapTests
             Assert.That(dogSet.Count, Is.EqualTo(expectedDogDictionary.Count));
             Assert.That(dogSet.ToList(), Is.EquivalentTo(expectedDogDictionary.Keys));
 
-            var dogToTuple = map.With(s => s.Dog).AsReadOnlyMultiDictionary();
+            var dogToTuple = map.With(s => s.Dog).AsReadOnlyDictionaryOfEnumerable();
             
             Assert.That(dogToTuple.Count, Is.EqualTo(expectedDogDictionary.Count));
             foreach (var (dog, tuples) in dogToTuple)
@@ -85,7 +85,7 @@ public class NaryMapTests
             Assert.That(colorSet.Count, Is.EqualTo(expectedColorDictionary.Count));
             Assert.That(colorSet.ToList(), Is.EquivalentTo(expectedColorDictionary.Keys));
 
-            var colorToTuple = map.With(s => s.Color).AsReadOnlyMultiDictionary();
+            var colorToTuple = map.With(s => s.Color).AsReadOnlyDictionaryOfEnumerable();
             
             Assert.That(colorToTuple.Count, Is.EqualTo(expectedColorDictionary.Count));
             foreach (var (color, tuples) in colorToTuple)
