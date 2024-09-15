@@ -4,8 +4,20 @@ using NaryMaps.Primitives;
 
 namespace NaryMaps.Implementation;
 
+public abstract class SelectionBase<TDataTuple, T> : IEqualityComparer<T>
+    where TDataTuple : struct, ITuple, IStructuralEquatable
+{
+    public abstract bool Equals(T? x, T? y);
+    public abstract int GetHashCode(T item);
+    
+    public abstract IEnumerator GetPairEnumerator();
+    public abstract IEnumerator<T> GetKeyEnumerator();
+    public abstract int GetKeyCount();
+    public abstract bool ContainsAsKey(T item);
+}
+
 public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T> :
-    IReadOnlySet<T>, IEqualityComparer<T>
+    SelectionBase<TDataTuple, T>, IReadOnlySet<T>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where TDataEntry : struct
     where TComparerTuple : struct, ITuple, IStructuralEquatable
@@ -19,9 +31,9 @@ public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THan
     
     #region Implement IEqualityComparer<T>
     
-    public bool Equals(T? x, T? y) => EqualsUsing(_map._comparerTuple, x, y);
+    public sealed override bool Equals(T? x, T? y) => EqualsUsing(_map._comparerTuple, x, y);
 
-    public int GetHashCode(T obj) => (int)ComputeHashCode(_map._comparerTuple, obj);
+    public sealed override int GetHashCode(T obj) => (int)GetHashCodeUsing(_map._comparerTuple, obj);
 
     #endregion
 
@@ -114,14 +126,11 @@ public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THan
 
     #endregion
     
-    protected abstract IEnumerator GetPairEnumerator();
-    protected abstract IEnumerator<T> GetKeyEnumerator();
-    protected abstract int GetKeyCount();
-    protected abstract bool ContainsAsKey(T item);
-    
-    protected internal abstract THandler GetHandler();
-    protected internal abstract T GetItem(TDataEntry dataEntry);
-    protected internal abstract TDataTuple GetDataTuple(TDataEntry dataEntry);
-    protected internal abstract uint ComputeHashCode(TComparerTuple comparerTuple, T item);
-    protected internal abstract bool EqualsUsing(TComparerTuple comparerTuple, T? x, T? y);
+    #region Defined in derived classes as generated il
+    public abstract THandler GetHandler();
+    public abstract T GetItem(TDataEntry dataEntry);
+    public abstract TDataTuple GetDataTuple(TDataEntry dataEntry);
+    public abstract uint GetHashCodeUsing(TComparerTuple comparerTuple, T key);
+    public abstract bool EqualsUsing(TComparerTuple comparerTuple, T? x, T? y);
+    #endregion
 }

@@ -59,7 +59,7 @@ public class SelectionCompilationTests
 
         var selection = factory(map);
 
-        var hc = selection.ComputeHashCode(comparerTuple, (Color.AntiqueWhite, Dogs.KnownDogs[2]));
+        var hc = selection.GetHashCodeUsing(comparerTuple, (Color.AntiqueWhite, Dogs.KnownDogs[2]));
 
         var expectedHc = (uint)
             (ColorComparer.GetHashCode(Color.AntiqueWhite), DogComparer.GetHashCode(Dogs.KnownDogs[2]))
@@ -108,7 +108,7 @@ public class SelectionCompilationTests
 
         var selection = factory(map);
 
-        var hc = selection.ComputeHashCode(comparerTuple, "Paris");
+        var hc = selection.GetHashCodeUsing(comparerTuple, "Paris");
 
         var expectedHc = (uint)"Paris".GetHashCode();
         

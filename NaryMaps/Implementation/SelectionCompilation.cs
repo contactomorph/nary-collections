@@ -47,7 +47,7 @@ public static class SelectionCompilation
         DefineGetHandler(typeBuilder, selectionBaseType, handlerField);
         DefineGetItem(typeBuilder, dataTypeProjection, selectionBaseType);
         DefineGetDataTuple(typeBuilder, dataTypeProjection, selectionBaseType);
-        DefineComputeHashCode(typeBuilder, dataTypeProjection, selectionBaseType);
+        DefineGetHashCodeUsing(typeBuilder, dataTypeProjection, selectionBaseType);
         DefineEqualsUsing(typeBuilder, dataTypeProjection, selectionBaseType);
 
         var type = typeBuilder.CreateType();
@@ -178,7 +178,7 @@ public static class SelectionCompilation
         CommonCompilation.OverrideMethod(typeBuilder, selectionBaseType, methodBuilder);
     }
 
-    private static void DefineComputeHashCode(
+    private static void DefineGetHashCodeUsing(
         TypeBuilder typeBuilder,
         DataTypeProjection dataTypeProjection,
         Type selectionBaseType)
@@ -186,7 +186,7 @@ public static class SelectionCompilation
         var itemType = CommonCompilation.GetItemType(dataTypeProjection);
         MethodBuilder methodBuilder = typeBuilder
             .DefineMethod(
-                nameof(Selection.ComputeHashCode),
+                nameof(Selection.GetHashCodeUsing),
                 CommonCompilation.ProjectorMethodAttributes,
                 typeof(uint),
                 [dataTypeProjection.ComparerTupleType, itemType]);

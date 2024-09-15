@@ -67,7 +67,7 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
         THandler handler = GetHandler();
         HashEntry[] hashTable = handler.GetHashTable();
 
-        uint hc = ComputeHashCode(_map._comparerTuple, key);
+        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
         var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
             hashTable,
             _map._dataTable,
@@ -143,7 +143,7 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
         THandler handler = GetHandler();
         HashEntry[] hashTable = handler.GetHashTable();
         
-        uint hc = ComputeHashCode(_map._comparerTuple, key);
+        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
         var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
             hashTable,
             _map._dataTable,
@@ -164,12 +164,12 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
 
     #endregion
     
-    protected sealed override IEnumerator<T> GetKeyEnumerator() => Keys.GetEnumerator();
-    protected sealed override IEnumerator GetPairEnumerator()
+    public sealed override IEnumerator<T> GetKeyEnumerator() => Keys.GetEnumerator();
+    public sealed override IEnumerator GetPairEnumerator()
     {
         IReadOnlyDictionary<T, TDataTuple> that = this;
         return that.GetEnumerator();
     }
-    protected sealed override int GetKeyCount() => _map._count;
-    protected sealed override bool ContainsAsKey(T item) => ContainsKey(item);
+    public sealed override int GetKeyCount() => _map._count;
+    public sealed override bool ContainsAsKey(T item) => ContainsKey(item);
 }
