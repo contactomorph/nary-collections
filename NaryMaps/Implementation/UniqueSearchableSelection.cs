@@ -2,16 +2,12 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
-#if NETSTANDARD2_1 || NETCOREAPP3_1
-using NaryMaps.Tools;
-#endif
 
 namespace NaryMaps.Implementation;
 
 public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TComparerTuple, THandler, TSchema, T> :
     SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T>,
     ISelection<TSchema, CompositeKind.UniqueSearchable, T>,
-    IReadOnlySet<T>,
     IReadOnlyDictionary<T, TDataTuple>,
     IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
@@ -19,7 +15,7 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
     where TComparerTuple : struct, ITuple, IStructuralEquatable
     where THandler : struct, IHashTableProvider, IDataEquator<TDataEntry, TComparerTuple, T>
     where TSchema : Schema<TDataTuple>, new()
-#if NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
     where T : notnull
 #endif
 {

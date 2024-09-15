@@ -3,9 +3,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using NaryMaps.Implementation;
-#if NETSTANDARD2_1 || NETCOREAPP3_1
-using NaryMaps.Tools;
-#endif
 
 namespace NaryMaps;
 

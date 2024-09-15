@@ -2,23 +2,19 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
-#if NETSTANDARD2_1 || NETCOREAPP3_1
-using NaryMaps.Tools;
-#endif
 
 namespace NaryMaps.Implementation;
 
 public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComparerTuple, THandler, TSchema, T> :
     SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T>,
     ISelection<TSchema, CompositeKind.Searchable, T>,
-    IReadOnlySet<T>,
     IReadOnlyDictionary<T, IEnumerable<TDataTuple>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where TDataEntry : struct
     where TComparerTuple : struct, ITuple, IStructuralEquatable
     where THandler : struct, IHashTableProvider, IDataEquator<TDataEntry, TComparerTuple, T>, IResizeHandler<TDataEntry, MultiIndex>
     where TSchema : Schema<TDataTuple>, new()
-#if NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
     where T : notnull
 #endif
 {

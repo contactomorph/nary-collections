@@ -1,8 +1,6 @@
 using System.Drawing;
 using NaryMaps.Tests.Resources.Types;
-#if NETSTANDARD2_1 || NETCOREAPP3_1
-using NaryMaps.Tools;
-#else
+#if NET6_0_OR_GREATER
 using System.Collections.Immutable;
 #endif
 

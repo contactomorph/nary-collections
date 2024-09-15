@@ -1,7 +1,4 @@
 namespace NaryMaps;
-#if NETSTANDARD2_1 || NETCOREAPP3_1
-using NaryMaps.Tools;
-#endif
 
 public interface IConflictingSet<T> : IReadOnlySet<T>, ISet<T>
 {

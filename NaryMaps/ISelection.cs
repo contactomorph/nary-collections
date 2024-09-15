@@ -13,7 +13,7 @@ public static class Selection
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
-#if NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
         where T : notnull
 #endif
     {
@@ -28,7 +28,7 @@ public static class Selection
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable, CompositeKind.IUnique
-#if NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
         where T : notnull
 #endif
     {

@@ -1,7 +1,7 @@
-#if NETSTANDARD2_1 || NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
 using System.Collections;
 
-namespace NaryMaps.Tools;
+namespace NaryMaps;
 
 /// <summary>Provides a readonly abstraction of a set.</summary>
 /// <typeparam name="T">The type of elements in the set.</typeparam>

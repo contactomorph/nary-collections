@@ -1,7 +1,7 @@
-#if NETSTANDARD2_1 || NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
 using System.Collections;
 
-namespace NaryMaps.Tools;
+namespace NaryMaps;
 
 public readonly struct ImmutableArray<T>(IEnumerable<T> items) : IReadOnlyList<T>, IEquatable<ImmutableArray<T>>
 {
@@ -48,11 +48,13 @@ public readonly struct ImmutableArray<T>(IEnumerable<T> items) : IReadOnlyList<T
     public override int GetHashCode()
     {
         if (_array is null) return 0;
-        HashCode hash = new();
-        hash.Add(_array.Length);
-        foreach (var item in _array)
-            hash.Add(item);
-        return hash.ToHashCode();
+        unchecked
+        {
+            int hash = _array.Length * 23;
+            foreach (var item in _array)
+                hash = hash * 23 + item?.GetHashCode() ?? 0;
+            return hash;
+        }
     }
 
     public override string ToString()

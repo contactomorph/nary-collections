@@ -1,4 +1,4 @@
-#if NETSTANDARD2_1 || NETCOREAPP3_1
+#if !NET6_0_OR_GREATER
 namespace System.Runtime.CompilerServices;
 
 internal static class IsExternalInit {}
