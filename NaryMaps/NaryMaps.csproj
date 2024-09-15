@@ -8,12 +8,12 @@
         <Title>Map types generalising dictionaries</Title>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageProjectUrl></PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/contactomorph/nary-collections</PackageProjectUrl>
         <RepositoryUrl>https://github.com/contactomorph/nary-collections</RepositoryUrl>
-        <PackageTags>map, dictionary, DictionaryOfEnumerable, bidictionary, set</PackageTags>
+        <PackageTags>map, dictionary, multidictionary, bidictionary, set</PackageTags>
         <Description>A generic collection type generalising dictionaries, multidictionaries, bidictionaries, dictionaries with multiple keys</Description>
         <PackageIcon>logo_narymap.png</PackageIcon>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
     <ItemGroup>
