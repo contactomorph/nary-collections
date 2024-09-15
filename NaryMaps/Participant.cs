@@ -7,7 +7,6 @@ public interface IParticipant
     byte Rank { get; }
     bool IsUnique { get; }
     bool IsSearchable { get; }
-    bool IsOrdered { get; }
 }
 
 public abstract class ParticipantBase<T> : IParticipant
@@ -19,7 +18,6 @@ public abstract class ParticipantBase<T> : IParticipant
     
     public abstract bool IsUnique { get; }
     public abstract bool IsSearchable { get; }
-    public abstract bool IsOrdered { get; }
 
     private protected ParticipantBase(object schema, byte rank)
     {
@@ -33,13 +31,11 @@ public abstract class ParticipantBase<TK, T> : ParticipantBase<T> where TK : Com
 {
     public override bool IsUnique { get; }
     public override bool IsSearchable { get; }
-    public override bool IsOrdered { get; }
 
     private protected ParticipantBase(object schema, byte rank) : base(schema, rank)
     {
         var kind = typeof(TK);
-        IsUnique = kind == typeof(CompositeKind.UniqueSearchable) || kind == typeof(CompositeKind.UniqueOrdered);
-        IsOrdered = kind == typeof(CompositeKind.Ordered) || kind == typeof(CompositeKind.UniqueOrdered);
+        IsUnique = kind == typeof(CompositeKind.UniqueSearchable);
         IsSearchable = kind != typeof(CompositeKind.Basic);
     }
 }

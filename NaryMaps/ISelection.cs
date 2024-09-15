@@ -37,44 +37,4 @@ public static class Selection
             return dictionary;
         throw new InvalidOperationException("Unexpected selection type.");
     }
-    
-    [Pure]
-    public static IEnumerable<TDataTuple> Among<TDataTuple, TK, T>(
-        this ISelection<Schema<TDataTuple>, TK, T> selection,
-        params T[] values)
-        where TDataTuple : struct, ITuple, IStructuralEquatable
-        where TK : CompositeKind.Basic, CompositeKind.ISearchable
-    {
-        throw new NotImplementedException();
-    }
-    
-    [Pure]
-    public static IEnumerable<TDataTuple> Among<TDataTuple, TK, T>(
-        this ISelection<Schema<TDataTuple>, TK, T> selection,
-        IEnumerable<T> values)
-        where TDataTuple : struct, ITuple, IStructuralEquatable
-        where TK : CompositeKind.Basic, CompositeKind.ISearchable
-    {
-        throw new NotImplementedException();
-    }
-    
-    [Pure]
-    public static IEnumerable<TDataTuple> AscendingFrom<TDataTuple, TK, T>(
-        this ISelection<Schema<TDataTuple>, TK, T> selection,
-        T min)
-        where TDataTuple : struct, ITuple, IStructuralEquatable
-        where TK : CompositeKind.Basic, CompositeKind.IOrdered
-    {
-        throw new NotImplementedException();
-    }
-    
-    [Pure]
-    public static IEnumerable<TDataTuple> DescendingFrom<TDataTuple, TK, T>(
-        this ISelection<Schema<TDataTuple>, TK, T> selection,
-        T max)
-        where TDataTuple : struct, ITuple, IStructuralEquatable
-        where TK : CompositeKind.Basic, CompositeKind.IOrdered
-    {
-        throw new NotImplementedException();
-    }
 }
