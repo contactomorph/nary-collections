@@ -5,7 +5,7 @@ namespace NaryMaps;
 
 public readonly struct ImmutableArray<T>(IEnumerable<T> items) : IReadOnlyList<T>, IEquatable<ImmutableArray<T>>
 {
-    private readonly T[]? _array = items.ToArray();
+    private readonly T[]? _array = ConvertToArray(items);
     
     public int Count => _array?.Length ?? 0;
     
@@ -57,20 +57,20 @@ public readonly struct ImmutableArray<T>(IEnumerable<T> items) : IReadOnlyList<T
         }
     }
 
-    public override string ToString()
+    public override string ToString() => $"Count: {Count}";
+
+    private static T[]? ConvertToArray(IEnumerable<T> items)
     {
-        return $"Count: {Count}";
+        var array = items.ToArray();
+        return array.Length == 0 ? null : array;
     }
 }
 
 public static class ImmutableArray
 {
-    public static ImmutableArray<T> ToImmutableArray<T>(this IEnumerable<T> items) => new ImmutableArray<T>(items);
+    public static ImmutableArray<T> ToImmutableArray<T>(this IEnumerable<T> items) => new(items);
 
-    public static ImmutableArray<T> Create<T>(params T[] items)
-    {
-        return new ImmutableArray<T>(items.ToArray());
-    }
+    public static ImmutableArray<T> Create<T>(params T[] items) => new(items);
 }
 
 #endif
