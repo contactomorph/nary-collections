@@ -10,6 +10,13 @@ namespace NaryMaps.Implementation;
 
 using CompositeInfo = (DataTypeProjection, FieldBuilder, ConstructorInfo, bool MustBeUnique, byte Rank);
 using ICompositeHandler = ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>;
+using ConflictHandling = ConflictHandling<
+    ValueTuple,
+    ValueTuple,
+    ValueTuple,
+    FakeNaryMap.FakeCompositeHandler,
+    ValueTuple,
+    ValueTuple>;
 
 internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
 {
@@ -72,6 +79,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
         DefineFindInOtherComposites(typeBuilder, dataTypeDecomposition, baseMapType, compositeInfo);
         DefineAddToOtherComposites(typeBuilder, baseMapType, compositeInfo);
         DefineRemoveFromOtherComposites(typeBuilder, baseMapType, compositeInfo);
+        DefineExtractConflictingItemsInOtherComposites(typeBuilder, dataTypeDecomposition, baseMapType, compositeInfo);
         DefineClearOtherComposites(typeBuilder, baseMapType, compositeInfo);
         DefineCreateSelection(moduleBuilder, typeBuilder, baseMapType, compositeInfo);
 
@@ -531,7 +539,7 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
 
         CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);
     }
-    
+
     private static void DefineRemoveFromOtherComposites(
         TypeBuilder typeBuilder,
         Type baseMapType,
@@ -544,20 +552,20 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
                 typeof(void),
                 [typeof(int)]);
         ILGenerator il = methodBuilder.GetILGenerator();
-        
+
         var dataTableField = CommonCompilation.GetFieldInBase(
             baseMapType,
             NaryMapBase.DataTableFieldName);
         var countField = CommonCompilation.GetFieldInBase(
             baseMapType,
             NaryMapBase.CountFieldName);
-        
+
         foreach (var (_, handlerFieldBuilder, _, _, _) in compositeInfo)
         {
             var removeMethod = CommonCompilation.GetMethod(
                 handlerFieldBuilder.FieldType,
                 nameof(ICompositeHandler<ValueTuple, ValueTuple, ValueTuple, ValueTuple, object>.Remove));
-            
+
             // this
             il.Emit(OpCodes.Ldarg_0);
             // ref this._compositeHandler_⟨i⟩
@@ -575,7 +583,120 @@ internal static class NaryMapCompilation<TSchema> where TSchema : Schema, new()
             // (ref this._compositeHandler_⟨i⟩).Remove(this._dataTable, removedDataIndex, this._count)
             il.Emit(OpCodes.Call, removeMethod);
         }
+
+        il.Emit(OpCodes.Ret);
+
+        CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);
+    }
+
+    private static void DefineExtractConflictingItemsInOtherComposites(
+        TypeBuilder typeBuilder,
+        DataTypeProjection dataTypeDecomposition,
+        Type baseMapType,
+        IReadOnlyList<CompositeInfo> compositeInfo)
+    {
+        Type[] paramTypes = [
+            dataTypeDecomposition.DataTupleType,
+            dataTypeDecomposition.HashTupleType,
+            typeof(List<>).MakeGenericType(dataTypeDecomposition.DataTupleType),
+        ];
+
+        MethodBuilder methodBuilder = typeBuilder
+            .DefineMethod(
+                FakeNaryMap.ExtractConflictingItemsInOtherCompositesMethodName,
+                CommonCompilation.ProjectorMethodAttributes,
+                typeof(void),
+                paramTypes);
+        ILGenerator il = methodBuilder.GetILGenerator();
+
+        var dataTableField = CommonCompilation.GetFieldInBase(
+            baseMapType,
+            FakeNaryMap.DataTableFieldName);
+        var comparerTupleField = CommonCompilation.GetFieldInBase(
+            baseMapType,
+            FakeNaryMap.ComparerTupleFieldName);
         
+        foreach (var (dataTypeProjection, handlerFieldBuilder, _, mustBeUnique, _) in compositeInfo)
+        {
+            if (!mustBeUnique)
+                continue;
+
+            var itemType = CommonCompilation.GetItemType(dataTypeProjection);
+            
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._dataTable
+            il.Emit(OpCodes.Ldfld, dataTableField);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this._compositeHandler_⟨i⟩
+            il.Emit(OpCodes.Ldfld, handlerFieldBuilder);
+            // this
+            il.Emit(OpCodes.Ldarg_0);
+            // this.ComparerTuple
+            il.Emit(OpCodes.Ldfld, comparerTupleField);
+            
+            if (1 < dataTypeProjection.DataProjectionMapping.Count)
+            {
+                var hashMapping = dataTypeProjection.HashProjectionMapping;
+                
+                foreach (var correspondence in hashMapping)
+                {
+                    // hashTuple
+                    il.Emit(OpCodes.Ldarg_2);
+                    // hashTuple.Item⟨j⟩
+                    il.Emit(OpCodes.Ldfld, correspondence.InputField);
+                }
+                
+                // new ValueTuple<…>(…)
+                il.Emit(OpCodes.Newobj, hashMapping.OutputType.GetConstructor());
+                // EqualityComparerHandling.ComputeTupleHashCode(new ValueTuple<…>(…))
+                il.Emit(OpCodes.Call, EqualityComparerHandling.GetTupleHashCodeMethod(hashMapping.OutputType));
+                
+                var dataMapping = dataTypeProjection.DataProjectionMapping;
+                
+                foreach (var correspondence in dataMapping)
+                {
+                    // dataTuple
+                    il.Emit(OpCodes.Ldarg_1);
+                    // dataTuple.Item⟨j⟩
+                    il.Emit(OpCodes.Ldfld, correspondence.InputField);
+                }
+                // new ValueTuple<…>(…)
+                il.Emit(OpCodes.Newobj, dataMapping.OutputType.GetConstructor());
+            }
+            else
+            {
+                // hashTuple
+                il.Emit(OpCodes.Ldarg_2);
+                // hashTuple.Item⟨j⟩
+                il.Emit(OpCodes.Ldfld, dataTypeProjection.HashProjectionMapping[0].InputField);
+                // dataTuple
+                il.Emit(OpCodes.Ldarg_1);
+                // dataTuple.Item⟨j⟩
+                il.Emit(OpCodes.Ldfld, dataTypeProjection.DataProjectionMapping[0].InputField);
+            }
+            // conflictingDataTuples
+            il.Emit(OpCodes.Ldarg_3);
+
+            var conflictHandlingType = typeof(ConflictHandling<,,,,,>)
+                .MakeGenericType(
+                    dataTypeProjection.DataTupleType,
+                    dataTypeProjection.HashTupleType,
+                    dataTypeProjection.BackIndexTupleType,
+                    handlerFieldBuilder.FieldType,
+                    dataTypeProjection.ComparerTupleType,
+                    itemType);
+            
+            var extractMethod = CommonCompilation.GetStaticMethod(
+                conflictHandlingType,
+                nameof(ConflictHandling.ExtractDataTupleWithSameItem));
+
+            // CompositeHandlerHandling<...>.ExtractDataTupleWithSameItem(
+            //   this._dataTable, this._compositeHandler_⟨i⟩, this.ComparerTuple, ⟨hc⟩, ⟨item⟩, conflictingDataTuples)
+            il.Emit(OpCodes.Call, extractMethod);
+        }
+
         il.Emit(OpCodes.Ret);
 
         CommonCompilation.OverrideMethod(typeBuilder, baseMapType, methodBuilder);

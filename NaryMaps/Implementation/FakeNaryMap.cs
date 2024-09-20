@@ -15,6 +15,7 @@ internal sealed class FakeNaryMap :
     public const string FindInOtherCompositesMethodName = nameof(FindInOtherComposites);
     public const string AddToOtherCompositesMethodName = nameof(AddToOtherComposites);
     public const string RemoveFromOtherCompositesMethodName = nameof(RemoveFromOtherComposites);
+    public const string ExtractConflictingItemsInOtherCompositesMethodName = nameof(ExtractConflictingItemsInOtherComposites);
     public const string ClearOtherCompositesMethodName = nameof(ClearOtherComposites);
     public const string CreateSelectionMethodName = nameof(CreateSelection);
 
@@ -38,6 +39,14 @@ internal sealed class FakeNaryMap :
     }
 
     protected override void RemoveFromOtherComposites(int removedDataIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override void ExtractConflictingItemsInOtherComposites(
+        ValueTuple dataTuple,
+        ValueTuple hashTuple,
+        List<ValueTuple> conflictingDataTuples)
     {
         throw new NotImplementedException();
     }
@@ -68,6 +77,15 @@ internal sealed class FakeNaryMap :
         }
 
         public void Remove(FakeDataEntry[] dataTable, int removedDataIndex, int newDataCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExtractConflictingItem(
+            FakeDataEntry[] dataTable,
+            ValueTuple candidateDataTuple,
+            ValueTuple candidateHashTuple,
+            List<ValueTuple> conflictingDataTuples)
         {
             throw new NotImplementedException();
         }

@@ -13,7 +13,7 @@ public abstract class SelectionBase<TDataTuple, T> : IEqualityComparer<T>
     public abstract int GetHashCode(T item);
     public abstract int GetDataTupleCount();
     public abstract bool ContainsItem(T item);
-    public abstract ISet<TDataTuple> GetMapAsSet();
+    public abstract IConflictingSet<TDataTuple> GetMapAsSet();
     
     #endregion
     
@@ -70,7 +70,7 @@ public abstract class SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THan
         return result.Case == SearchCase.ItemFound;
     }
 
-    public sealed override ISet<TDataTuple> GetMapAsSet() => (ISet<TDataTuple>)_map;
+    public sealed override IConflictingSet<TDataTuple> GetMapAsSet() => (IConflictingSet<TDataTuple>)_map;
 
     #endregion
     

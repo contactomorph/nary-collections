@@ -14,8 +14,7 @@ public static class NaryMapBase
 public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : NaryMapCore<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple>,
         INaryMap<TSchema>,
-        IReadOnlySet<TDataTuple>,
-        ISet<TDataTuple>,
+        IConflictingSet<TDataTuple>,
         IEqualityComparer<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
@@ -301,6 +300,61 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
 
     #endregion
     
+    #region Implements IConflictingSet<TSchema>
+    
+    public bool ForceAdd(TDataTuple dataTuple)
+    {
+        if (Contains(dataTuple))
+            return false;
+        List<TDataTuple> conflictingItems = GetConflictingItemsWith(dataTuple);
+
+        foreach (var conflictingItem in conflictingItems)
+            Remove(conflictingItem);
+        Add(dataTuple);
+        return true;
+    }
+
+    public bool IsConflictingWith(TDataTuple dataTuple)
+    {
+        THashTuple hashTuple = ComputeHashTuple(dataTuple);
+
+        var hc = (uint)hashTuple.GetHashCode();
+
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        var result = handlerReference.Find(_dataTable, _comparerTuple, hc, dataTuple);
+
+        if (result.Case == SearchCase.ItemFound)
+            return true;
+
+        return FindInOtherComposites(dataTuple, hashTuple, out _);
+    }
+
+    public List<TDataTuple> GetConflictingItemsWith(TDataTuple dataTuple)
+    {
+        THashTuple hashTuple = ComputeHashTuple(dataTuple);
+        var hc = (uint)hashTuple.GetHashCode();
+
+        List<TDataTuple> conflictingTuples = new();
+        
+        ConflictHandling<TDataTuple, THashTuple, TIndexTuple, TCompositeHandler, TComparerTuple, TDataTuple>
+            .ExtractDataTupleWithSameItem(
+                _dataTable,
+                _compositeHandler,
+                _comparerTuple,
+                hc,
+                dataTuple,
+                conflictingTuples);
+        
+        if (0 < conflictingTuples.Count)
+            return conflictingTuples;
+
+        ExtractConflictingItemsInOtherComposites(dataTuple, hashTuple, conflictingTuples);
+
+        return conflictingTuples;
+    }
+    
+    #endregion
+    
     #region Implements INaryMap<TSchema>
     
     public IReadOnlySet<T> AsReadOnlySet<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
@@ -350,7 +404,7 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         if (composite.Schema != Schema) throw new ArgumentException(nameof(selector));
         return (IReadOnlySelection<TSchema, TK, T>)CreateSelection(composite.Rank);
     }
-    
+
     ISelection<TSchema, TK, T> INaryMap<TSchema>.With<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
     {
         if (selector is null) throw new ArgumentNullException(nameof(selector));
@@ -399,6 +453,11 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     protected abstract void AddToOtherComposites(SearchResult[] otherResults, int candidateDataIndex);
     
     protected abstract void RemoveFromOtherComposites(int removedDataIndex);
+
+    protected abstract void ExtractConflictingItemsInOtherComposites(
+        TDataTuple dataTuple,
+        THashTuple hashTuple,
+        List<TDataTuple> conflictingDataTuples);
 
     protected abstract void ClearOtherComposites();
 

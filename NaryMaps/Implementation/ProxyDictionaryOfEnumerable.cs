@@ -10,7 +10,7 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IRemoveOnlyD
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
-    private readonly ISet<TDataTuple> _map;
+    private readonly IConflictingSet<TDataTuple> _map;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public ProxyDictionaryOfEnumerable(SelectionBase<TDataTuple, TKey> selection)
@@ -19,14 +19,20 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IRemoveOnlyD
         _map = selection.GetMapAsSet();
     }
 
+    #region Implements IReadOnlyCollection<KeyValuePair<TKey,IEnumerable<TDataTuple>>>
+
+    public int Count => _selection.GetKeyCount();
+    
     public IEnumerator<KeyValuePair<TKey, IEnumerable<TDataTuple>>> GetEnumerator()
     {
         return _selection.GetItemAndDataTuplesEnumerable().GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public int Count => _selection.GetKeyCount();
+    
+    #endregion
+    
+    #region Implements IReadOnlyDictionary<TKey,IEnumerable<TDataTuple>>
     
     public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
@@ -64,6 +70,8 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IRemoveOnlyD
         }
     }
     
+    #endregion
+    
     #region Implements IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>
     
     public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
@@ -81,7 +89,7 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
-    private readonly ISet<TDataTuple> _map;
+    private readonly IConflictingSet<TDataTuple> _map;
     private readonly Func<TDataTuple, TValue> _selector;
 
     // ReSharper disable once ConvertToPrimaryConstructor
@@ -92,6 +100,8 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
         _selector = selector;
     }
 
+    #region Implements IReadOnlyCollection<KeyValuePair<TKey,IEnumerable<TDataTuple>>>
+    
     public IEnumerator<KeyValuePair<TKey, IEnumerable<TValue>>> GetEnumerator()
     {
         return _selection
@@ -103,6 +113,10 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public int Count => _selection.GetKeyCount();
+    
+    #endregion
+    
+    #region Implements IReadOnlyDictionary<TKey,IEnumerable<TDataTuple>>
     
     public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
@@ -139,6 +153,8 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
                 yield return dataTuples.Select(_selector);
         }
     }
+    
+    #endregion
     
     #region Implements IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>
     

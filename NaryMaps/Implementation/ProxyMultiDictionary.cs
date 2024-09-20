@@ -3,14 +3,14 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDictionary<TKey, TDataTuple>
+public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IConflictingMultiDictionary<TKey, TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
-    private readonly ISet<TDataTuple> _map;
+    private readonly IConflictingSet<TDataTuple> _map;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection)
@@ -19,6 +19,8 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDic
         _map = selection.GetMapAsSet();
     }
 
+    #region Implements IReadOnlyCollection<KeyValuePair<TKey,TDataTuple>>
+    
     public IEnumerator<KeyValuePair<TKey, TDataTuple>> GetEnumerator()
     {
         foreach (var (key, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
@@ -29,6 +31,10 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDic
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public int Count => _selection.GetDataTupleCount();
+    
+    #endregion
+    
+    #region Implements IReadOnlyMultiDictionary<TKey, TValue>
     
     public IEnumerable<TKey> Keys => _selection.GetItemEnumerable();
     
@@ -58,6 +64,8 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDic
     IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>> IReadOnlyMultiDictionary<TKey, TDataTuple>.AsDictionary =>
         AsDictionary;
     
+    #endregion
+    
     #region Implements IRemoveOnlyMultiDictionary<TKey, TValue>
 
     public IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>> AsDictionary
@@ -74,18 +82,26 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDic
     public void Clear() => _map.Clear();
     
     #endregion
+
+    #region Implements IReadOnlyConflictingMultiDictionary<TKey, TValue>
     
-    public bool TryGetValues(TKey key, out IEnumerable<TDataTuple> values)
-    {
-        var dataTuples = _selection.GetDataTuplesFor(key);
-        if (dataTuples is not null)
-        {
-            values = dataTuples;
-            return true;
-        }
-        values = default!;
-        return false;
-    }
+    public bool IsConflictingWith(TDataTuple item) => _map.IsConflictingWith(item);
+    
+    public List<TDataTuple> GetConflictingItemsWith(TDataTuple item) => _map.GetConflictingItemsWith(item);
+    
+    public bool Contains(TDataTuple item) => _map.Contains(item);
+
+    #endregion
+
+    #region Implements IConflictingMultiDictionary<TKey, TDataTuple>
+    
+    public bool AddIfNoConflictFound(TDataTuple dataTuple) => _map.Add(dataTuple);
+
+    public bool ForceAdd(TDataTuple dataTuple) => _map.ForceAdd(dataTuple);
+
+    public bool Remove(TDataTuple dataTuple) => _map.Remove(dataTuple);
+    
+    #endregion
 }
 
 public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnlyMultiDictionary<TKey, TValue>
@@ -95,7 +111,7 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnly
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
-    private readonly ISet<TDataTuple> _map;
+    private readonly IConflictingSet<TDataTuple> _map;
     private readonly Func<TDataTuple, TValue> _selector;
 
     // ReSharper disable once ConvertToPrimaryConstructor
@@ -106,6 +122,8 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnly
         _selector = selector;
     }
 
+    #region Implements IReadOnlyCollection<KeyValuePair<TKey,TDataTuple>>
+    
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
         foreach (var (key, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
@@ -116,6 +134,10 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnly
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public int Count => _selection.GetDataTupleCount();
+    
+    #endregion
+    
+    #region Implements IReadOnlyMultiDictionary<TKey, TValue>
     
     public IEnumerable<TKey> Keys => _selection.GetItemEnumerable();
     
@@ -160,16 +182,6 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnly
     public void Clear() => _map.Clear();
 
     #endregion
-
-    public bool TryGetValues(TKey key, out IEnumerable<TValue> values)
-    {
-        var dataTuples = _selection.GetDataTuplesFor(key);
-        if (dataTuples is not null)
-        {
-            values = dataTuples.Select(_selector);
-            return true;
-        }
-        values = default!;
-        return false;
-    }
+    
+    #endregion
 }

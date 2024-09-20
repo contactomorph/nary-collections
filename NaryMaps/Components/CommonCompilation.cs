@@ -41,4 +41,10 @@ internal static class CommonCompilation
     {
         return type.GetMethod(methodName, BaseFlags) ?? throw new MissingMethodException();
     }
+    
+    public static MethodInfo GetStaticMethod(Type type, string methodName)
+    {
+        return type.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public) ??
+               throw new MissingMethodException();
+    }
 }

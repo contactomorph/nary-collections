@@ -84,7 +84,7 @@ public static class Selection
     }
 
     [Pure]
-    public static IReadOnlyMultiDictionary<T, TDataTuple> AsReadOnlyMultiDictionary<TDataTuple, TK, T>(
+    public static IReadOnlyConflictingMultiDictionary<T, TDataTuple> AsReadOnlyMultiDictionary<TDataTuple, TK, T>(
         this IReadOnlySelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
@@ -113,7 +113,7 @@ public static class Selection
     }
 
     [Pure]
-    public static IRemoveOnlyMultiDictionary<T, TDataTuple> AsMultiDictionary<TDataTuple, TK, T>(
+    public static IConflictingMultiDictionary<T, TDataTuple> AsMultiDictionary<TDataTuple, TK, T>(
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable
@@ -142,7 +142,7 @@ public static class Selection
     }
 
     [Pure]
-    public static IReadOnlyDictionary<T, TDataTuple> AsReadOnlyDictionary<TDataTuple, TK, T>(
+    public static IReadOnlyConflictingDictionary<T, TDataTuple> AsReadOnlyDictionary<TDataTuple, TK, T>(
         this IReadOnlySelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable, CompositeKind.IUnique
@@ -171,7 +171,7 @@ public static class Selection
     }
     
     [Pure]
-    public static IRemoveOnlyDictionary<T, TDataTuple> AsDictionary<TDataTuple, TK, T>(
+    public static IConflictingDictionary<T, TDataTuple> AsDictionary<TDataTuple, TK, T>(
         this ISelection<Schema<TDataTuple>, TK, T> selection)
         where TDataTuple : struct, ITuple, IStructuralEquatable
         where TK : CompositeKind.Basic, CompositeKind.ISearchable, CompositeKind.IUnique

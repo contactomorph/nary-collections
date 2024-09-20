@@ -87,6 +87,32 @@ public class NaryMapTests
                 
         checker.CheckConsistency(map);
     }
+    
+    [Test]
+    public void CheckMapConflictsTest()
+    {
+        var map = NaryMap.New<DogPlaceColor>();
+
+        var set = map.AsSet();
+
+        set.UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+        
+        Assert.That(set.IsConflictingWith((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)), Is.True);
+
+        Assert.That(
+            set.GetConflictingItemsWith((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)),
+            Is.EquivalentTo(new [] { (Dogs.KnownDogs[0], "გორი", Color.Orange) }));
+        
+        Assert.That(set.Add((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)), Is.False);
+
+        Assert.That(set, Does.Not.Contain((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)));
+        Assert.That(set, Does.Contain((Dogs.KnownDogs[0], "გორი", Color.Orange)));
+        
+        Assert.That(set.ForceAdd((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)), Is.True);
+
+        Assert.That(set, Does.Contain((Dogs.KnownDogs[2], "გორი", Color.LimeGreen)));
+        Assert.That(set, Does.Not.Contain((Dogs.KnownDogs[0], "გორი", Color.Orange)));
+    }
 
     [Test]
     public void ProjectingMapAsDictionaryOfEnumerableTest()
