@@ -16,6 +16,15 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         int candidateDataIndex,
         int newDataCount)
     {
+        // When this function is called, new data has already been added using
+        // DataHandling<TDataTuple, THashTuple, TIndexTuple>.AddOnlyData. This implies that line
+        // dataTable[newDataCount-1] already contains the correct data tuple and hash tuple.
+        // This function is to be called for every possible handler and every corresponding hashTable. Its role is
+        // to "connect" line dataTable[newDataCount-1] by modifying all data that must refer it.
+        
+        // We determine if connecting dataTable[newDataCount-1] either implies:
+        // - just to connect it with the lines inside dataTable with the same key;
+        // - to add a brand-new entry in hashTable because the key was not used so far.
         if (lastSearchResult.Case == SearchCase.ItemFound)
         {
             AddStrictly(hashTable, dataTable, handler, lastSearchResult, candidateDataIndex, MultiIndex.NoNext);
@@ -24,6 +33,9 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         {
             ++count;
         
+            // In the second case, we either need:
+            // - to recreate hashTable entirely in case it now contains too many data;
+            // - just to add a new entry in hashTable and possibly to shift some existing entries.
             if (HashEntry.IsFullEnough(hashTable.Length, count))
             {
                 // Initialize multi-index for the last data entry before resizing hashTable
@@ -136,7 +148,10 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
     {
         // When this function is called, data has not been removed yet. This implies that
         // line dataTable[removedDataIndex] still contains everything needed.
-        // We may update hashTable even if it gets resized after.
+        // Neither is this line modified inside this function. This function is to be called for every possible
+        // handler and every corresponding hashTable before dataTable[removedDataIndex] is finally updated
+        // by DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData. Its role is to "forget" about
+        // line dataTable[removedDataIndex] by modifying all data that may refer it.
         
         MustBeStrictyPositive(count);
         MustBeSmallEnough(count, hashTable.Length);
@@ -145,14 +160,25 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
 
         int newDataCount = currentDataCount - 1;
 
+        // We determine if forgetting dataTable[removedDataIndex] either implies:
+        // - to remove the indirection from hashTable (because the removed key is not used anywhere anymore);
+        // - just to get around the line by reconnecting all the lines from dataTable that were connected so far.
         if (forgottenBackIndex is { IsSubsequent: false, Next: MultiIndex.NoNext })
         {
             int newCount = count - 1;
-        
+            
+            // In the first case, we either need:
+            // - to recreate hashTable entirely in case it does not contain enough data anymore;
+            // - just to delete the indirection from hashTable.
             if (HashEntry.IsSparseEnough(hashTable.Length, newCount))
             {
                 int newHashTableCapacity = HashEntry.DecreaseCapacity(hashTable.Length);
-                hashTable = ChangeCapacity(dataTable, handler, newHashTableCapacity, count, except: removedDataIndex);
+                hashTable = ChangeCapacity(
+                    dataTable,
+                    handler,
+                    newHashTableCapacity,
+                    currentDataCount,
+                    except: removedDataIndex);
             }
             else
             {
@@ -166,6 +192,10 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
             Forget(hashTable, dataTable, handler, forgottenBackIndex);
         }
 
+        // We have to prepare for the future removal of dataTable[removedDataIndex].
+        // As dataTable must have continuous data, we will move the last line in dataTable (that is to say
+        // datatable[newDataCount]) to replace dataTable[removedDataIndex]. Again this replacement is not done now.
+        // However, we update hashTable and other lines of dataTable as if datatable[newDataCount] had already moved.
         Condense(hashTable, dataTable, handler, removedDataIndex, lastDataIndex: newDataCount);
     }
 
@@ -203,7 +233,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
-    public static void RemoveStrictly(
+    private static void RemoveStrictly(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -233,7 +263,7 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         }
     }
 
-    public static void Forget(
+    private static void Forget(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -267,12 +297,12 @@ public static class MultiUpdateHandling<TDataEntry, TResizeHandler>
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
-        int newDataCount,
+        int dataCountToConsider,
         int except = -1)
     {
         var hashTable = new HashEntry[newHashTableCapacity];
         
-        for (int i = 0; i < newDataCount; i++)
+        for (int i = 0; i < dataCountToConsider; i++)
         {
             if (i == except || handler.GetBackIndex(dataTable, i).IsSubsequent)
                 continue;

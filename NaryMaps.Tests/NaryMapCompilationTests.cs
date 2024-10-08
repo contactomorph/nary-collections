@@ -13,7 +13,6 @@ namespace NaryMaps.Tests;
 
 using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 using HashTuple = (uint, uint, uint);
-using IndexTuple = (int, MultiIndex, MultiIndex, int, MultiIndex, MultiIndex);
 using DogPlaceColorEntry = DataEntry<
     (Dog Dog, string Place, Color Color),
     (uint, uint, uint),
@@ -178,6 +177,8 @@ public class NaryMapCompilationTests
 
         var map = factory();
 
+        var checker = new DogPlaceColorConsistencyChecker(map);
+
         var set = map.AsSet();
         
         var random = new Random(4223023);
@@ -194,51 +195,13 @@ public class NaryMapCompilationTests
             set.Add(tuple);
         }
         
-        var manipulator = FieldManipulator.ForRealTypeOf(map);
-
-        var resizeHandlerGetter = manipulator.CreateGetter<IResizeHandler<DogPlaceColorEntry, int>>(
-            "_compositeHandler");
-
-        var resizeHandler = resizeHandlerGetter(map);
-        
-        var handlerManipulator = FieldManipulator.ForRealTypeOf(resizeHandler);
-        
-        var hashTableGetter = handlerManipulator.CreateGetter<HashEntry[]>("_hashTable");
-        var dataTableGetter = manipulator
-            .CreateGetter<DataEntry<DogPlaceColorTuple, HashTuple, IndexTuple>[]>("_dataTable");
-        
-        resizeHandler = resizeHandlerGetter(map);
-            
-        var hashTable = hashTableGetter(resizeHandler);
-        var dataTable = dataTableGetter(map);
-        
-        Consistency.CheckForUnique(
-            hashTable,
-            dataTable,
-            set.Count,
-            resizeHandler,
-            DogPlaceColorProjector.GetHashTupleComputer());
+        checker.CheckConsistency(map);
         
         set.Clear();
         
-        resizeHandler = resizeHandlerGetter(map);
-        hashTable = hashTableGetter(resizeHandler);
-        dataTable = dataTableGetter(map);
-        
         Assert.That(set, Is.Empty);
         
-        AssertCounts(
-            map,
-            expectedCount0: 0,
-            expectedCount1: 0,
-            expectedCount2: 0,
-            expectedCount4: 0,
-            expectedCount5: 0);
-
-        foreach (var hashEntry in hashTable)
-            Assert.That(hashEntry, Is.EqualTo(default(HashEntry)));
-        foreach (var dataEntry in dataTable)
-            Assert.That(dataEntry.DataTuple.Dog, Is.Null);
+        checker.CheckIsEmpty(map);
     }
     
     [Test]
@@ -354,6 +317,8 @@ public class NaryMapCompilationTests
         
         var map = factory();
 
+        var checker = new DogPlaceColorConsistencyChecker(map);
+
         var set = map.AsSet();
 
         var dog1 = Dogs.AllDogs[0];
@@ -382,9 +347,9 @@ public class NaryMapCompilationTests
             ++i;
         }
 
-        AssertCounts(
+        checker.CheckConsistencyAndCounts(
             map,
-            expectedCount0: 15,
+            expectedCount: 15,
             expectedCount1: 4,
             expectedCount2: 6,
             expectedCount4: 10,
@@ -532,71 +497,5 @@ public class NaryMapCompilationTests
         Assert.That(set.SetEquals(tuples.Skip(50).Take(50).Concat(tuples.Skip(110))));
         set.SymmetricExceptWith(tuples);
         Assert.That(set.SetEquals(tuples.Take(50).Concat(tuples.Skip(100).Take(10))));
-    }
-
-    private static void AssertCounts(
-        INaryMap<DogPlaceColor> map,
-        int expectedCount0,
-        int expectedCount1,
-        int expectedCount2,
-        int expectedCount4,
-        int expectedCount5)
-    {
-        var manipulator = FieldManipulator.ForRealTypeOf(map);
-
-        manipulator.GetFieldValue(map, "_dataTable", out DogPlaceColorEntry[] dataTable);
-        manipulator.GetFieldValue(map, "_count", out int count);
-        manipulator.GetFieldValue(map, "_compositeHandler", out IResizeHandler<DogPlaceColorEntry, int> h0);
-        manipulator.GetFieldValue(map, "_compositeHandler_1", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h1);
-        manipulator.GetFieldValue(map, "_compositeHandler_2", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h2);
-        manipulator.GetFieldValue(map, "_compositeHandler_3", out IResizeHandler<DogPlaceColorEntry, int> h3);
-        manipulator.GetFieldValue(map, "_compositeHandler_4", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h4);
-        manipulator.GetFieldValue(map, "_compositeHandler_5", out IResizeHandler<DogPlaceColorEntry, MultiIndex> h5);
-
-        Assert.That(count, Is.EqualTo(expectedCount0));
-
-        var computer = DogPlaceColorProjector.GetHashTupleComputer();
-
-        var manipulator0 = FieldManipulator.ForRealTypeOf(h0);
-        manipulator0.GetFieldValue(h0, "_hashTable", out HashEntry[] hashTable0);
-
-        Consistency.CheckForUnique(hashTable0, dataTable, count, h0, computer);
-
-        var manipulator1 = FieldManipulator.ForRealTypeOf(h1);
-        manipulator1.GetFieldValue(h1, "_hashTable", out HashEntry[] hashTable1);
-        manipulator1.GetFieldValue(h1, "_count", out int count1);
-
-        Assert.That(count1, Is.EqualTo(expectedCount1));
-
-        Consistency.CheckForNonUnique(hashTable1, dataTable, count, h1, computer);
-
-        var manipulator2 = FieldManipulator.ForRealTypeOf(h2);
-        manipulator2.GetFieldValue(h2, "_hashTable", out HashEntry[] hashTable2);
-        manipulator2.GetFieldValue(h2, "_count", out int count2);
-
-        Assert.That(count2, Is.EqualTo(expectedCount2));
-
-        Consistency.CheckForNonUnique(hashTable2, dataTable, count, h2, computer);
-
-        var manipulator3 = FieldManipulator.ForRealTypeOf(h3);
-        manipulator3.GetFieldValue(h3, "_hashTable", out HashEntry[] hashTable3);
-
-        Consistency.CheckForUnique(hashTable3, dataTable, count, h3, computer);
-
-        var manipulator4 = FieldManipulator.ForRealTypeOf(h4);
-        manipulator4.GetFieldValue(h4, "_hashTable", out HashEntry[] hashTable4);
-        manipulator4.GetFieldValue(h4, "_count", out int count4);
-
-        Assert.That(count4, Is.EqualTo(expectedCount4));
-
-        Consistency.CheckForNonUnique(hashTable4, dataTable, count, h4, computer);
-
-        var manipulator5 = FieldManipulator.ForRealTypeOf(h5);
-        manipulator5.GetFieldValue(h5, "_hashTable", out HashEntry[] hashTable5);
-        manipulator5.GetFieldValue(h5, "_count", out int count5);
-
-        Assert.That(count5, Is.EqualTo(expectedCount5));
-
-        Consistency.CheckForNonUnique(hashTable5, dataTable, count, h5, computer);
     }
 }

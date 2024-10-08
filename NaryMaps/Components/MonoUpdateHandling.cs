@@ -15,8 +15,17 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
         int candidateDataIndex,
         int newDataCount)
     {
+        // When this function is called, new data has already been added using
+        // DataHandling<TDataTuple, THashTuple, TIndexTuple>.AddOnlyData. This implies that line
+        // dataTable[newDataCount-1] already contains the correct data tuple and hash tuple.
+        // This function is to be called for every possible handler and every corresponding hashTable. Its role is
+        // to "connect" line dataTable[newDataCount-1] by modifying all data that must refer it.
+
         MustNotBeFound(lastSearchResult);
         
+        // We determine if connecting dataTable[newDataCount-1] either implies:
+        // - to recreate hashTable entirely in case it now contains too many data;
+        // - just to add a new entry in hashTable and possibly to shift some existing entries.
         if (HashEntry.IsFullEnough(hashTable.Length, newDataCount))
         {
             int newHashTableCapacity = HashEntry.IncreaseCapacity(hashTable.Length);
@@ -90,7 +99,10 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
     {
         // When this function is called, data has not been removed yet. This implies that
         // line dataTable[removedDataIndex] still contains everything needed.
-        // We may update hashTable even if it gets resized after.
+        // Neither is this line modified inside this function. This function is to be called for every possible
+        // handler and every corresponding hashTable before dataTable[removedDataIndex] is finally updated
+        // by DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData. Its role is to "forget" about
+        // line dataTable[removedDataIndex] by modifying all data that may refer it.
         
         MustBeStrictyPositive(currentDataCount);
         MustBeSmallEnough(currentDataCount, hashTable.Length);
@@ -99,6 +111,9 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
         
         int newDataCount = currentDataCount - 1;
         
+        // We determine if forgetting dataTable[removedDataIndex] either implies:
+        // - to recreate hashTable entirely in case it does not contain enough data anymore;
+        // - just to delete the indirection from hashTable.
         if (HashEntry.IsSparseEnough(hashTable.Length, newDataCount))
         {
             int newHashTableCapacity = HashEntry.DecreaseCapacity(hashTable.Length);
@@ -113,10 +128,15 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
         {
             RemoveStrictly(hashTable, dataTable, handler, forgottenBackIndex);
         }
+        
+        // We have to prepare for the future removal of dataTable[removedDataIndex].
+        // As dataTable must have continuous data, we will move the last line in dataTable (that is to say
+        // datatable[newDataCount]) to replace dataTable[removedDataIndex]. Again this replacement is not done now.
+        // However, we update hashTable and other lines of dataTable as if datatable[newDataCount] had already moved.
         Condense(hashTable, dataTable, handler, removedDataIndex, lastDataIndex: newDataCount);
     }
 
-    public static void RemoveStrictly(
+    private static void RemoveStrictly(
         HashEntry[] hashTable,
         TDataEntry[] dataTable,
         TResizeHandler handler,
@@ -167,12 +187,12 @@ public static class MonoUpdateHandling<TDataEntry, TResizeHandler>
         TDataEntry[] dataTable,
         TResizeHandler handler,
         int newHashTableCapacity,
-        int newDataCount,
+        int dataCountToConsider,
         int except = -1)
     {
         var hashTable = new HashEntry[newHashTableCapacity];
         
-        for (int i = 0; i < newDataCount; i++)
+        for (int i = 0; i < dataCountToConsider; i++)
         {
             if (i == except)
                 continue;

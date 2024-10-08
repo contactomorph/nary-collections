@@ -1,8 +1,12 @@
 using System.Drawing;
+using System.Text;
 using NaryMaps.Tests.Resources.Data;
+using NaryMaps.Tests.Resources.DataGeneration;
 using NaryMaps.Tests.Resources.Types;
 
 namespace NaryMaps.Tests;
+
+using DogPlaceColorTuple = (Dog Dog, string Place, Color Color);
 
 public class NaryMapTests
 {
@@ -185,5 +189,64 @@ public class NaryMapTests
             Assert.That(dogColorSet.SetEquals(dogColors.Take(8)), Is.False);
             Assert.That(dogColorSet.SetEquals(dogColors), Is.False);
         }
+    }
+
+    [Test]
+    public void FillDogPlaceColorTupleMapRandomlyTest()
+    {
+        var map = NaryMap.New<DogPlaceColor>();
+
+        var checker = new DogPlaceColorConsistencyChecker(map);
+        
+        var set = map.AsSet();
+        var referenceSet = new HashSet<DogPlaceColorTuple>();
+        var random = new Random(4223023);
+        var someColors = ((KnownColor[])Enum.GetValues(typeof(KnownColor)))
+            .Take(10)
+            .Select(Color.FromKnownColor)
+            .ToArray();
+        
+        for(int i = 0; i < 10000; ++i)
+        {
+            if (referenceSet.Count < random.Next(500))
+            {
+                Dog dog = Dogs.AllDogs[random.Next(Dogs.AllDogs.Count)];
+                Color color = someColors[random.Next(someColors.Length)];
+                string place = GenerateText(random);
+                DogPlaceColorTuple tuple = (dog, place, color);
+                referenceSet.Add(tuple);
+                set.Add(tuple);
+            }
+            else
+            {
+                var tuple = referenceSet.Skip(random.Next(referenceSet.Count)).First();
+                referenceSet.Remove(tuple);
+                set.Remove(tuple);
+            }
+            
+            checker.CheckConsistency(map);
+        }
+        
+        while (referenceSet.Count > 0)
+        {
+            var tuple = referenceSet.First();
+            referenceSet.Remove(tuple);
+            Assert.IsTrue(set.Remove(tuple));
+            
+            checker.CheckConsistency(map);
+        }
+        Assert.That(set, Is.Empty);
+    }
+
+    private string GenerateText(Random random)
+    {
+        StringBuilder sb = new();
+        for (int i = 0; i < 50; ++i)
+        {
+            char c = (char)('a' + random.Next(0, 26));
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 }
