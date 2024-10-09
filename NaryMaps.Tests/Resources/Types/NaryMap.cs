@@ -1,6 +1,7 @@
 using System.Drawing;
 using NaryMaps.Implementation;
 using NaryMaps.Primitives;
+#pragma warning disable CS9113 // Parameter is unread.
 
 namespace NaryMaps.Tests.Resources.Types;
 
@@ -8,7 +9,7 @@ using DataTuple = (Dog Dog, string Place, Color Color);
 using ComparerTuple = (IEqualityComparer<Dog>, IEqualityComparer<string>, IEqualityComparer<Color>);
 using DogPlaceColorEntry = DataEntry<(Dog Dog, string Place, Color Color), (uint, uint, uint), (int, MultiIndex)>;
 
-public struct CompositeHandlerA(string Message) :
+public struct CompositeHandlerA(string message) :
     IHashTableProvider,
     IDataEquator<DogPlaceColorEntry, ComparerTuple, (Color, Dog)>
 {
@@ -26,7 +27,7 @@ public struct CompositeHandlerA(string Message) :
     }
 }
 
-public struct CompositeHandlerB(string Message) :
+public struct CompositeHandlerB(string message) :
     IHashTableProvider,
     IDataEquator<DogPlaceColorEntry, ComparerTuple, string>
 {
