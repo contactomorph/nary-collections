@@ -6,10 +6,12 @@ public sealed class BiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TIn
 
     public UniqueSearchableParticipant<TDirect> Direct { get; }
     
-    public BiDictionarySchema()
+    public BiDictionarySchema(
+        IEqualityComparer<TDirect>? directComparer = null,
+        IEqualityComparer<TInverse>? inverseComparer = null)
     {
-        Direct = DeclareUniqueSearchableParticipant<TDirect>();
-        Inverse = DeclareUniqueSearchableParticipant<TInverse>();
+        Direct = DeclareUniqueSearchableParticipant(directComparer);
+        Inverse = DeclareUniqueSearchableParticipant(inverseComparer);
         Sign = Conclude(Direct, Inverse);
     }
 
@@ -18,14 +20,16 @@ public sealed class BiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TIn
 
 public sealed class BiMultiDictionarySchema<TDirect, TInverse> : Schema<(TDirect, TInverse)>
 {
-    public UniqueSearchableParticipant<TInverse> Inverse { get;  }
+    public SearchableParticipant<TInverse> Inverse { get;  }
 
-    public UniqueSearchableParticipant<TDirect> Direct { get; }
+    public SearchableParticipant<TDirect> Direct { get; }
     
-    public BiMultiDictionarySchema()
+    public BiMultiDictionarySchema(
+        IEqualityComparer<TDirect>? directComparer = null,
+        IEqualityComparer<TInverse>? inverseComparer = null)
     {
-        Direct = DeclareUniqueSearchableParticipant<TDirect>();
-        Inverse = DeclareUniqueSearchableParticipant<TInverse>();
+        Direct = DeclareSearchableParticipant(directComparer);
+        Inverse = DeclareSearchableParticipant(inverseComparer);
         Sign = Conclude(Direct, Inverse);
     }
 
