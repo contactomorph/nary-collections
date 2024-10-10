@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ProxyDictionary<TKey, TDataTuple> : IReadOnlyDictionary<TKey, TDataTuple>
+public sealed class ProxyDictionary<TKey, TDataTuple> : IRemoveOnlyDictionary<TKey, TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -63,9 +63,17 @@ public sealed class ProxyDictionary<TKey, TDataTuple> : IReadOnlyDictionary<TKey
                 yield return dataTuple;
         }
     }
+    
+    #region Implements IRemoveOnlyDictionary<TKey, TValue>
+    
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+
+    #endregion
 }
 
-public sealed class ProxyDictionary<TKey, TValue, TDataTuple> : IReadOnlyDictionary<TKey, TValue>
+public sealed class ProxyDictionary<TKey, TValue, TDataTuple> : IRemoveOnlyDictionary<TKey, TValue>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -127,4 +135,12 @@ public sealed class ProxyDictionary<TKey, TValue, TDataTuple> : IReadOnlyDiction
                 yield return _selector(dataTuple);
         }
     }
+    
+    #region Implements IRemoveOnlyDictionary<TKey, TValue>
+    
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+    
+    #endregion
 }

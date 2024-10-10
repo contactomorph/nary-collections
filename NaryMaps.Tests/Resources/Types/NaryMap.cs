@@ -51,6 +51,8 @@ public sealed class NaryMapCore(ComparerTuple comparerTuple)
 {
     public CompositeHandlerA _compositeHandlerA = new ("Primo");
     public CompositeHandlerB _compositeHandlerB = new ("Deuzio");
+    
+    protected internal override void RemoveDataAt(int dataIndex) { }
 }
 
 public abstract class ColorDogSelection(NaryMapCore<DogPlaceColorEntry, ComparerTuple> map) :
@@ -61,6 +63,7 @@ public abstract class ColorDogSelection(NaryMapCore<DogPlaceColorEntry, Comparer
     public override IEnumerable<DataTuple>? GetDataTuplesFor((Color, Dog) item) => null;
     public override IEnumerable<(Color, Dog)> GetItemEnumerable() => [];
     public override IEnumerable<KeyValuePair<(Color, Dog), IEnumerable<DataTuple>>> GetItemAndDataTuplesEnumerable() => [];
+    public sealed override bool RemoveAllAt((Color, Dog) key) => false;
 }
 
 public abstract class PlaceSelection(NaryMapCore<DogPlaceColorEntry, ComparerTuple> map) :
@@ -71,4 +74,5 @@ public abstract class PlaceSelection(NaryMapCore<DogPlaceColorEntry, ComparerTup
     public override IEnumerable<DataTuple>? GetDataTuplesFor(string item) => null;
     public override IEnumerable<string> GetItemEnumerable() => [];
     public override IEnumerable<KeyValuePair<string, IEnumerable<DataTuple>>> GetItemAndDataTuplesEnumerable() => [];
+    public sealed override bool RemoveAllAt(string key) => false;
 }

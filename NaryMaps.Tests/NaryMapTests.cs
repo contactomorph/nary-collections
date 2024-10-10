@@ -39,26 +39,64 @@ public class NaryMapTests
     }
 
     [Test]
-    public void ProjectingMap()
+    public void ProjectingMapAsDictionaryTest()
     {
         var map = NaryMap.New<DogPlaceColor>();
 
-        map.AsSet().UnionWith(DogPlaceColorTuples.Data);
+        var checker = new DogPlaceColorConsistencyChecker(map);
 
+        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+
+        // Name
+        var expectedNameDictionary = map.AsSet().ToDictionary(t => t.Place);
+
+        var nameSet = map.AsReadOnlySet(s => s.Name);
+
+        Assert.That(nameSet.Count, Is.EqualTo(expectedNameDictionary.Count));
+        Assert.That(nameSet.ToList(), Is.EquivalentTo(expectedNameDictionary.Keys));
+
+        var nameToTuple = map.With(s => s.Name).AsDictionary();
+
+        Assert.That(nameToTuple.Count, Is.EqualTo(expectedNameDictionary.Count));
+        Assert.That(nameToTuple.ToList(), Is.EquivalentTo(expectedNameDictionary));
+        
+        Assert.That(nameToTuple.Count, Is.EqualTo(DogPlaceColorTuples.DataWithUniquePlace.Count));
+        
+        Assert.That(nameToTuple.RemoveKey("Запоріжжя"), Is.True);
+        Assert.That(nameToTuple.RemoveKey("Чернігів"), Is.False);
+
+        checker.CheckConsistency(map);
+        
+        Assert.That(nameToTuple.Count, Is.EqualTo(DogPlaceColorTuples.DataWithUniquePlace.Count - 1));
+
+        while (0 < nameToTuple.Count)
         {
-            // Name
-            var expectedNameDictionary = map.AsSet().ToDictionary(t => t.Place);
-
-            var nameSet = map.AsReadOnlySet(s => s.Name);
+            var place = nameToTuple.Keys.First();
+            nameToTuple.RemoveKey(place);
             
-            Assert.That(nameSet.Count, Is.EqualTo(expectedNameDictionary.Count));
-            Assert.That(nameSet.ToList(), Is.EquivalentTo(expectedNameDictionary.Keys));
-
-            var nameToTuple = map.With(s => s.Name).AsReadOnlyDictionary();
-
-            Assert.That(nameToTuple.Count, Is.EqualTo(expectedNameDictionary.Count));
-            Assert.That(nameToTuple.ToList(), Is.EquivalentTo(expectedNameDictionary));
+            checker.CheckConsistency(map);
         }
+            
+        Assert.That(nameSet.Count, Is.EqualTo(0));
+            
+        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+        
+        nameToTuple.Clear();
+            
+        Assert.That(nameSet.Count, Is.EqualTo(0));
+                
+        checker.CheckConsistency(map);
+    }
+
+    [Test]
+    public void ProjectingMapAsDictionaryOfEnumerableTest()
+    {
+        var map = NaryMap.New<DogPlaceColor>();
+
+        var checker = new DogPlaceColorConsistencyChecker(map);
+
+        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+
         {
             // Dog
             var expectedDogDictionary = map.AsSet()
@@ -70,7 +108,7 @@ public class NaryMapTests
             Assert.That(dogSet.Count, Is.EqualTo(expectedDogDictionary.Count));
             Assert.That(dogSet.ToList(), Is.EquivalentTo(expectedDogDictionary.Keys));
 
-            var dogToTuple = map.With(s => s.Dog).AsReadOnlyDictionaryOfEnumerable();
+            var dogToTuple = map.With(s => s.Dog).AsDictionaryOfEnumerable();
             
             Assert.That(dogToTuple.Count, Is.EqualTo(expectedDogDictionary.Count));
             foreach (var (dog, tuples) in dogToTuple)
@@ -89,13 +127,45 @@ public class NaryMapTests
             Assert.That(colorSet.Count, Is.EqualTo(expectedColorDictionary.Count));
             Assert.That(colorSet.ToList(), Is.EquivalentTo(expectedColorDictionary.Keys));
 
-            var colorToTuple = map.With(s => s.Color).AsReadOnlyDictionaryOfEnumerable();
+            var colorToTuple = map.With(s => s.Color).AsDictionaryOfEnumerable();
             
             Assert.That(colorToTuple.Count, Is.EqualTo(expectedColorDictionary.Count));
             foreach (var (color, tuples) in colorToTuple)
             {
                 Assert.That(tuples, Is.EquivalentTo(expectedColorDictionary[color]));
             }
+
+            var set = map.AsSet();
+
+            int n = set.Count;
+            Assert.That(n, Is.EqualTo(DogPlaceColorTuples.DataWithUniquePlace.Count));
+            
+            while (0 < colorToTuple.Count)
+            {
+                var color = colorToTuple.Keys.First();
+                var tupleForColor = expectedColorDictionary[color];
+                Assert.That(colorToTuple[color], Is.EquivalentTo(tupleForColor));
+                n -= tupleForColor.Count;
+                
+                colorToTuple.RemoveKey(color);
+                
+                foreach (var tuple in set)
+                    Assert.That(tuple.Color, Is.Not.EqualTo(color));
+                
+                checker.CheckConsistency(map);
+            
+                Assert.That(set.Count, Is.EqualTo(n));
+            }
+            
+            Assert.That(set.Count, Is.EqualTo(0));
+            
+            set.UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+        
+            colorToTuple.Clear();
+            
+            Assert.That(set.Count, Is.EqualTo(0));
+                
+            checker.CheckConsistency(map);
         }
     }
 
@@ -104,7 +174,7 @@ public class NaryMapTests
     {
         var map = NaryMap.New<DogPlaceColor>();
 
-        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace);
+        map.AsSet().UnionWith(DogPlaceColorTuples.DataWithUniquePlace.Take(9));
 
         {
             // Color

@@ -22,4 +22,6 @@ public abstract class NaryMapCore<TDataEntry, TComparerTuple>
         _count = 0;
         _version = 0;
     }
+
+    protected internal abstract void RemoveDataAt(int dataIndex);
 }

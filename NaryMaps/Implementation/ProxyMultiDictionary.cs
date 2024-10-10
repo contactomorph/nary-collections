@@ -3,8 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ProxyMultiDictionary<TKey, TDataTuple> :
-    IReadOnlyMultiDictionary<TKey, TDataTuple>
+public sealed class ProxyMultiDictionary<TKey, TDataTuple> : IRemoveOnlyMultiDictionary<TKey, TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -56,8 +55,26 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> :
 
     public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
-    public IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>> AsDictionary => throw new NotImplementedException();
+    IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>> IReadOnlyMultiDictionary<TKey, TDataTuple>.AsDictionary =>
+        AsDictionary;
+    
+    #region Implements IRemoveOnlyMultiDictionary<TKey, TValue>
 
+    public IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>> AsDictionary
+    {
+        get
+        {
+            // ReSharper disable once ArrangeAccessorOwnerBody
+            return new ProxyDictionaryOfEnumerable<TKey, TDataTuple>(_selection);
+        }
+    }
+
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+    
+    #endregion
+    
     public bool TryGetValues(TKey key, out IEnumerable<TDataTuple> values)
     {
         var dataTuples = _selection.GetDataTuplesFor(key);
@@ -71,7 +88,7 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> :
     }
 }
 
-public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IReadOnlyMultiDictionary<TKey, TValue>
+public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IRemoveOnlyMultiDictionary<TKey, TValue>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -125,7 +142,24 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IReadOnlyMu
 
     public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
-    public IReadOnlyDictionary<TKey, IEnumerable<TValue>> AsDictionary => throw new NotImplementedException();
+    IReadOnlyDictionary<TKey, IEnumerable<TValue>> IReadOnlyMultiDictionary<TKey, TValue>.AsDictionary => AsDictionary;
+    
+    #region Implements IRemoveOnlyMultiDictionary<TKey, TValue>
+
+    public IRemoveOnlyDictionary<TKey, IEnumerable<TValue>> AsDictionary
+    {
+        get
+        {
+            // ReSharper disable once ArrangeAccessorOwnerBody
+            return new ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple>(_selection, _selector);
+        }
+    }
+    
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+
+    #endregion
 
     public bool TryGetValues(TKey key, out IEnumerable<TValue> values)
     {

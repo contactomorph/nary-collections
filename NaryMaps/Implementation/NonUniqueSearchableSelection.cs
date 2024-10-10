@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using NaryMaps.Components;
 using NaryMaps.Primitives;
@@ -35,11 +36,8 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
             _map._comparerTuple,
             hc,
             item);
-        
-        if (result.Case == SearchCase.ItemFound)
-            return GetDataTuple(_map._dataTable[result.ForwardIndex]);
-        
-        return default!;
+
+        return result.Case == SearchCase.ItemFound ? GetDataTuple(_map._dataTable[result.ForwardIndex]) : null;
     }
     
     public sealed override IEnumerable<TDataTuple>? GetDataTuplesFor(T item)
@@ -56,10 +54,9 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
             hc,
             item);
         
-        if (result.Case == SearchCase.ItemFound)
-            return GetRelatedDataTuples(handler, _map._dataTable, _map._version, result.ForwardIndex);
-        
-        return default!;
+        return result.Case == SearchCase.ItemFound ?
+            GetRelatedDataTuples(handler, _map._dataTable, _map._version, result.ForwardIndex) :
+            null;
     }
     
     public sealed override IEnumerable<T> GetItemEnumerable()
@@ -104,6 +101,48 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
         }
     }
     
+    public sealed override bool RemoveAllAt(T key)
+    {
+        THandler handler = GetHandler();
+        HashEntry[] hashTable = handler.GetHashTable();
+
+        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
+        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
+            hashTable,
+            _map._dataTable,
+            handler,
+            _map._comparerTuple,
+            hc,
+            key);
+
+        if (result.Case != SearchCase.ItemFound)
+            return false;
+
+        int hashIndex = (int)result.ReducedHashCode;
+        
+        ++_map._version;
+
+        while (true)
+        {
+            // The same index in the hashTable (hashIndex) remains valid as long as there are still dataTuples
+            // corresponding to the current key.
+            var entry = hashTable[hashIndex];
+            if (entry.DriftPlusOne == HashEntry.DriftForUnused)
+                return true;
+            int dataIndex = entry.ForwardIndex;
+            
+            // We can check here if we are about to remove the last tuple corresponding to current key.
+            var currentDataIndexIsLast = handler.GetBackIndex(_map._dataTable, dataIndex).Next == MultiIndex.NoNext;
+
+            MustPointToAppropriateData(_map._dataTable, handler, dataIndex, _map._comparerTuple, key, hc);
+            
+            _map.RemoveDataAt(dataIndex);
+            
+            if (currentDataIndexIsLast)
+                return true;
+        }
+    }
+
     private IEnumerable<TDataTuple> GetRelatedDataTuples(
         THandler handler,
         TDataEntry[] dataTable,
@@ -120,5 +159,19 @@ public abstract class NonUniqueSearchableSelection<TDataTuple, TDataEntry, TComp
             
             dataIndex = next;
         }
+    }
+    
+    [Conditional("DEBUG")]
+    private static void MustPointToAppropriateData(
+        TDataEntry[] dataTable,
+        THandler equator,
+        int dataIndex,
+        TComparerTuple comparerTuple,
+        T candidateItem,
+        uint candidateHashCode)
+    {
+        Debug.Assert(
+            equator.AreDataEqualAt(dataTable, comparerTuple, dataIndex, candidateItem, candidateHashCode), 
+            "Provided index should still point to appropriate data.");
     }
 }

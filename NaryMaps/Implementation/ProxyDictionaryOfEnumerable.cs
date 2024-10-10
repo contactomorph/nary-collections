@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>>
+public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -63,10 +63,18 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IReadOnlyDic
                 yield return dataTuples;
         }
     }
+    
+    #region Implements IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>
+    
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+    
+    #endregion
 }
 
 public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
-    IReadOnlyDictionary<TKey, IEnumerable<TValue>>
+    IRemoveOnlyDictionary<TKey, IEnumerable<TValue>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
@@ -131,4 +139,12 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
                 yield return dataTuples.Select(_selector);
         }
     }
+    
+    #region Implements IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>
+    
+    public bool RemoveKey(TKey key) => _selection.RemoveAllAt(key);
+    
+    public void Clear() => _map.Clear();
+    
+    #endregion
 }

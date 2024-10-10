@@ -24,6 +24,7 @@ public abstract class SelectionBase<TDataTuple, T> : IEqualityComparer<T>
     public abstract IEnumerable<TDataTuple>? GetDataTuplesFor(T item);
     public abstract IEnumerable<T> GetItemEnumerable();
     public abstract IEnumerable<KeyValuePair<T, IEnumerable<TDataTuple>>> GetItemAndDataTuplesEnumerable();
+    public abstract bool RemoveAllAt(T item);
     
     #endregion
 }

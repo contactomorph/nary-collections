@@ -269,10 +269,6 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         }
     }
 
-    /// <summary>Modifies the current set so that it contains only elements that are present either in the current set or in the specified collection, but not both.</summary>
-    /// <param name="other">The collection to compare to the current set.</param>
-    /// <exception cref="T:System.ArgumentNullException">
-    /// <paramref name="other" /> is <see langword="null" />.</exception>
     public void SymmetricExceptWith(IEnumerable<TDataTuple> other)
     {
         if (other is null) throw new ArgumentNullException(nameof(other));
@@ -374,7 +370,25 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     }
     
     #endregion
+    
+    #region Implements NaryMapCore
 
+    protected internal sealed override void RemoveDataAt(int dataIndex)
+    {
+        ref TCompositeHandler handlerReference = ref _compositeHandler;
+        handlerReference.Remove(_dataTable, dataIndex, _count);
+        RemoveFromOtherComposites(dataIndex);
+        
+        DataHandling<TDataTuple, THashTuple, TIndexTuple>.RemoveOnlyData(
+            ref _dataTable,
+            dataIndex,
+            ref _count);
+    }
+
+    #endregion
+    
+    #region Defined in derived classes as generated il
+    
     protected abstract THashTuple ComputeHashTuple(TDataTuple dataTuple);
     
     protected abstract bool FindInOtherComposites(
@@ -389,4 +403,6 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
     protected abstract void ClearOtherComposites();
 
     protected abstract object CreateSelection(byte rank);
+    
+    #endregion
 }

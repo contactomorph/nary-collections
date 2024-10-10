@@ -74,7 +74,29 @@ public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TCompare
         }
     }
     
-    public override IEnumerable<KeyValuePair<T, IEnumerable<TDataTuple>>> GetItemAndDataTuplesEnumerable()
+    public sealed override bool RemoveAllAt(T key)
+    {
+        THandler handler = GetHandler();
+        HashEntry[] hashTable = handler.GetHashTable();
+
+        uint hc = GetHashCodeUsing(_map._comparerTuple, key);
+        var result = MembershipHandling<TDataEntry, TComparerTuple, T, THandler>.Find(
+            hashTable,
+            _map._dataTable,
+            handler,
+            _map._comparerTuple,
+            hc,
+            key);
+
+        if (result.Case != SearchCase.ItemFound)
+            return false;
+
+        ++_map._version;
+        _map.RemoveDataAt(result.ForwardIndex);
+        return true;
+    }
+    
+    public sealed override IEnumerable<KeyValuePair<T, IEnumerable<TDataTuple>>> GetItemAndDataTuplesEnumerable()
     {
         uint expectedVersion = _map._version;
         var dataTable = _map._dataTable;
