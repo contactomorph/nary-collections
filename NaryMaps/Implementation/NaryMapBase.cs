@@ -14,7 +14,8 @@ public static class NaryMapBase
 public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : NaryMapCore<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple>,
         INaryMap<TSchema>,
-        IConflictingSet<TDataTuple>,
+        IReadOnlySet<TDataTuple>,
+        ISet<TDataTuple>,
         IEqualityComparer<TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
     where THashTuple: struct, ITuple, IStructuralEquatable
@@ -316,7 +317,7 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         var participant = selector(Schema);
         if (participant is null) throw new ArgumentException(nameof(selector));
         if (!ReferenceEquals(participant.Schema, Schema)) throw new ArgumentException(nameof(selector));
-        var selection = (ISelection<TSchema, TK, T>)CreateSelection(participant.Rank);
+        var selection = (IReadOnlySelection<TSchema, TK, T>)CreateSelection(participant.Rank);
         return selection.AsReadOnlySet();
     }
 
@@ -330,12 +331,31 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         var composite = selector(Schema);
         if (composite is null) throw new ArgumentException(nameof(selector));
         if (!ReferenceEquals(composite.Schema, Schema)) throw new ArgumentException(nameof(selector));
-        var selection = (ISelection<TSchema, TK, T>)CreateSelection(composite.Rank);
+        var selection = (IReadOnlySelection<TSchema, TK, T>)CreateSelection(composite.Rank);
         return selection.AsReadOnlySet();
     }
 
-    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
-        where TK : CompositeKind.Basic
+    public IReadOnlySelection<TSchema, TK, T> With<TK, T>(Func<TSchema,  ParticipantBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable
+    {
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var participant = selector(Schema);
+        if (participant is null) throw new ArgumentException(nameof(selector));
+        if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (IReadOnlySelection<TSchema, TK, T>)CreateSelection(participant.Rank);
+    }
+    
+    public IReadOnlySelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
+        where TK : CompositeKind.Basic, CompositeKind.ISearchable
+    {
+        if (selector is null) throw new ArgumentNullException(nameof(selector));
+        var composite = selector(Schema);
+        if (composite is null) throw new ArgumentException(nameof(selector));
+        if (composite.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (IReadOnlySelection<TSchema, TK, T>)CreateSelection(composite.Rank);
+    }
+    
+    ISelection<TSchema, TK, T> INaryMap<TSchema>.With<TK, T>(Func<TSchema, ParticipantBase<TK, T>> selector)
     {
         if (selector is null) throw new ArgumentNullException(nameof(selector));
         var participant = selector(Schema);
@@ -343,15 +363,14 @@ public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparer
         if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
         return (ISelection<TSchema, TK, T>)CreateSelection(participant.Rank);
     }
-    
-    public ISelection<TSchema, TK, T> With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
-        where TK : CompositeKind.Basic, CompositeKind.ISearchable
+
+    ISelection<TSchema, TK, T> INaryMap<TSchema>.With<TK, T>(Func<TSchema, CompositeBase<TK, T>> selector)
     {
         if (selector is null) throw new ArgumentNullException(nameof(selector));
-        var composite = selector(Schema);
-        if (composite is null) throw new ArgumentException(nameof(selector));
-        if (composite.Schema != Schema) throw new ArgumentException(nameof(selector));
-        return (ISelection<TSchema, TK, T>)CreateSelection(composite.Rank);
+        var participant = selector(Schema);
+        if (participant is null) throw new ArgumentException(nameof(selector));
+        if (participant.Schema != Schema) throw new ArgumentException(nameof(selector));
+        return (ISelection<TSchema, TK, T>)CreateSelection(participant.Rank);
     }
     
     #endregion

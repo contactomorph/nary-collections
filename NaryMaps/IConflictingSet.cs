@@ -1,6 +1,6 @@
 namespace NaryMaps;
 
-public interface IConflictingSet<T> : IReadOnlySet<T>, ISet<T>
+public interface IConflictingSet<T> : IReadOnlyConflictingSet<T>, ISet<T>
 {
     new int Count { get; }
     
@@ -17,4 +17,6 @@ public interface IConflictingSet<T> : IReadOnlySet<T>, ISet<T>
     new bool Overlaps(IEnumerable<T> other);
     
     new bool SetEquals(IEnumerable<T> other);
+    
+    bool ForceAdd(T item);
 }

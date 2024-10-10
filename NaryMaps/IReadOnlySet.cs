@@ -1,11 +1,9 @@
 #if !NET6_0_OR_GREATER
-using System.Collections;
-
 namespace NaryMaps;
 
 /// <summary>Provides a readonly abstraction of a set.</summary>
 /// <typeparam name="T">The type of elements in the set.</typeparam>
-public interface IReadOnlySet<T> : IReadOnlyCollection<T>, IEnumerable<T>, IEnumerable
+public interface IReadOnlySet<T> : IReadOnlyCollection<T>
 {
   /// <summary>Determines if the set contains a specific item.</summary>
   /// <param name="item">The item to check if the set contains.</param>
