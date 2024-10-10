@@ -21,7 +21,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlySet<TDataTuple, T>(selectionBase);
+            return new ProxyReadOnlySet<TDataTuple, T>(selectionBase);
         throw new InvalidOperationException("Unexpected selection type.");
     }
     
@@ -35,7 +35,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyDictionaryOfEnumerable<T, TDataTuple>(selectionBase);
+            return new ProxyDictionaryOfEnumerable<T, TDataTuple>(selectionBase);
         throw new InvalidOperationException("Unexpected selection type.");
     }
     
@@ -50,7 +50,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyDictionaryOfEnumerable<T, TValue, TDataTuple>(selectionBase, valueSelector);
+            return new ProxyDictionaryOfEnumerable<T, TValue, TDataTuple>(selectionBase, valueSelector);
         throw new InvalidOperationException("Unexpected selection type.");
     }
 
@@ -64,7 +64,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyMultiDictionary<T, TDataTuple>(selectionBase);
+            return new ProxyMultiDictionary<T, TDataTuple>(selectionBase);
         throw new InvalidOperationException("Unexpected selection type.");
     }
     
@@ -79,7 +79,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyMultiDictionary<T, TValue, TDataTuple>(selectionBase, valueSelector);
+            return new ProxyMultiDictionary<T, TValue, TDataTuple>(selectionBase, valueSelector);
         throw new InvalidOperationException("Unexpected selection type.");
     }
     
@@ -93,7 +93,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyDictionary<T, TDataTuple>(selectionBase);
+            return new ProxyDictionary<T, TDataTuple>(selectionBase);
         throw new InvalidOperationException("Unexpected selection type.");
     }
     
@@ -108,7 +108,7 @@ public static class Selection
 #endif
     {
         if (selection is SelectionBase<TDataTuple, T> selectionBase)
-            return new ReadOnlyDictionary<T, TValue, TDataTuple>(selectionBase, valueSelector);
+            return new ProxyDictionary<T, TValue, TDataTuple>(selectionBase, valueSelector);
         throw new InvalidOperationException("Unexpected selection type.");
     }
 }

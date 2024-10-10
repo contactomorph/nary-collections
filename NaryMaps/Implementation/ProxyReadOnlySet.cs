@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ReadOnlySet<TDataTuple, TKey>(SelectionBase<TDataTuple, TKey> selection) : IReadOnlySet<TKey>
+public sealed class ProxyReadOnlySet<TDataTuple, TKey>(SelectionBase<TDataTuple, TKey> selection) : IReadOnlySet<TKey>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 {
     #region Implement IReadOnlyCollection<T>

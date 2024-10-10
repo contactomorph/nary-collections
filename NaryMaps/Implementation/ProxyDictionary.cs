@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ReadOnlyDictionary<TKey, TDataTuple>(SelectionBase<TDataTuple, TKey> selection) :
+public sealed class ProxyDictionary<TKey, TDataTuple>(SelectionBase<TDataTuple, TKey> selection) :
     IReadOnlyDictionary<TKey, TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
@@ -56,7 +56,7 @@ public sealed class ReadOnlyDictionary<TKey, TDataTuple>(SelectionBase<TDataTupl
     }
 }
 
-public sealed class ReadOnlyDictionary<TKey, TValue, TDataTuple>(
+public sealed class ProxyDictionary<TKey, TValue, TDataTuple>(
     SelectionBase<TDataTuple, TKey> selection,
     Func<TDataTuple, TValue> selector) : IReadOnlyDictionary<TKey, TValue>
     where TDataTuple : struct, ITuple, IStructuralEquatable

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ReadOnlyDictionaryOfEnumerable<TKey, TDataTuple>(SelectionBase<TDataTuple, TKey> selection) :
+public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple>(SelectionBase<TDataTuple, TKey> selection) :
     IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
@@ -56,7 +56,7 @@ public sealed class ReadOnlyDictionaryOfEnumerable<TKey, TDataTuple>(SelectionBa
     }
 }
 
-public sealed class ReadOnlyDictionaryOfEnumerable<TKey, TValue, TDataTuple>(
+public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple>(
     SelectionBase<TDataTuple, TKey> selection,
     Func<TDataTuple, TValue> selector) : IReadOnlyDictionary<TKey, IEnumerable<TValue>>
     where TDataTuple : struct, ITuple, IStructuralEquatable
