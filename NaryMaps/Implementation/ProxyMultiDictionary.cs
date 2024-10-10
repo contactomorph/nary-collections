@@ -3,31 +3,39 @@ using System.Runtime.CompilerServices;
 
 namespace NaryMaps.Implementation;
 
-public sealed class ProxyMultiDictionary<TKey, TDataTuple>(SelectionBase<TDataTuple, TKey> selection) :
+public sealed class ProxyMultiDictionary<TKey, TDataTuple> :
     IReadOnlyMultiDictionary<TKey, TDataTuple>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
 #endif
 {
+    private readonly SelectionBase<TDataTuple, TKey> _selection;
+
+    // ReSharper disable once ConvertToPrimaryConstructor
+    public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection)
+    {
+        _selection = selection;
+    }
+
     public IEnumerator<KeyValuePair<TKey, TDataTuple>> GetEnumerator()
     {
-        foreach (var (key, dataTuples) in selection.GetItemAndDataTuplesEnumerable())
+        foreach (var (key, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
         foreach (var dataTuple in dataTuples)
             yield return KeyValuePair.Create(key, dataTuple);
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public int Count => selection.GetDataTupleCount();
+    public int Count => _selection.GetDataTupleCount();
     
-    public IEnumerable<TKey> Keys => selection.GetItemEnumerable();
+    public IEnumerable<TKey> Keys => _selection.GetItemEnumerable();
     
     public IEnumerable<TDataTuple> Values
     {
         get
         {
-            foreach (var (_, dataTuples) in selection.GetItemAndDataTuplesEnumerable())
+            foreach (var (_, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
             foreach (var dataTuple in dataTuples)
                 yield return dataTuple;
         }
@@ -37,20 +45,20 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple>(SelectionBase<TDataTu
     {
         get
         {
-            var dataTuples = selection.GetDataTuplesFor(key);
+            var dataTuples = _selection.GetDataTuplesFor(key);
             if (dataTuples is not null)
                 return dataTuples;
             throw new KeyNotFoundException();
         }
     }
 
-    public bool ContainsKey(TKey key) => selection.ContainsItem(key);
+    public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
     public IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>> AsDictionary => throw new NotImplementedException();
 
     public bool TryGetValues(TKey key, out IEnumerable<TDataTuple> values)
     {
-        var dataTuples = selection.GetDataTuplesFor(key);
+        var dataTuples = _selection.GetDataTuplesFor(key);
         if (dataTuples is not null)
         {
             values = dataTuples;
@@ -61,34 +69,43 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple>(SelectionBase<TDataTu
     }
 }
 
-public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple>(
-    SelectionBase<TDataTuple, TKey> selection,
-    Func<TDataTuple, TValue> selector) : IReadOnlyMultiDictionary<TKey, TValue>
+public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IReadOnlyMultiDictionary<TKey, TValue>
     where TDataTuple : struct, ITuple, IStructuralEquatable
 #if !NET6_0_OR_GREATER
     where TKey : notnull
 #endif
 {
+    private readonly SelectionBase<TDataTuple, TKey> _selection;
+    private readonly Func<TDataTuple, TValue> _selector;
+
+    // ReSharper disable once ConvertToPrimaryConstructor
+    public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection,
+        Func<TDataTuple, TValue> selector)
+    {
+        _selection = selection;
+        _selector = selector;
+    }
+
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        foreach (var (key, dataTuples) in selection.GetItemAndDataTuplesEnumerable())
+        foreach (var (key, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
         foreach (var dataTuple in dataTuples)
-            yield return KeyValuePair.Create(key, selector(dataTuple));
+            yield return KeyValuePair.Create(key, _selector(dataTuple));
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public int Count => selection.GetDataTupleCount();
+    public int Count => _selection.GetDataTupleCount();
     
-    public IEnumerable<TKey> Keys => selection.GetItemEnumerable();
+    public IEnumerable<TKey> Keys => _selection.GetItemEnumerable();
     
     public IEnumerable<TValue> Values
     {
         get
         {
-            foreach (var (_, dataTuples) in selection.GetItemAndDataTuplesEnumerable())
+            foreach (var (_, dataTuples) in _selection.GetItemAndDataTuplesEnumerable())
             foreach (var dataTuple in dataTuples)
-                yield return selector(dataTuple);
+                yield return _selector(dataTuple);
         }
     }
 
@@ -96,23 +113,23 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple>(
     {
         get
         {
-            var dataTuples = selection.GetDataTuplesFor(key);
+            var dataTuples = _selection.GetDataTuplesFor(key);
             if (dataTuples is not null)
-                return dataTuples.Select(selector);
+                return dataTuples.Select(_selector);
             throw new KeyNotFoundException();
         }
     }
 
-    public bool ContainsKey(TKey key) => selection.ContainsItem(key);
+    public bool ContainsKey(TKey key) => _selection.ContainsItem(key);
 
     public IReadOnlyDictionary<TKey, IEnumerable<TValue>> AsDictionary => throw new NotImplementedException();
 
     public bool TryGetValues(TKey key, out IEnumerable<TValue> values)
     {
-        var dataTuples = selection.GetDataTuplesFor(key);
+        var dataTuples = _selection.GetDataTuplesFor(key);
         if (dataTuples is not null)
         {
-            values = dataTuples.Select(selector);
+            values = dataTuples.Select(_selector);
             return true;
         }
         values = default!;
