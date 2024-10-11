@@ -10,11 +10,13 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TDataTuple> : IReadOnlyDic
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
+    private readonly ISet<TDataTuple> _map;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public ProxyDictionaryOfEnumerable(SelectionBase<TDataTuple, TKey> selection)
     {
         _selection = selection;
+        _map = selection.GetMapAsSet();
     }
 
     public IEnumerator<KeyValuePair<TKey, IEnumerable<TDataTuple>>> GetEnumerator()
@@ -71,13 +73,14 @@ public sealed class ProxyDictionaryOfEnumerable<TKey, TValue, TDataTuple> :
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
+    private readonly ISet<TDataTuple> _map;
     private readonly Func<TDataTuple, TValue> _selector;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    public ProxyDictionaryOfEnumerable(SelectionBase<TDataTuple, TKey> selection,
-        Func<TDataTuple, TValue> selector)
+    public ProxyDictionaryOfEnumerable(SelectionBase<TDataTuple, TKey> selection, Func<TDataTuple, TValue> selector)
     {
         _selection = selection;
+        _map = selection.GetMapAsSet();
         _selector = selector;
     }
 

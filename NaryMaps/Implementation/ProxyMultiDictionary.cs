@@ -11,11 +11,13 @@ public sealed class ProxyMultiDictionary<TKey, TDataTuple> :
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
+    private readonly ISet<TDataTuple> _map;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection)
     {
         _selection = selection;
+        _map = selection.GetMapAsSet();
     }
 
     public IEnumerator<KeyValuePair<TKey, TDataTuple>> GetEnumerator()
@@ -76,13 +78,14 @@ public sealed class ProxyMultiDictionary<TKey, TValue, TDataTuple> : IReadOnlyMu
 #endif
 {
     private readonly SelectionBase<TDataTuple, TKey> _selection;
+    private readonly ISet<TDataTuple> _map;
     private readonly Func<TDataTuple, TValue> _selector;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection,
-        Func<TDataTuple, TValue> selector)
+    public ProxyMultiDictionary(SelectionBase<TDataTuple, TKey> selection, Func<TDataTuple, TValue> selector)
     {
         _selection = selection;
+        _map = selection.GetMapAsSet();
         _selector = selector;
     }
 
