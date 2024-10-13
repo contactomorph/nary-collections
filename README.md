@@ -1,10 +1,10 @@
 # Generalizing dictionaries, multidictionaries, bidictionaries, dictionaries with multiple keys, etc
 
-Dictionaries (also known as maps or associative arrays), along with their related friends, sets, are ubiquitous data structures in programming. They are used to store key-value pairs and allow fast additions, removals and accesses by key. In C#, the `Dictionary<TKey, TValue>` class is the most common implementation of a dictionary. However, there are many variations of dictionaries that are not directly supported by the `Dictionary<TKey, TValue>` class. For example, a multidictionary (also known as multimap) is a dictionary that maps a key to a collection of values. A bidictionary is a dictionary that maps keys to values and values to keys. A dictionary with multiple keys is a dictionary that maps multiple types of keys to the same values. This library provides a generalization of dictionaries that can be used to implement all these variations and more.
+Dictionaries (also known as maps or associative arrays), along with their related friends, sets, are ubiquitous data structures in programming. They are used to store key-value pairs, and they allow fast additions, removals and accesses by key. In C#, the `Dictionary<TKey, TValue>` class is the most common implementation for dictionaries. However, there are many variations of dictionaries that are not directly supported by the `Dictionary<TKey, TValue>` class. For example, a multidictionary (also known as multimap) is a dictionary that maps each key to a collection of values. A bidictionary is a dictionary that maps keys to values and values to keys. A dictionary with multiple keys is a dictionary that maps multiple types of keys to the same values. This library provides a generalization of dictionaries that can be used to implement all these variations and more.
 
 ## NaryMap as a set of tuples
 
-A NaryMap always work as a set of tuples. To define one, you need to create a schema that defines the structure of the tuples. The schema is a class that inherits from the `Schema<TDataTuple>` class, where `TDataTuple` is the type of the tuple. The schema class must have a constructor that declares the components of the tuple (called `Participant`) and a property that returns the signature of the schema.
+A NaryMap always works as a set of tuples. To define one, you need to create a schema that defines the structure of the tuples. A schema is a class that inherits from the class `Schema<TDataTuple>`, where `TDataTuple` is the type of the tuples. The schema class must have a parameterless constructor that declares the components of the tuple (called `Participant`s) and a property that returns the signature of the schema.
 
 ```csharp
 public sealed class MovieSchema : Schema<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>
@@ -30,13 +30,13 @@ public sealed class MovieSchema : Schema<(string Eidr, int ReleaseYear, FilmGenr
 }
 ```
 
-Creating a new instance of NaryMap is done by calling the `New` method of the `NaryMap` class, passing the schema as a type parameter. It is empty at creation.
+Creating a new instance of NaryMap is done by calling the `New` method of the `NaryMap` class, providing the schema as a type parameter. It is empty at creation.
 
 ```csharp
 var map = NaryMap.New<MovieSchema>();
 ```
 
-You can use method `AsSet()` to convert the NaryMap to a set of tuples. The set is an instance of the `ISet<TDataTuple>` interface, where `TDataTuple` is the type of the tuple.
+You can use method `AsSet()` to convert the NaryMap to a set of tuples. The set implements interface `ISet<TDataTuple>` interface, where `TDataTuple` is the type of the tuple.
 
 ```csharp
 var movieSet = map.AsSet();
@@ -102,10 +102,10 @@ public sealed class MovieSchema : Schema<(string Eidr, int ReleaseYear, FilmGenr
 }
 ```
 
-It is now possible to convert the NaryMap to a dictionary using the `With(participantSelector).AsReadOnlyDictionary()` method. The dictionary is an instance of the `IReadOnlyDictionary<TKey, TDataTuple>` interface.
+It is now possible to convert the NaryMap to a dictionary using the `With(participantSelector).AsDictionary()` method. The dictionary implements interface `IReadOnlyDictionary<TKey, TDataTuple>`.
 
 ```csharp
-var movieDataByEidr = map.With(s => s.Eidr).AsReadOnlyDictionary();
+var movieDataByEidr = map.With(s => s.Eidr).AsDictionary();
 // IReadOnlyDictionary<string, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>
 ```
 
@@ -132,9 +132,9 @@ Console.WriteLine(movieDataByEidr.ContainsKey("10.5240/BC46-2751-9A86-763E-5848-
 // False
 ```
 
-You can also restrict the value type by providing a selector function to the `AsReadOnlyDictionary` method. For example, you can create a dictionary that maps EIDRs to movies:
+You can also restrict the value type by providing a selector function to the `AsDictionary` method. For example, you can create a dictionary that maps EIDRs to movies:
 ```csharp
-var movieByEidr = map.With(s => s.Eidr).AsReadOnlyDictionary(t => t.Movie);
+var movieByEidr = map.With(s => s.Eidr).AsDictionary(t => t.Movie);
 // IReadOnlyDictionary<string, Movie>
 ```
 
@@ -172,28 +172,28 @@ public sealed class MovieSchema : Schema<(string Eidr, int ReleaseYear, FilmGenr
 }
 ```
 
-It is now possible to convert the NaryMap to a dictionary of enumerable values using the `With(participantSelector).AsReadOnlyDictionaryOfEnumerable()` method. The result is an instance of the `IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>>` type.
+It is now possible to convert the NaryMap to a dictionary of enumerable values using the `With(participantSelector).AsDictionaryOfEnumerable()` method. The result implements interface `IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>>`.
 
 ```csharp
-var movieDataByDirector = map.With(s => s.Director).AsReadOnlyDictionaryOfEnumerable();
+var movieDataByDirector = map.With(s => s.Director).AsDictionaryOfEnumerable();
 // IReadOnlyDictionary<Director, IEnumerable<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>>
 ```
 
-As with dictionaries, you can restrict the value type by providing a selector function to the `AsReadOnlyDictionaryOfEnumerable` method. For example, you can create a dictionary that maps directors to release years:
+As with dictionaries, you can restrict the value type by providing a selector function to the `AsDictionaryOfEnumerable` method. For example, you can create a dictionary that maps directors to release years:
 ```csharp
-var releaseYearsByDirector = map.With(s => s.Director).AsReadOnlyDictionaryOfEnumerable(t => t.ReleaseYear);
+var releaseYearsByDirector = map.With(s => s.Director).AsDictionaryOfEnumerable(t => t.ReleaseYear);
 // IReadOnlyDictionary<Director, IEnumerable<int>>
 ```
 
 ## NaryMap as a multidictionary
 
-In NaryMap library, multidictionaries are represented by the interface `IReadOnlyMultiDictionary<TKey, TValue>`. This interface is similar to the `IReadOnlyDictionary<TKey, IEnumerable<TValue>>` interface, but it has a slightly different behaviour. For example the `Count` property returns the total number of pairs in the multidictionary, not the number of keys. A multidictionary is a collection of `KeyValuePair<TKey, TValue>` where keys can be repeated on enumeration as they may be associated with multiple values. Similarly to previous projection methods, you can use `AsReadOnlyMultiDictionary` to create a multidictionary. It comes in two flavors~: one with and one without a value selector~:
+In NaryMap library, multidictionaries are represented by the interface `IMultiDictionary<TKey, TValue>`. This interface is similar to the `IDictionary<TKey, IEnumerable<TValue>>` interface, but it has a slightly different behaviour. For example the `Count` property returns the total number of pairs in the multidictionary, not the number of keys. A multidictionary is a collection of `KeyValuePair<TKey, TValue>` where keys can be repeated on enumeration as they may be associated with multiple values. Similarly to previous projection methods, you can use `AsMultiDictionary` to create a multidictionary. It comes in two flavors~: one with and one without a value selector~:
 
 ```csharp
 var movieDataByDirector = map.With(s => s.Director).AsReadOnlyMultiDictionary();
-// IReadOnlyMultiDictionary<Director, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>
+// IMultiDictionary<Director, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>
 var releaseYearsByDirector = map.With(s => s.Director).AsReadOnlyMultiDictionary(t => t.ReleaseYear);
-// IReadOnlyMultiDictionary<Director, int>
+// IMultiDictionary<Director, int>
 ```
 
 ## Composites
@@ -215,4 +215,51 @@ public sealed class MovieSchema : Schema<(string Eidr, int ReleaseYear, FilmGenr
 }
 ```
 
-Composites are always searchable. This means you can use them to convert the NaryMap to a dictionary of enumerable by calling `With(compositeSelector).AsReadOnlyDictionaryOfEnumerable()` or to a multidictionary by calling `With(compositeSelector).AsReadOnlyMultiDictionary()`. Similarly to participants, you can also declare composites to be unique by using the `UniqueComposite<T>` class and `DeclareUniqueComposite<T1, …, Tn>()` methods. You then can convert the NaryMap to a dictionary using the `With(compositeSelector).AsReadOnlyDictionary()` method.
+Composites are always searchable. This means you can use them to convert the NaryMap to a dictionary of enumerable by calling `With(compositeSelector).AsDictionaryOfEnumerable()` or to a multidictionary by calling `With(compositeSelector).AsMultiDictionary()`. Similarly to participants, you can also declare composites to be unique by using the `UniqueComposite<T>` class and `DeclareUniqueComposite<T1, …, Tn>()` methods. You then can convert the NaryMap to a dictionary using the `With(compositeSelector).AsDictionary()` method.
+
+## All Projections
+
+Static method `NaryMap.New<TSchema>()` always return an instance of interface `IMap<TDataTuple>`. This interface supports projection methods allowing the map to be manipulated through specific keys. `IMap<TDataTuple>` can also be cast to sub-interface `IReadOnlyMap<TDataTuple>`. This one only allow read-access methods.
+
+### Read-Write Projections
+
+Here are the projection methods that can only be accessed on `IMap<TDataTuple>`:
+
+| Method call                                                     | Result type                                             |
+|-----------------------------------------------------------------|---------------------------------------------------------|
+| `AsReadOnlySet()`                                               | `IReadOnlyConflictingSet<TDataTuple>`                   |
+| `With(s => s.Key).AsReadOnlySet()`                              | `IReadOnlySet<TKey>`                                    |
+| `With(s => s.Key).AsReadOnlyDictionary()`                       | `IReadOnlyConflictingDictionary<TKey, TDataTuple>`      |
+| `With(s => s.Key).AsReadOnlyDictionary(t => t.Val)`             | `IReadOnlyDictionary<TKey, TValue>`                     |
+| `With(s => s.Key).AsReadOnlyDictionaryOfEnumerable()`           | `IReadOnlyDictionary<TKey, IEnumerable<TDataTuple>>`    |
+| `With(s => s.Key).AsReadOnlyDictionaryOfEnumerable(t => t.Val)` | `IReadOnlyDictionary<TKey, IEnumerable<TValue>>`        |
+| `With(s => s.Key).AsReadOnlyMultiDictionary()`                  | `IReadOnlyConflictingMultiDictionary<TKey, TDataTuple>` |
+| `With(s => s.Key).AsReadOnlyMultiDictionary(t => t.Val)`        | `IReadOnlyMultiDictionary<TKey, TValue>`                |
+
+### Read-Only Projections
+
+Here are the projection methods that can be accessed on both `IMap<TDataTuple>` and `IReadOnlyMap<TDataTuple>`:
+
+| Method call                                             | Result type                                            |
+|---------------------------------------------------------|--------------------------------------------------------|
+| `AsSet()`                                               | `IConflictingSet<TDataTuple>`                          |
+| `With(s => s.Key).AsDictionary()`                       | `IConflictingDictionary<TKey, TDataTuple>`             |
+| `With(s => s.Key).AsDictionary(t => t.Val)`             | `IRemoveOnlyDictionary<TKey, TValue>`                  |
+| `With(s => s.Key).AsDictionaryOfEnumerable()`           | `IRemoveOnlyDictionary<TKey, IEnumerable<TDataTuple>>` |
+| `With(s => s.Key).AsDictionaryOfEnumerable(t => t.Val)` | `IRemoveOnlyDictionary<TKey, IEnumerable<TValue>>`     |
+| `With(s => s.Key).AsMultiDictionary()`                  | `IConflictingMultiDictionary<TKey, TDataTuple>`        |
+| `With(s => s.Key).AsMultiDictionary(t => t.Val)`        | `IRemoveOnlyMultiDictionary<TKey, TValue>`             |
+
+### Interfaces
+
+Here are the interfaces proposed by the `NaryMaps` library:
+
+- `IReadOnlyConflictingSet<T>`. Inherits from `IReadOnlySet<T>`. Can be used to check if there exists items conflicting with a candidate item: items inside the set that prevent the candidate to be added, because it would break a uniqueness constrain.
+- `IConflictingSet<T>`. Inherits from `IReadOnlyConflictingSet<T>` and `ISet<T>`. Can be used to force the insertion of an item, resulting in the removal of conflicting items.
+- `IReadOnlyConflictingDictionary<TKey, TValue>`. Inherits from `IReadOnlyDictionary<TKey, TValue>`. Can be used to check if there exists conflicting items.
+- `IRemoveOnlyDictionary<TKey, TValue>`. Inherits from `IReadOnlyDictionary<TKey, TValue>`. Can be used to remove items but not add new ones.
+- `IConflictingDictionary<TKey, TValue>`. Inherits from `IRemoveOnlyDictionary<TKey, TValue>` and `IReadOnlyConflictingDictionary<TKey, TValue>`. Can be used to force the insertion of an item or to add only if no conflict is found.
+- `IReadOnlyMultiDictionary<TKey, TValue>`. Inherits from `IReadOnlyCollection<KeyValuePair<TKey, TValue>>`. Can be used to browse a collection of key value pairs with non-unique keys.
+- `IReadOnlyConflictingMultiDictionary<TKey, TValue>`. Inherits from `IReadOnlyMultiDictionary<TKey, TValue>`. Can be used to check if there exists conflicting items.
+- `IRemoveOnlyMultiDictionary<TKey, TValue>`. Inherits from `IReadOnlyMultiDictionary<TKey, TValue>`. Can be used to remove items but not add new ones.
+- `IConflictingMultiDictionary<TKey, TValue>`. Inherits from `IRemoveOnlyMultiDictionary<TKey, TValue>` and `IReadOnlyConflictingMultiDictionary<TKey, TValue>`. Can be used to force the insertion of an item or to add only if no conflict is found.

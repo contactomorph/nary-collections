@@ -95,6 +95,25 @@ public class DocTests
         // IReadOnlyMultiDictionary<Director, Movie>
         
         foreach (var pair in movieOnlySetByDirectors) Console.WriteLine(pair);
+
+        /*
+        IReadOnlyConflictingSet<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> a = map.AsReadOnlySet();
+        IReadOnlySet<string> b = map.With(s => s.Eidr).AsReadOnlySet();
+        IReadOnlyConflictingDictionary<string, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> c = map.With(s => s.Eidr).AsReadOnlyDictionary();
+        IReadOnlyDictionary<string, Movie> d = map.With(s => s.Eidr).AsReadOnlyDictionary(t => t.Movie);
+        IReadOnlyDictionary<string, IEnumerable<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>> e = map.With(s => s.Eidr).AsReadOnlyDictionaryOfEnumerable();
+        IReadOnlyDictionary<string, IEnumerable<Movie>> f = map.With(s => s.Eidr).AsReadOnlyDictionaryOfEnumerable(t => t.Movie);
+        IReadOnlyConflictingMultiDictionary<string, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> g = map.With(s => s.Eidr).AsReadOnlyMultiDictionary();
+        IReadOnlyMultiDictionary<string, Movie> h = map.With(s => s.Eidr).AsReadOnlyMultiDictionary(t => t.Movie);
+
+        IConflictingSet<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> a2 = map.AsSet();
+        IConflictingDictionary<string, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> c2 = map.With(s => s.Eidr).AsDictionary();
+        IRemoveOnlyDictionary<string, Movie> d2 = map.With(s => s.Eidr).AsDictionary(t => t.Movie);
+        IRemoveOnlyDictionary<string, IEnumerable<(string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)>> e2 = map.With(s => s.Eidr).AsDictionaryOfEnumerable();
+        IRemoveOnlyDictionary<string, IEnumerable<Movie>> f2 = map.With(s => s.Eidr).AsDictionaryOfEnumerable(t => t.Movie);
+        IConflictingMultiDictionary<string, (string Eidr, int ReleaseYear, FilmGenre Genre, Director Director, Movie Movie)> g2 = map.With(s => s.Eidr).AsMultiDictionary();
+        IRemoveOnlyMultiDictionary<string, Movie> h2 = map.With(s => s.Eidr).AsMultiDictionary(t => t.Movie);
+        */
     }
 }
 
