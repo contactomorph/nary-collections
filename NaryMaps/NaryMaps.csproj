@@ -13,7 +13,7 @@
         <PackageTags>map, dictionary, multidictionary, bidictionary, set</PackageTags>
         <Description>A generic collection type generalising dictionaries, multidictionaries, bidictionaries, dictionaries with multiple keys</Description>
         <PackageIcon>logo_narymap.png</PackageIcon>
-        <Version>0.2.0</Version>
+        <Version>1.0.0</Version>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
     <ItemGroup>
