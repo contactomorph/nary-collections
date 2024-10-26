@@ -5,6 +5,7 @@ using NaryMaps.Primitives;
 
 namespace NaryMaps.Implementation;
 
+///<exclude/>
 public abstract class UniqueSearchableSelection<TDataTuple, TDataEntry, TComparerTuple, THandler, TSchema, T> :
     SelectionBase<TDataTuple, TDataEntry, TComparerTuple, THandler, T>,
     ISelection<TSchema, CompositeKind.UniqueSearchable, T>

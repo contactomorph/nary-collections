@@ -9,7 +9,7 @@ namespace NaryMaps.Implementation;
 
 using Selection = SelectionBase<ValueTuple, ValueTuple, ValueTuple, FakeHashTableProvider, object>;
 
-public static class SelectionCompilation
+internal static class SelectionCompilation
 {
     private static string GetSelectionTypeName(byte backIndexRank) => $"Selection_{backIndexRank}";
     

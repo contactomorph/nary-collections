@@ -223,7 +223,7 @@ Static method `NaryMap.New<TSchema>()` always return an instance of interface `I
 
 ### Read-Only Projections
 
-Here are the projection methods that can be accessed on both `IMap<TDataTuple>` and `IReadOnlyMap<TDataTuple>`:
+Here are the projection methods that can be accessed on both `IMap<TSchema>` and `IReadOnlyMap<TSchema>`:
 
 | Method call                                                     | Result type                                             |
 |-----------------------------------------------------------------|---------------------------------------------------------|
@@ -238,7 +238,7 @@ Here are the projection methods that can be accessed on both `IMap<TDataTuple>` 
 
 ### Read-Write Projections
 
-Here are the projection methods that can only be accessed on `IMap<TDataTuple>`:
+Here are the projection methods that can only be accessed on `IMap<TSchema>`:
 
 | Method call                                             | Result type                                            |
 |---------------------------------------------------------|--------------------------------------------------------|

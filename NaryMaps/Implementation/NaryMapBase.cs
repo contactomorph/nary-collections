@@ -5,12 +5,13 @@ using NaryMaps.Primitives;
 
 namespace NaryMaps.Implementation;
 
-public static class NaryMapBase
+internal static class NaryMapBase
 {
     public const string DataTableFieldName = "_dataTable";
     public const string CountFieldName = "_count";
 }
 
+///<exclude/>
 public abstract class NaryMapBase<TDataTuple, THashTuple, TIndexTuple, TComparerTuple, TCompositeHandler, TSchema>
     : NaryMapCore<DataEntry<TDataTuple, THashTuple, TIndexTuple>, TComparerTuple>,
         INaryMap<TSchema>,
